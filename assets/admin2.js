@@ -221,7 +221,7 @@ var ST=document.createElement("style");ST.textContent=".dsh{display:grid;gap:14p
 function palette(){if($("#pal"))return;var items=MODS.filter(function(m){return can(m.p)}).map(function(m){return {t:m.l,f:function(){setMod(m.id,true)}}});
  if(can("store")){items.push({t:"+ منتج جديد / New product",f:function(){setMod("prod",true);setTimeout(function(){var b=$("#add");b&&b.click()},500)}});items.push({t:"+ تصنيف جديد / New category",f:function(){setMod("cat",true);setTimeout(function(){var b=$("#add");b&&b.click()},500)}})}
  var o=document.createElement("div");o.id="pal";o.innerHTML='<div class="bx" role="dialog" aria-label="Command palette"><input type="text" placeholder="ابحث أو اكتب أمر / Search or type a command" aria-label="search"><ul></ul><small>↑↓ Enter · Esc</small></div>';document.body.appendChild(o);
- var inp=$("input",o),ul=$("ul",o),sel=0,cur=items;function draw(){ul.innerHTML=cur.map(function(x,i){return '<li class="'+(i===sel?"on":"")+'" data-i="'+i+'">'+esc(x.t)+"</li>"}).join("")||"<li>—</li>"}
+ var inp=o.querySelector("input"),ul=o.querySelector("ul"),sel=0,cur=items;function draw(){ul.innerHTML=cur.map(function(x,i){return '<li class="'+(i===sel?"on":"")+'" data-i="'+i+'">'+esc(x.t)+"</li>"}).join("")||"<li>—</li>"}
  function run(i){var x=cur[i];o.remove();if(x)x.f()}
  inp.oninput=function(){var q=inp.value.toLowerCase();cur=items.filter(function(x){return x.t.toLowerCase().indexOf(q)>-1});sel=0;draw()};
  inp.onkeydown=function(e){if(e.key==="Escape")o.remove();else if(e.key==="ArrowDown"){sel=Math.min(sel+1,cur.length-1);draw();e.preventDefault()}else if(e.key==="ArrowUp"){sel=Math.max(sel-1,0);draw();e.preventDefault()}else if(e.key==="Enter")run(sel)};
