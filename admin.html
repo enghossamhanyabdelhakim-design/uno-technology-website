@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/logo-tu.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--o:#F65A00;--od:#C94700;--ink:#1F2933;--mut:#5B6670;--ln:#E7DED6;--bg:#F6F3F0;--sbw:264px}
+:root{--o:#F65A00;--od:#C94700;--ink:#1F2933;--mut:#5B6670;--ln:#E7DED6;--bg:#F6F3F0;--sbw:288px}
 *{box-sizing:border-box;margin:0}
 body{font-family:Cairo,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
 button,.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:7px 16px;cursor:pointer;background:var(--o);color:#fff}
@@ -24,9 +24,9 @@ body.mini{--sbw:68px}
 .sbh .col:hover{background:#FFF1E8;color:var(--o)}
 #nav{flex:1;overflow:auto;padding:8px}
 .grp{font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.04em;padding:14px 12px 4px;white-space:nowrap;text-transform:uppercase}
-.ni{display:flex;align-items:center;gap:12px;width:100%;text-align:start;background:transparent;color:var(--ink);border-radius:10px;padding:9px 12px;font-weight:600;white-space:nowrap}
+.ni{display:flex;align-items:center;gap:12px;width:100%;text-align:start;background:transparent;color:var(--ink);border-radius:10px;padding:9px 12px;font-weight:600}
 .ni:hover{background:#FFF1E8;color:var(--o)}.ni.on{background:#FFE9DB;color:var(--od)}
-.ni .n{flex:1;overflow:hidden;text-overflow:ellipsis}.ni .bd{background:var(--o);color:#fff;border-radius:99px;font-size:11px;padding:0 7px;min-width:20px;text-align:center}
+.ni .n{flex:1;white-space:normal;line-height:1.3}.ni .bd{background:var(--o);color:#fff;border-radius:99px;font-size:11px;padding:0 7px;min-width:20px;text-align:center}
 .sub{display:none;padding:2px 0 6px;margin-inline-start:14px;border-inline-start:2px solid var(--ln)}
 .sub.open{display:block}
 #side{display:block!important;position:static!important;border:0!important;padding:0!important;max-height:none!important;background:transparent!important}
@@ -84,6 +84,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px 12px;
  .main{margin:10px;padding:14px}.pair{grid-template-columns:1fr}.kv{grid-template-columns:1fr 1fr auto}
  .top{padding:8px 12px}
 }
+h2,.card,td{overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -96,15 +97,15 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px 12px;
 <div class="main" id="main"></div></div></div>
 <div id="dlg"><div class="box" id="dbx"></div></div>
 <div id="lg" style="position:fixed;inset:0;background:#F7F4F1;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px"><form id="lf" style="background:#fff;border:1px solid var(--ln);border-radius:16px;padding:26px;width:100%;max-width:360px"><img src="assets/logo-uno-technology.png" alt="" style="height:44px;margin-bottom:12px"><h2 style="margin-bottom:10px">دخول الإدارة / Admin login</h2><label class="f"><span>Email</span><input type="email" id="em" dir="ltr" autocomplete="username" required></label><label class="f"><span>Password / كلمة السر</span><input type="password" id="pw" dir="ltr" autocomplete="current-password" required style="width:100%;font:inherit;padding:8px 12px;border:1.5px solid var(--ln);border-radius:10px"></label><button style="width:100%;margin-top:8px">دخول / Sign in</button><p id="le" class="dirty" style="margin-top:8px"></p></form></div>
-<script src="assets/config.js?v=20261125m"></script>
-<script src="assets/content.js?v=20261125m"></script>
-<script src="assets/cloud.js?v=20261125m"></script>
+<script src="assets/config.js?v=20261125n"></script>
+<script src="assets/content.js?v=20261125n"></script>
+<script src="assets/cloud.js?v=20261125n"></script>
 <script>
 (function(){
 function start(){document.getElementById("lg").style.display="none";
  CLOUD.load().then(function(r){try{localStorage.removeItem("uno_draft")}catch(e){}
   if(r&&r.data&&r.data.site){window.UNO=window.UNO_FILL(r.data,window.UNO)}
- }).catch(function(){}).then(function(){var x=document.createElement("script");x.src="assets/admin.js?v=20261125m";x.onload=function(){var y=document.createElement("script");y.src="assets/admin2.js?v=20261125m";document.body.appendChild(y)};document.body.appendChild(x)})}
+ }).catch(function(){}).then(function(){var x=document.createElement("script");x.src="assets/admin.js?v=20261125n";x.onload=function(){var y=document.createElement("script");y.src="assets/admin2.js?v=20261125n";document.body.appendChild(y)};document.body.appendChild(x)})}
 if(CLOUD.loggedIn()){CLOUD.check().then(start).catch(function(){CLOUD.logout()})}
 document.getElementById("lf").onsubmit=function(e){e.preventDefault();var le=document.getElementById("le");le.textContent="...";
  CLOUD.login(document.getElementById("em").value.trim(),document.getElementById("pw").value).then(start).catch(function(er){le.textContent="فشل الدخول / Login failed: "+er.message})}
