@@ -372,7 +372,7 @@ var VMAX=180,VTURNS=15,VDAY=6;
 function vcSR(){return window.SpeechRecognition||window.webkitSpeechRecognition||null}
 function vcT(ar,en){return h.lang==="ar"?ar:en}
 function vcCap(who,t){var c=$("#vc-cap");if(!c)return;c.innerHTML='<small>'+esc(who)+'</small><p>'+esc(t)+'</p>'}
-function vcState(k){var o=$("#vc");if(!o)return;o.setAttribute("data-s",k);var m={listen:vcT("بسمعك...","Listening..."),think:vcT("بفكر...","Thinking..."),speak:vcT("بتكلم...","Speaking..."),idle:vcT("المايك مكتوم","Mic muted"),text:vcT("اكتب سؤالك","Type your question")};$("#vc-st").textContent=m[k]||""}
+function vcState(k){var o=$("#vc");if(!o)return;o.setAttribute("data-s",k);var m={listen:vcT("بسمعك...","Listening..."),think:vcT("بفكر...","Thinking..."),speak:vcT("بتكلم...","Speaking..."),connect:vcT("بتوصل...","Connecting..."),idle:vcT("المايك مكتوم","Mic muted"),text:vcT("اكتب سؤالك","Type your question")};$("#vc-st").textContent=m[k]||""}
 function vcVoice(){var vs=window.speechSynthesis?speechSynthesis.getVoices():[],l=h.lang==="ar"?"ar":"en";return vs.filter(function(v){return v.lang&&v.lang.toLowerCase().indexOf(l)===0})[0]||null}
 function vcSpeak(text,done){
   if(!window.speechSynthesis||!VC.on){done&&done();return}
@@ -537,7 +537,9 @@ function vlChunk(c){
   var bin="";for(i=0;i<pcm.length;i+=8192)bin+=String.fromCharCode.apply(null,pcm.subarray(i,i+8192));
   vlSend({realtimeInput:{audio:{data:btoa(bin),mimeType:"audio/pcm;rate=16000"}}})
 }
+function vlTick(){try{var c=VA.ctx;if(!c)return;var o=c.createOscillator(),g=c.createGain();o.type="sine";o.frequency.value=660;g.gain.setValueAtTime(0.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(0.06,c.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+0.09);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+0.1)}catch(e){}}
 function vlMsg(m){
+  if(m.voiceActivity){if(m.voiceActivity.type==="ACTIVITY_END"&&!VL.q.length){vcState("think");vlTick()}else if(m.voiceActivity.type==="ACTIVITY_START"&&!VL.q.length)vcState("listen")}
   if(m.serverContent){var sc=m.serverContent;
     if(sc.interrupted){vlHalt();VA.st="listen";vcState("listen")}
     if(sc.inputTranscription&&sc.inputTranscription.text){if(VL.outT){VL.outT="";VL.inT=""}VL.inT+=sc.inputTranscription.text;vcCap(vcT("إنت","You"),VL.inT.trim());vcChips([]);if(VA.st!=="speak")vcState("think")}
@@ -554,14 +556,14 @@ function vlStart(done){
   var cfg=window.UNO_CFG,svcs=(C.services||[]).map(function(x){return x.t.en}).join("; "),fin=false,
   to=setTimeout(function(){if(fin)return;fin=true;done(false)},9000);
   function fail(){if(fin)return;fin=true;clearTimeout(to);done(false)}
-  if(!window.WebSocket||!window.fetch||!VA.ctx)return fail();
+  if(!window.WebSocket||!window.fetch)return fail();
   fetch(cfg.url+"/functions/v1/chat",{method:"POST",headers:{"Content-Type":"application/json",apikey:cfg.key,Authorization:"Bearer "+cfg.key},body:JSON.stringify({mode:"live",svcs:svcs,lang:h.lang})}).then(function(r){return r.json()}).then(function(j){
-    if(fin||!j||!j.token)return fail();
+    if(window.UNO_vt)UNO_vt.token=Date.now()-VC.t0;if(fin||!j||!j.token)return fail();
     var ws=new WebSocket("wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token="+encodeURIComponent(j.token));VL.ws=ws;
     ws.onopen=function(){ws.send(JSON.stringify({setup:{model:"models/"+(j.model||"gemini-3.8-live")}}))};
     ws.onmessage=function(ev){
       function go(t){var m;try{m=JSON.parse(t)}catch(e){return}
-        if(m.setupComplete&&!fin){fin=true;clearTimeout(to);VL.ok=true;VL.inT="";VL.outT="";VL.q=[];VL.nt=0;done(true);return}
+        if(m.setupComplete&&!fin){fin=true;clearTimeout(to);VL.ok=true;if(window.UNO_vt)UNO_vt.setup=Date.now()-VC.t0;VL.inT="";VL.outT="";VL.q=[];VL.nt=0;done(true);return}
         if(VL.ok)vlMsg(m)}
       if(typeof ev.data==="string")go(ev.data);else if(ev.data&&ev.data.text)ev.data.text().then(go)
     };
@@ -584,14 +586,15 @@ function vcStart(){
   if(window.speechSynthesis)speechSynthesis.getVoices();
   var g=vcT("أهلاً! أنا أونو. اتفضل اسألني عن خدماتنا.","Hi! I'm Uno. Ask me about our services.");vcCap("Uno",g);
   vcChips((C.chatbot.quick||[]).slice(0,3).map(function(q){return L(q.t)}));
-  vcState("think");VC.mode="cloud";
+  vcState("connect");VC.mode="connect";VL.res=undefined;VL.cb=null;VL.ok=false;window.UNO_vt={};
+  vlStart(function(r){VL.res=r;if(VL.cb){var f=VL.cb;VL.cb=null;f(r)}});
   vaStart(function(ok,err){
     if(!VC.on)return;
-    if(ok){VC.mode="live";VA.st="idle";$("#vc-note").textContent=vcT("بجهز الاتصال السريع...","Connecting fast voice...");
-      vlStart(function(lok){if(!VC.on)return;
-        if(lok){VC.mode="live";VA.st="listen";$("#vc-note").textContent=vcT("اتكلم عادي بأي لغة، وممكن تقاطعني في أي وقت. الصوت بيتعالج بواسطة Google Gemini (الخدمة المجانية، وجوجل ممكن تستخدمه لتحسين منتجاتها).","Just talk in any language and interrupt anytime. Audio is processed by Google Gemini (free tier; Google may use it to improve its products).");vcState("listen")}
-        else{VC.mode="cloud";VA.st="listen";$("#vc-note").textContent=vcT("اتكلم عادي، وممكن تقاطعني في أي وقت. الصوت بيتعالج على السيرفر بتاعنا باستخدام Gemini.","Just talk, and interrupt anytime. Audio is processed on our server using Gemini.");vcState("listen")}})}
-    else{VC.mode="browser";
+    if(ok){var go=function(lok){if(!VC.on)return;
+        if(lok){VC.mode="live";VA.st="listen";$("#vc-note").textContent=vcT("اتكلم عادي بأي لغة، وممكن تقاطعني في أي وقت. الصوت بيتعالج بواسطة Google Gemini (الخدمة المجانية، وجوجل ممكن تستخدمه لتحسين منتجاتها).","Just talk in any language and interrupt anytime. Audio is processed by Google Gemini (free tier; Google may use it to improve its products).");vcState("listen");window.UNO_vt&&(window.UNO_vt.ready=Date.now()-VC.t0)}
+        else{VC.mode="cloud";VA.st="listen";$("#vc-note").textContent=vcT("اتكلم عادي، وممكن تقاطعني في أي وقت. الصوت بيتعالج على السيرفر بتاعنا باستخدام Gemini.","Just talk, and interrupt anytime. Audio is processed on our server using Gemini.");vcState("listen")}};
+      VA.st="idle";vcState("connect");if(VL.res===undefined)VL.cb=go;else go(VL.res)}
+    else{VC.mode="browser";if(VL.ws){try{VL.ws.onclose=null;VL.ws.close()}catch(e){}VL.ws=null}VL.ok=false;
       if(err==="NotAllowedError"||err==="SecurityError"){$("#vc-note").textContent=vcT("المايك مش مسموح. فعّل إذن المايك من إعدادات المتصفح، أو اكتب سؤالك.","Microphone blocked. Allow it in browser settings, or type your question.");vcState("text");$("#vc-tf").hidden=false}
       else if(SR){$("#vc-note").textContent=vcT("الصوت بيتعالج بخدمة التعرف على الكلام في متصفحك.","Speech is processed by your browser's speech recognition service.");vcListen()}
       else{$("#vc-note").textContent=vcT("جهازك مش بيدعم المايك هنا. اكتب سؤالك وهعرضلك الرد.","Microphone is not available here. Type your question and I will show the answer.");vcState("text");$("#vc-tf").hidden=false}}
