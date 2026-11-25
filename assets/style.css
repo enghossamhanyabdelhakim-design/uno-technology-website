@@ -233,3 +233,15 @@ a,button,summary{-webkit-tap-highlight-color:transparent}
 .pimg>span .svg-ic{width:44px;height:44px}
 .chip .svg-ic{display:inline-block;width:18px;height:18px;vertical-align:-4px;margin-inline-end:6px;color:currentColor}
 .chip.on .svg-ic{color:#fff}
+
+/* ===== v4.2 overflow safety ===== */
+*,*::before,*::after{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:clip}
+img,svg,video,canvas,iframe{max-width:100%}
+.rq{width:100%}.rq label,.rq input,.rq select,.rq textarea{min-width:0;max-width:100%;width:100%}
+.hero,.hero-fx,section,footer{overflow-x:clip}
+.hero-fx .glow{max-width:80vw}
+.mbar{left:0;right:0;width:auto;max-width:100vw}
+h1,h2,h3,p,li,a{overflow-wrap:anywhere}
+.tcard,.card,.pc,.pcard,.fcard{min-width:0}
+.grid,.pgrid,.pgrid3,.why,.steps,.about,.hg{min-width:0}.grid>*,.pgrid>*,.why>*,.steps>*,.hg>*{min-width:0}
