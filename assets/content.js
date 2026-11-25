@@ -143,6 +143,10 @@ window.UNO={
   "request": {
    "ar": "ابدأ مشروعك",
    "en": "Start your project"
+  },
+  "founder": {
+   "ar": "فريق القيادة",
+   "en": "Leadership"
   }
  },
  "why": [
@@ -1613,5 +1617,20 @@ window.UNO={
  },
  "seo": {
   "url": "https://enghossamhanyabdelhakim-design.github.io/uno-technology-website/"
+ },
+ "founder": {
+  "img": "assets/founder.jpg",
+  "name": {
+   "ar": "حسام الطلال",
+   "en": "Hossam ElTlal"
+  },
+  "role": {
+   "ar": "المؤسس المشارك والرئيس التنفيذي",
+   "en": "Co-Founder & CEO"
+  },
+  "cap": {
+   "ar": "مهندس تكنولوجيا الاتصالات",
+   "en": "Communications Technology Engineer"
+  }
  }
 };
