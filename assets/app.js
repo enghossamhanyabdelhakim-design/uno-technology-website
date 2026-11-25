@@ -368,7 +368,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape"&&projOpen){v
 
 /* ---------- voice call (browser speech recognition + synthesis + chat function) ---------- */
 var VC={mode:"cloud",on:false,mute:false,t0:0,tick:null,rec:null,turns:0,busy:false,speaking:false,sr:null};
-var VMAX=180,VTURNS=15,VDAY=30;function vcOwner(){try{if(/[?&]owner(=|&|$)/.test(location.search))localStorage.setItem("uno_owner","1");if(localStorage.getItem("uno_owner")==="1")return true;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*auth-token$/.test(k))return true}}catch(e){}return false}
+var VMAX=180,VTURNS=15,VDAY=30;function vcOwner(){try{if(/[?&]owner(=|&|$)/.test(location.search))localStorage.setItem("uno_owner","1");if(localStorage.getItem("uno_owner")==="1")return true;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*auth-token$/.test(k)||k==="uno_sess")return true}}catch(e){}return false}
 function vcSR(){return window.SpeechRecognition||window.webkitSpeechRecognition||null}
 function vcT(ar,en){return h.lang==="ar"?ar:en}
 function vcCap(who,t){var c=$("#vc-cap");if(!c)return;c.innerHTML='<small>'+esc(who)+'</small><p>'+esc(t)+'</p>'}
