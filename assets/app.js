@@ -532,14 +532,15 @@ function vlPlay(b64){
 }
 function vlSend(o){if(VL.ws&&VL.ws.readyState===1)VL.ws.send(JSON.stringify(o))}
 function vlChunk(c){
-  if(!VL.ok||VC.mute)return;var ratio=VA.ctx.sampleRate/16000,m=Math.floor(c.length/ratio),pcm=new Uint8Array(m*2),i,j;
+  if(!VL.ok||VC.mute)return;
+  if(VL.q.length||VA.st==="speak"){var sm0=0,q0;for(q0=0;q0<c.length;q0++)sm0+=c[q0]*c[q0];var r0=Math.sqrt(sm0/c.length);if(r0>0.12)VL.bg=(VL.bg||0)+1;else VL.bg=0;if(VL.bg<3)return}else VL.bg=0;var ratio=VA.ctx.sampleRate/16000,m=Math.floor(c.length/ratio),pcm=new Uint8Array(m*2),i,j;
   for(i=0;i<m;i++){var a=Math.floor(i*ratio),b=Math.min(c.length,Math.floor((i+1)*ratio)),sm=0,k=0;for(j=a;j<b;j++){sm+=c[j];k++}var v=k?sm/k:0;v=Math.max(-1,Math.min(1,v));v=v<0?v*32768:v*32767;v=v|0;pcm[i*2]=v&255;pcm[i*2+1]=(v>>8)&255}
   var bin="";for(i=0;i<pcm.length;i+=8192)bin+=String.fromCharCode.apply(null,pcm.subarray(i,i+8192));
   vlSend({realtimeInput:{audio:{data:btoa(bin),mimeType:"audio/pcm;rate=16000"}}})
 }
 function vlTick(){try{var c=VA.ctx;if(!c)return;var o=c.createOscillator(),g=c.createGain();o.type="sine";o.frequency.value=660;g.gain.setValueAtTime(0.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(0.06,c.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+0.09);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+0.1)}catch(e){}}
 function vlMsg(m){
-  if(m.voiceActivity){if(m.voiceActivity.type==="ACTIVITY_END"&&!VL.q.length){vcState("think");vlTick()}else if(m.voiceActivity.type==="ACTIVITY_START"&&!VL.q.length)vcState("listen")}
+  if(m.voiceActivity){if(m.voiceActivity.type==="ACTIVITY_END"&&!VL.q.length&&VA.st==="listen"&&VL.inT)vcState("think")}
   if(m.serverContent){var sc=m.serverContent;
     if(sc.interrupted){vlHalt();VA.st="listen";vcState("listen")}
     if(sc.inputTranscription&&sc.inputTranscription.text){if(VL.outT){VL.outT="";VL.inT=""}VL.inT+=sc.inputTranscription.text;vcCap(vcT("إنت","You"),VL.inT.trim());vcChips([]);if(VA.st!=="speak")vcState("think")}
