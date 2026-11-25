@@ -327,8 +327,7 @@ function wire(){
 }
 
 function store(){
-  var k=C.contact||{},n=intl(k.whatsapp||k.phone||"").replace("+","");
-  $("#app").innerHTML='<section><div class="wrap soon"><div class="soon-ic">'+ico("\uD83D\uDED2")+'</div><h2>'+B({ar:"متجر أونو",en:"Uno Store"})+'</h2><p class="sub">'+B({ar:"المتجر الإلكتروني قيد التجهيز وهيفتح قريب. لحد ما يفتح، تقدر تطلب أي منتج أو خدمة من خلال واتساب.",en:"The online store is being prepared and opens soon. Until then you can ask for any product or service on WhatsApp."})+'</p><div class="btns">'+(n?'<a class="btn" href="https://wa.me/'+U(n)+'" target="_blank" rel="noopener">'+B({ar:"اطلب على واتساب",en:"Order on WhatsApp"})+'</a>':'')+'<a class="btn alt" href="index.html#services">'+B({ar:"شوف الخدمات",en:"See services"})+'</a></div></div></section>';
+  var sc=document.createElement("script");sc.src="assets/store.js?v=20261126a";document.body.appendChild(sc);
   document.title=(h.lang==="en"?"Store | ":"المتجر | ")+((C.site&&C.site.name&&(C.site.name.en))||"Uno");
 }
 
