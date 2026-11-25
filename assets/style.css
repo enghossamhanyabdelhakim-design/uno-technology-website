@@ -228,3 +228,6 @@ a,button,summary{-webkit-tap-highlight-color:transparent}
 }
 @media(max-width:420px){.pgrid,.pgrid3{grid-template-columns:1fr}.hero .btns{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.btn,.card{transition:none}}
+.svg-ic{width:26px;height:26px;color:var(--o);display:block}
+.ic,.pci,.pimg>span{display:inline-flex;align-items:center;justify-content:center}
+.pimg>span .svg-ic{width:44px;height:44px}
