@@ -303,12 +303,14 @@ function bot(r){
 function quick(){$("#ch-q").innerHTML=C.chatbot.quick.map(function(q,i){return '<button type="button" data-i="'+i+'">'+B(q.t)+'</button>'}).join("");
   $$("#ch-q button").forEach(function(b){b.onclick=function(){var q=C.chatbot.quick[+b.dataset.i];user(L(q.t));setTimeout(function(){bot(brain(q.q))},300)}})}
 function openChat(greetOnly,topic){
-  if(!$("#chat"))return; $("#chat").hidden=false; chatOpen=true; $("#chat-fab").classList.add("hid");
+  if(!$("#chat"))return; $("#chat").hidden=false; chatOpen=true; document.body.classList.add("chat-open"); vvFit(); $("#chat-fab").classList.add("hid");
   if(!chatInit){chatInit=true;bot({a:C.chatbot.greeting,links:[]});quick();}
   if(topic){user(L({ar:"عايز أسأل عن: ",en:"I'd like to ask about: "})+topic);setTimeout(function(){bot(brain(topic))},300)}
   setTimeout(function(){$("#ch-i").focus()},50);
 }
-function closeChat(){$("#chat").hidden=true;chatOpen=false;$("#chat-fab").classList.remove("hid")}
+function vvFit(){var v=window.visualViewport,c=$("#chat");if(!c)return;if(v){c.style.setProperty("--vvh",v.height+"px");c.style.transform="translateY("+(v.offsetTop||0)+"px)";var b=$("#ch-b");if(b)b.scrollTop=b.scrollHeight}}
+if(window.visualViewport){visualViewport.addEventListener("resize",function(){if(chatOpen)vvFit()});visualViewport.addEventListener("scroll",function(){if(chatOpen)vvFit()})}
+function closeChat(){document.body.classList.remove("chat-open");$("#chat").style.removeProperty("--vvh");$("#chat").style.transform="";$("#chat").hidden=true;chatOpen=false;$("#chat-fab").classList.remove("hid")}
 window.UNO_openChat=openChat;
 
 /* ---------- common behaviours ---------- */
