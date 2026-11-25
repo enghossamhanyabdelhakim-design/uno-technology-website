@@ -231,9 +231,9 @@ T.cctv={
   return {rows:rows,notes:notes,sum:"CCTV plan: "+n+" cameras ("+inn+" in/"+out+" out) "+mp+"MP "+sys+", "+days+" days, "+(mot?"motion":"continuous")+" | "+rows.map(function(r){return r[0].en+": "+(typeof r[1]==="object"?r[1].en:r[1])}).join(" | "),title:bi("خطة الكاميرات المقترحة","Suggested CCTV plan")};}
 };
 function tools(){
-  var order=[["pc",bi("💻 لابتوب / كمبيوتر","💻 Laptop / PC")],["phone",bi("📱 موبايل","📱 Phone")],["cctv",bi("📹 كاميرات مراقبة","📹 CCTV planner")]];
+  var order=[["pc",bi("لابتوب / كمبيوتر","Laptop / PC")],["phone",bi("موبايل","Phone")],["cctv",bi("كاميرات مراقبة","CCTV planner")]];
   var cur=(location.hash||"#pc").replace("#",""); if(!T[cur])cur="pc";
-  $("#app").innerHTML='<section><div class="wrap"><h2>'+B(C.sections.tools.t)+'</h2><p class="sub">'+B(C.sections.tools.d)+'</p><div class="chips" id="tabs">'+order.map(function(o){return '<button class="chip'+(o[0]===cur?' on':'')+'" data-t="'+o[0]+'">'+B(o[1])+'</button>'}).join("")+'</div><div class="tool"><form id="tf" class="tform"></form><div id="tout" class="tout"></div></div></div></section>';
+  $("#app").innerHTML='<section><div class="wrap"><h2>'+B(C.sections.tools.t)+'</h2><p class="sub">'+B(C.sections.tools.d)+'</p><div class="chips" id="tabs">'+order.map(function(o){return '<button class="chip'+(o[0]===cur?' on':'')+'" data-t="'+o[0]+'">'+ico({pc:"💻",phone:"📱",cctv:"📹"}[o[0]])+B(o[1])+'</button>'}).join("")+'</div><div class="tool"><form id="tf" class="tform"></form><div id="tout" class="tout"></div></div></div></section>';
   function show(k){
     cur=k;$$("#tabs .chip").forEach(function(c){c.classList.toggle("on",c.dataset.t===k)});
     $("#tf").innerHTML=T[k].form()+'<button class="btn" type="submit">'+B(bi("احسب","Calculate"))+'</button>';

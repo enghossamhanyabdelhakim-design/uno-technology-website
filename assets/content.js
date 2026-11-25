@@ -1621,7 +1621,7 @@ window.UNO={
  "founder": {
   "img": "assets/founder.jpg",
   "name": {
-   "ar": "حسام الطلال",
+   "ar": "حسام التلال",
    "en": "Hossam ElTlal"
   },
   "role": {

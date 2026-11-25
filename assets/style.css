@@ -231,3 +231,5 @@ a,button,summary{-webkit-tap-highlight-color:transparent}
 .svg-ic{width:26px;height:26px;color:var(--o);display:block}
 .ic,.pci,.pimg>span{display:inline-flex;align-items:center;justify-content:center}
 .pimg>span .svg-ic{width:44px;height:44px}
+.chip .svg-ic{display:inline-block;width:18px;height:18px;vertical-align:-4px;margin-inline-end:6px;color:currentColor}
+.chip.on .svg-ic{color:#fff}
