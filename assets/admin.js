@@ -59,7 +59,7 @@ $("#b-exp").onclick=function(){var t="window.UNO="+JSON.stringify(W,null,1)+";\n
 $("#b-imp").onclick=function(){$("#imp").click()};
 $("#imp").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var t=r.result.replace(/^\s*window\.UNO\s*=\s*/,"").replace(/;\s*$/,"");W=JSON.parse(t);save();drawSide();drawMain()}catch(e){alert("ملف غير صالح / Invalid file")}};r.readAsText(f)};
 $("#b-rst").onclick=function(){if(confirm("مسح المسودة والرجوع للمحتوى المنشور؟ / Discard the draft and go back to the published content?")){localStorage.removeItem("uno_draft");W=JSON.parse(JSON.stringify(BASE));drawSide();drawMain();$("#st").textContent=""}};
-drawSide();drawMain();
+window.__admin={drawMain:drawMain,drawSide:drawSide};drawSide();drawMain();
 })();
 
 (function(){var b=document.getElementById("b-pub");if(!b)return;

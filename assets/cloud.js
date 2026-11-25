@@ -11,7 +11,7 @@ function token(){
  return fetch(c.url+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:c.key,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:S.refresh_token})}).then(j).then(function(d){setSess(d);return S.access_token}).catch(function(e){store(null);throw e});
 }
 function H(t,extra){var h={apikey:c.key,Authorization:"Bearer "+t};for(var k in extra)h[k]=extra[k];return h}
-window.CLOUD={
+window.CLOUD={token:token,
  loggedIn:function(){return !!S},
  email:function(){return S&&S.email},
  login:function(email,pw){return fetch(c.url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:c.key,"Content-Type":"application/json"},body:JSON.stringify({email:email,password:pw})}).then(j).then(function(d){setSess(d);return d})},
