@@ -276,8 +276,8 @@ function brain(text){
 var chatOpen=false,chatInit=false;
 function chatUI(){
   var ch=C.chatbot;
-  document.body.insertAdjacentHTML("beforeend",'<button id="chat-fab" type="button" aria-label="Uno chat"><img src="'+U(ch.avatar)+'" alt="Uno"><span class="dot"></span></button><div id="chat" role="dialog" aria-label="Uno assistant" hidden><div class="ch-h"><img src="'+U(ch.avatar)+'" alt=""><div><b>'+B(ch.name)+'</b><small>'+B(ch.status)+'</small></div><button type="button" id="ch-x" aria-label="Close">\u2715</button></div><div class="ch-b" id="ch-b" aria-live="polite"></div><div class="ch-q" id="ch-q"></div><form class="ch-f" id="ch-f"><input id="ch-i" type="text" autocomplete="off" placeholder="'+U(L(ch.placeholder))+'"><button type="submit" aria-label="Send">\u27A4</button></form></div>');
-  $("#chat-fab").onclick=function(){openChat()}; $("#ch-x").onclick=function(){closeChat()};
+  document.body.insertAdjacentHTML("beforeend",'<button id="chat-fab" type="button" aria-label="Uno chat"><img src="'+U(ch.avatar)+'" alt="Uno"><span class="dot"></span></button><div id="chat" role="dialog" aria-label="Uno assistant" hidden><div class="ch-h"><img src="'+U(ch.avatar)+'" alt=""><div><b>'+B(ch.name)+'</b><small>'+B(ch.status)+'</small></div><button type="button" id="ch-call" aria-label="Voice call"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg></button><button type="button" id="ch-x" aria-label="Close">\u2715</button></div><div class="ch-b" id="ch-b" aria-live="polite"></div><div class="ch-q" id="ch-q"></div><form class="ch-f" id="ch-f"><input id="ch-i" type="text" autocomplete="off" placeholder="'+U(L(ch.placeholder))+'"><button type="submit" aria-label="Send">\u27A4</button></form></div>');
+  $("#chat-fab").onclick=function(){openChat()}; $("#ch-x").onclick=function(){closeChat()};$("#ch-call").onclick=function(){vcStart()};
   $("#ch-f").onsubmit=function(e){e.preventDefault();var i=$("#ch-i"),v=i.value.trim();if(!v)return;i.value="";user(v);ask(v)};
 }
 var HIST=[];
@@ -365,6 +365,70 @@ function projRoute(){normPort();
 }
 window.addEventListener("hashchange",function(){if(PAGE==="home")projRoute()});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&projOpen){var b=$("#pj-x");b&&b.click()}});
+
+/* ---------- voice call (browser speech recognition + synthesis + chat function) ---------- */
+var VC={on:false,mute:false,t0:0,tick:null,rec:null,turns:0,busy:false,speaking:false,sr:null};
+var VMAX=180,VTURNS=15,VDAY=6;
+function vcSR(){return window.SpeechRecognition||window.webkitSpeechRecognition||null}
+function vcT(ar,en){return h.lang==="ar"?ar:en}
+function vcCap(who,t){var c=$("#vc-cap");if(!c)return;c.innerHTML='<small>'+esc(who)+'</small><p>'+esc(t)+'</p>'}
+function vcState(k){var o=$("#vc");if(!o)return;o.setAttribute("data-s",k);var m={listen:vcT("بسمعك...","Listening..."),think:vcT("بفكر...","Thinking..."),speak:vcT("بتكلم...","Speaking..."),idle:vcT("المايك مكتوم","Mic muted"),text:vcT("اكتب سؤالك","Type your question")};$("#vc-st").textContent=m[k]||""}
+function vcVoice(){var vs=window.speechSynthesis?speechSynthesis.getVoices():[],l=h.lang==="ar"?"ar":"en";return vs.filter(function(v){return v.lang&&v.lang.toLowerCase().indexOf(l)===0})[0]||null}
+function vcSpeak(text,done){
+  if(!window.speechSynthesis||!VC.on){done&&done();return}
+  var v=vcVoice();
+  if(!v&&h.lang==="ar"){$("#vc-note").textContent="جهازك مفيهوش صوت عربي، فبعرض الرد مكتوب.";done&&done();return}
+  speechSynthesis.cancel();VC.speaking=true;vcState("speak");
+  var parts=String(text).replace(/\s+/g," ").match(/[^.!?؟\n]+[.!?؟]?/g)||[text],i=0;
+  (function next(){
+    if(!VC.on||i>=parts.length){VC.speaking=false;done&&done();return}
+    var u=new SpeechSynthesisUtterance(parts[i++].trim());u.lang=h.lang==="ar"?"ar-EG":"en-US";if(v)u.voice=v;u.rate=1;
+    u.onend=next;u.onerror=function(){VC.speaking=false;done&&done()};speechSynthesis.speak(u)})();
+}
+function vcAsk(q){
+  if(VC.busy||!VC.on)return;VC.busy=true;VC.turns++;vcCap(vcT("إنت","You"),q);vcState("think");
+  var cfg=window.UNO_CFG,fin=false;
+  function out(a){if(fin)return;fin=true;VC.busy=false;if(!VC.on)return;a=String(a||"").replace(/[*_#`]/g,"");vcCap("Uno",a);HIST.push({r:"u",t:q},{r:"b",t:a});
+    if(VC.turns>=VTURNS){vcCap("Uno",vcT("خلصنا الحد المسموح للمكالمة. كلمنا على واتساب أو ابدأ مكالمة تانية بعدين.","Call limit reached. Message us on WhatsApp or start another call later."));setTimeout(vcEnd,4000);return}
+    vcSpeak(a,function(){vcListen()})}
+  function local(){var r=brain(q);var tmp=document.createElement("div");tmp.innerHTML=B(r.a,false);out(tmp.textContent)}
+  if(!cfg||!window.fetch)return local();
+  var to=setTimeout(local,14000);
+  fetch(cfg.url+"/functions/v1/chat",{method:"POST",headers:{"Content-Type":"application/json",apikey:cfg.key,Authorization:"Bearer "+cfg.key},body:JSON.stringify({q:q,lang:h.lang,history:HIST.slice(-6),voice:true})}).then(function(r){return r.json()}).then(function(j){clearTimeout(to);if(j&&j.a)out(j.a);else if(j&&j.limited)out(vcT("وصلت للحد المسموح حاليًا. جرب بعد شوية أو كلمنا على واتساب.","You've reached the current limit. Try again later or message us on WhatsApp."));else local()}).catch(function(){clearTimeout(to);local()});
+}
+function vcListen(){
+  if(!VC.on||VC.mute||VC.busy)return;var SR=vcSR();if(!SR){vcState("text");return}
+  try{var r=new SR();VC.rec=r;r.lang=h.lang==="ar"?"ar-EG":"en-US";r.interimResults=true;r.continuous=false;r.maxAlternatives=1;var fin="",hadErr=false;
+    r.onstart=function(){vcState("listen")};
+    r.onresult=function(e){var t="";for(var i=e.resultIndex;i<e.results.length;i++){t+=e.results[i][0].transcript;if(e.results[i].isFinal)fin=t}vcCap(vcT("إنت","You"),t)};
+    r.onerror=function(e){hadErr=true;if(e.error==="not-allowed"||e.error==="service-not-allowed"){$("#vc-note").textContent=vcT("المايك مش مسموح. فعّل إذن المايك من إعدادات المتصفح، أو اكتب سؤالك.","Microphone blocked. Allow it in browser settings, or type your question.");vcState("text");$("#vc-tf").hidden=false}else if(e.error==="no-speech"||e.error==="aborted"){hadErr=false}};
+    r.onend=function(){if(!VC.on||VC.mute||VC.busy)return;if(fin){vcAsk(fin)}else if(!hadErr){setTimeout(vcListen,250)}};
+    r.start()}catch(e){vcState("text");$("#vc-tf").hidden=false}
+}
+function vcTimer(){var s=Math.floor((Date.now()-VC.t0)/1000),m=Math.floor(s/60);$("#vc-tm").textContent=(m<10?"0":"")+m+":"+((s%60)<10?"0":"")+(s%60);if(s>=VMAX){vcCap("Uno",vcT("وقت المكالمة انتهى. شكرًا لك!","Call time is up. Thank you!"));vcEnd()}}
+function vcEnd(){
+  if(!VC.on)return;VC.on=false;clearInterval(VC.tick);try{VC.rec&&VC.rec.abort()}catch(e){}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}
+  setTimeout(function(){var o=$("#vc");o&&o.remove();document.body.classList.remove("vc-open")},VMAX&&300);
+}
+function vcStart(){
+  if(VC.on)return;
+  var day=new Date().toISOString().slice(0,10),n=0;try{var j=JSON.parse(localStorage.getItem("uno_vc")||"{}");n=j.d===day?j.n:0;if(n>=VDAY){alert(vcT("وصلت للحد اليومي للمكالمات الصوتية. ممكن تكتب في الشات أو تكلمنا على واتساب.","Daily voice call limit reached. You can use the text chat or WhatsApp."));return}localStorage.setItem("uno_vc",JSON.stringify({d:day,n:n+1}))}catch(e){}
+  if(chatOpen)closeChat();
+  var ch=C.chatbot,SR=vcSR();
+  document.body.insertAdjacentHTML("beforeend",'<div id="vc" role="dialog" aria-modal="true" aria-label="'+U(vcT("مكالمة صوتية مع أونو","Voice call with Uno"))+'" data-s="think"><div class="vc-top"><span id="vc-tm">00:00</span><span class="vc-live"></span></div><div class="vc-orb"><i></i><i></i><i></i><img src="'+U(ch.avatar)+'" alt="Uno"></div><h2>Uno</h2><p id="vc-st" class="vc-st" aria-live="polite"></p><div id="vc-cap" class="vc-cap" aria-live="polite"></div><p id="vc-note" class="vc-note"></p><form id="vc-tf" class="vc-tf" '+(SR?'hidden':'')+'><input id="vc-ti" type="text" autocomplete="off" maxlength="300" placeholder="'+U(vcT("اكتب سؤالك...","Type your question..."))+'"><button type="submit" aria-label="Send">\u27A4</button></form><div class="vc-btns"><button type="button" id="vc-mu" aria-pressed="false" aria-label="Mute"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/><path class="sl" d="M4 4l16 16"/></svg><span>'+vcT("كتم","Mute")+'</span></button><button type="button" id="vc-kb" aria-label="Keyboard"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg><span>'+vcT("كتابة","Type")+'</span></button><button type="button" id="vc-end" class="end" aria-label="End call"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 9c-3 0-5.700.8-8 2.400-.5.400-.6 1-.2 1.500l1.500 2c.3.400.9.500 1.300.2l2-1.200c.3-.2.500-.5.500-.9V12c1.600-.5 3.300-.5 4.900 0v1c0 .4.200.700.500.900l2 1.200c.400.300 1 .2 1.300-.2l1.500-2c.400-.5.300-1.100-.2-1.500C17.700 9.800 15 9 12 9z"/></svg><span>'+vcT("إنهاء","End")+'</span></button></div></div>');
+  document.body.classList.add("vc-open");VC.on=true;VC.mute=false;VC.turns=0;VC.busy=false;VC.t0=Date.now();VC.tick=setInterval(vcTimer,1000);
+  $("#vc-end").onclick=vcEnd;
+  $("#vc-mu").onclick=function(){VC.mute=!VC.mute;this.setAttribute("aria-pressed",VC.mute);this.classList.toggle("on",VC.mute);if(VC.mute){try{VC.rec&&VC.rec.abort()}catch(e){}vcState("idle")}else vcListen()};
+  $("#vc-kb").onclick=function(){var f=$("#vc-tf");f.hidden=!f.hidden;if(!f.hidden)$("#vc-ti").focus()};
+  $("#vc-tf").onsubmit=function(e){e.preventDefault();var i=$("#vc-ti"),v=i.value.trim();if(!v)return;i.value="";try{VC.rec&&VC.rec.abort()}catch(e2){}try{speechSynthesis.cancel()}catch(e3){}VC.busy=false;vcAsk(v)};
+  document.addEventListener("keydown",function esc2(e){if(!VC.on){document.removeEventListener("keydown",esc2);return}if(e.key==="Escape")vcEnd()});
+  if(window.speechSynthesis)speechSynthesis.getVoices();
+  if(!SR)$("#vc-note").textContent=vcT("متصفحك مش بيدعم التعرف على الصوت. اكتب سؤالك وهسمعك الرد.","Your browser doesn't support speech recognition. Type your question and I'll read the answer.");
+  else $("#vc-note").textContent=vcT("الصوت بيتعالج بخدمة التعرف على الكلام في متصفحك.","Speech is processed by your browser's speech recognition service.");
+  var g=vcT("أهلاً! أنا أونو. اتفضل اسألني عن خدماتنا.","Hi! I'm Uno. Ask me about our services.");vcCap("Uno",g);
+  vcSpeak(g,function(){vcListen()});
+}
+window.UNO_voice=vcStart;
 function boot(){
   shell(); setLang(q||sl||C.site.defaultLang||"ar");
   if(PAGE==="home")home(); else if(PAGE==="blog")blog(); else if(PAGE==="tools")tools(); else if(PAGE==="store")store();
