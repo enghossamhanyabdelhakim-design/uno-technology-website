@@ -1,5 +1,6 @@
 /* Uno Store: catalog, cart, cash-on-delivery checkout. Reads public rows from Supabase; orders go through the place_order database function (prices and stock are checked on the server). */
 (function(){
+var X=window.__U,h=X.h,C=X.C,esc=X.esc,B=X.B,bi=X.bi,ico=X.ico,intl=X.intl,U=X.U,$=X.$,$$=X.$$;
 var c=window.UNO_CFG,CK="uno_cart",cart={},cats=[],prods=[],f={cat:"",q:"",sort:"new"};
 try{cart=JSON.parse(localStorage.getItem(CK)||"{}")||{}}catch(e){cart={}}
 function save(){try{localStorage.setItem(CK,JSON.stringify(cart))}catch(e){}}
