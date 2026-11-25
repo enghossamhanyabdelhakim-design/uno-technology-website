@@ -47,6 +47,8 @@ function footer(){
 function shell(){
   var main=$("#app"); document.body.insertAdjacentHTML("afterbegin",header()); document.body.insertAdjacentHTML("beforeend",footer());
   $("#yr").textContent=new Date().getFullYear();
+  (function(){var k=C.contact||{},n=intl(k.whatsapp||k.phone||"").replace("+","");
+    document.body.insertAdjacentHTML("beforeend",'<nav class="mbar" aria-label="Quick actions">'+(k.phone?'<a href="tel:'+U(intl(k.phone))+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11 11 0 003.5.56 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.2.2 2.4.56 3.5a1 1 0 01-.25 1z" fill="currentColor"/></svg><span>'+B({ar:"اتصل",en:"Call"})+'</span></a>':'')+(n?'<a class="wa" href="https://wa.me/'+U(n)+'" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 00-8.7 14.9L2 22l5.3-1.4A10 10 0 1012 2zm0 2a8 8 0 110 16 8 8 0 01-4-1.1l-.3-.2-2.4.6.7-2.3-.2-.3A8 8 0 0112 4z" fill="currentColor"/></svg><span>WhatsApp</span></a>':'')+'<button type="button" id="mb-chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H9l-5 5z" fill="currentColor"/></svg><span>'+B({ar:"اسأل أونو",en:"Ask Uno"})+'</span></button></nav>');})();
   if(PREVIEW)document.body.insertAdjacentHTML("afterbegin",'<div class="pvbar">Preview: unpublished draft from the admin panel</div>');
 }
 
@@ -101,6 +103,7 @@ function home(){
     f.onsubmit=function(e){e.preventDefault();var st=$("#rq-st"),d=new FormData(f);if(!d.get("name").trim()||!d.get("phone").trim()){st.textContent=L({ar:"اكتب الاسم ورقم التليفون.",en:"Please enter your name and phone."});return}
       st.textContent="...";
       fetch(cfg.url+"/rest/v1/requests",{method:"POST",headers:{apikey:cfg.key,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({name:d.get("name").trim(),phone:d.get("phone").trim(),service:d.get("service"),message:(d.get("msg")||"").trim(),lang:h.lang})}).then(function(r){if(!r.ok)throw 0;st.textContent=L(F.ok);f.reset()}).catch(function(){st.textContent=L(F.err)})}})();
+  $$(".card[data-c] h3").forEach(function(hh){hh.setAttribute("role","button");hh.tabIndex=0;var t=function(){hh.parentNode.classList.toggle("open")};hh.onclick=t;hh.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();t()}}});
   var ask=function(){openChat(true)}; $("#hero-ask").onclick=ask; $("#hero-bot").onclick=ask;
 }
 
@@ -311,7 +314,7 @@ function wire(){
 function boot(){
   shell(); setLang(q||sl||C.site.defaultLang||"ar");
   if(PAGE==="home")home(); else if(PAGE==="blog")blog(); else if(PAGE==="tools")tools();
-  chatUI(); wire();
+  chatUI(); wire(); (function(){var b=$("#mb-chat");if(b)b.onclick=function(){openChat()}})();
   setTheme(st||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
   reveal();
   if(PAGE==="home"&&location.hash){var el=$(location.hash);if(el)setTimeout(function(){el.scrollIntoView()},50)}
