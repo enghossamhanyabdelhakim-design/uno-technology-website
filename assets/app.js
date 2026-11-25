@@ -367,7 +367,7 @@ window.addEventListener("hashchange",function(){if(PAGE==="home")projRoute()});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&projOpen){var b=$("#pj-x");b&&b.click()}});
 
 /* ---------- voice call (browser speech recognition + synthesis + chat function) ---------- */
-var VC={on:false,mute:false,t0:0,tick:null,rec:null,turns:0,busy:false,speaking:false,sr:null};
+var VC={mode:"cloud",on:false,mute:false,t0:0,tick:null,rec:null,turns:0,busy:false,speaking:false,sr:null};
 var VMAX=180,VTURNS=15,VDAY=6;
 function vcSR(){return window.SpeechRecognition||window.webkitSpeechRecognition||null}
 function vcT(ar,en){return h.lang==="ar"?ar:en}
@@ -390,7 +390,7 @@ function vcAsk(q){
   var cfg=window.UNO_CFG,fin=false;
   function out(a){if(fin)return;fin=true;VC.busy=false;if(!VC.on)return;a=String(a||"").replace(/[*_#`]/g,"");vcCap("Uno",a);HIST.push({r:"u",t:q},{r:"b",t:a});
     if(VC.turns>=VTURNS){vcCap("Uno",vcT("خلصنا الحد المسموح للمكالمة. كلمنا على واتساب أو ابدأ مكالمة تانية بعدين.","Call limit reached. Message us on WhatsApp or start another call later."));setTimeout(vcEnd,4000);return}
-    vcSpeak(a,function(){vcListen()})}
+    vcSay(a)}
   function local(){var r=brain(q);var tmp=document.createElement("div");tmp.innerHTML=B(r.a,false);out(tmp.textContent)}
   if(!cfg||!window.fetch)return local();
   var to=setTimeout(local,14000);
@@ -407,26 +407,134 @@ function vcListen(){
 }
 function vcTimer(){var s=Math.floor((Date.now()-VC.t0)/1000),m=Math.floor(s/60);$("#vc-tm").textContent=(m<10?"0":"")+m+":"+((s%60)<10?"0":"")+(s%60);if(s>=VMAX){vcCap("Uno",vcT("وقت المكالمة انتهى. شكرًا لك!","Call time is up. Thank you!"));vcEnd()}}
 function vcEnd(){
-  if(!VC.on)return;VC.on=false;clearInterval(VC.tick);try{VC.rec&&VC.rec.abort()}catch(e){}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}
+  if(!VC.on)return;VC.on=false;clearInterval(VC.tick);vaClose();try{VC.rec&&VC.rec.abort()}catch(e){}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}
   setTimeout(function(){var o=$("#vc");o&&o.remove();document.body.classList.remove("vc-open")},VMAX&&300);
 }
+
+/* ---- cloud voice engine: mic capture + VAD + Gemini STT/TTS through the Edge Function ---- */
+var VA={ctx:null,stream:null,proc:null,an:null,pan:null,src:null,pre:[],buf:[],rec:false,voiced:0,sil:0,t:0,st:"idle",floor:0.01,cal:0,calN:0,barge:0,lv:null,srcNode:null};
+function vaChunk(e){
+  if(!VC.on||VC.mode!=="cloud"||VC.mute)return;
+  var d=e.inputBuffer.getChannelData(0),c=new Float32Array(d),sum=0,i;for(i=0;i<c.length;i++)sum+=c[i]*c[i];
+  var rms=Math.sqrt(sum/c.length),dur=c.length/VA.ctx.sampleRate;
+  if(VA.calN<6){VA.cal=VA.calN?Math.min(VA.cal,rms):rms;VA.calN++;VA.floor=VA.cal;return}
+  var thr=Math.min(0.06,Math.max(0.018,VA.floor*3));
+  if(!VA.rec&&rms<thr)VA.floor=VA.floor*0.97+rms*0.03;
+  VA.pre.push(c);if(VA.pre.length>6)VA.pre.shift();
+  if(VA.st==="speak"){
+    if(rms>thr*2.6)VA.barge+=dur*1000;else VA.barge=0;
+    if(VA.barge>=260){vaStop();VA.barge=0;VA.st="listen";VA.rec=true;VA.buf=VA.pre.slice();VA.sil=0;VA.t=0;vcState("listen")}
+    return}
+  if(VA.st!=="listen")return;
+  if(!VA.rec){if(rms>thr){VA.voiced+=dur;if(VA.voiced>=0.1){VA.rec=true;VA.buf=VA.pre.slice();VA.sil=0;VA.t=0}}else VA.voiced=0}
+  else{VA.buf.push(c);VA.t+=dur;if(rms>thr*0.8)VA.sil=0;else VA.sil+=dur;if(VA.sil>=0.95||VA.t>=12)vaFinish()}
+}
+function vaWav(chunks,sr){
+  var n=0,i,j;chunks.forEach(function(c){n+=c.length});var all=new Float32Array(n),o=0;chunks.forEach(function(c){all.set(c,o);o+=c.length});
+  var ratio=sr/16000,m=Math.floor(n/ratio),pcm=new Int16Array(m);
+  for(i=0;i<m;i++){var a=Math.floor(i*ratio),b=Math.min(n,Math.floor((i+1)*ratio)),sm=0,k=0;for(j=a;j<b;j++){sm+=all[j];k++}var v=k?sm/k:0;v=Math.max(-1,Math.min(1,v*1.4));pcm[i]=v<0?v*32768:v*32767}
+  var buf=new ArrayBuffer(44+m*2),dv=new DataView(buf);function ws(off,t){for(var q=0;q<t.length;q++)dv.setUint8(off+q,t.charCodeAt(q))}
+  ws(0,"RIFF");dv.setUint32(4,36+m*2,true);ws(8,"WAVE");ws(12,"fmt ");dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);dv.setUint32(24,16000,true);dv.setUint32(28,32000,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);ws(36,"data");dv.setUint32(40,m*2,true);
+  for(i=0;i<m;i++)dv.setInt16(44+i*2,pcm[i],true);
+  var u=new Uint8Array(buf),bin="";for(i=0;i<u.length;i+=8192)bin+=String.fromCharCode.apply(null,u.subarray(i,i+8192));
+  return {b64:btoa(bin),secs:m/16000};
+}
+function vaFinish(){
+  if(VA.st!=="listen")return;VA.rec=false;VA.voiced=0;var w=vaWav(VA.buf,VA.ctx.sampleRate);VA.buf=[];VA.pre=[];
+  if(w.secs<0.45){vcState("listen");return}
+  VA.st="think";vcState("think");vcAudioAsk(w.b64);
+}
+function vaStop(){try{if(VA.srcNode){VA.srcNode.onended=null;VA.srcNode.stop()}}catch(e){}VA.srcNode=null;VC.speaking=false}
+function vaPlay(b64,rate,done){
+  try{var bin=atob(b64),n=bin.length>>1,buf=VA.ctx.createBuffer(1,n,rate),ch=buf.getChannelData(0),i;
+    for(i=0;i<n;i++){var v=bin.charCodeAt(i*2)|(bin.charCodeAt(i*2+1)<<8);if(v>32767)v-=65536;ch[i]=v/32768}
+    var src=VA.ctx.createBufferSource();src.buffer=buf;if(!VA.pan){VA.pan=VA.ctx.createAnalyser();VA.pan.fftSize=512;VA.pan.connect(VA.ctx.destination)}
+    src.connect(VA.pan);VA.srcNode=src;VC.speaking=true;VA.st="speak";VA.barge=0;vcState("speak");
+    src.onended=function(){if(VA.srcNode===src){VA.srcNode=null;VC.speaking=false;if(VC.on){VA.st="listen";vcState(VC.mute?"idle":"listen");done&&done()}}};
+    src.start();return true}catch(e){return false}
+}
+function vaLevel(){
+  var o=$("#vc");if(!o||!VC.on)return;var an=(VA.st==="speak"&&VA.pan)?VA.pan:VA.an;if(!an)return;
+  var d=new Uint8Array(an.fftSize),i,s=0;an.getByteTimeDomainData(d);for(i=0;i<d.length;i++){var x=(d[i]-128)/128;s+=x*x}
+  o.style.setProperty("--lv",Math.min(1,Math.sqrt(s/d.length)*5).toFixed(2));
+}
+function vcChips(list){var c=$("#vc-chips");if(!c)return;c.innerHTML="";(list||[]).forEach(function(t){var b=document.createElement("button");b.type="button";b.textContent=t;b.onclick=function(){vaStop();try{speechSynthesis.cancel()}catch(e){}VC.busy=false;vcChips([]);vcAsk(t)};c.appendChild(b)})}
+function vcAct(a){
+  var c=$("#vc-act");if(!c)return;c.innerHTML="";if(!a||!a.type||a.type==="none")return;
+  var k=C.contact||{},ph=intl(k.phone||k.whatsapp||""),wa=intl(k.whatsapp||k.phone||"").replace("+",""),b=document.createElement("button");b.type="button";b.className="vc-actb";
+  if(a.type==="request"){var sv=(C.services||[]).filter(function(x){return x.t.en===a.service})[0];b.textContent=vcT("افتح نموذج الطلب","Open the request form")+(sv?" · "+L(sv.t):"");
+    b.onclick=function(){vcEnd();setTimeout(function(){if(PAGE!=="home"){location.href="index.html#request";return}var f=$("#rq");if(f){var s2=f.querySelector("select[name=service]");if(s2&&sv)s2.value=sv.t.en;var ms=f.querySelector("textarea");if(ms&&!ms.value&&sv)ms.value=(h.lang==="ar"?"عايز أطلب: ":"I'd like to request: ")+L(sv.t);$("#request").scrollIntoView({behavior:"smooth"})}},350)}}
+  else if(a.type==="whatsapp"){b.textContent=vcT("كلمنا على واتساب","Chat on WhatsApp");b.onclick=function(){window.open("https://wa.me/"+wa,"_blank","noopener")}}
+  else if(a.type==="call"){b.textContent=vcT("اتصل بينا","Call us");b.onclick=function(){location.href="tel:"+ph}}
+  else return;
+  c.appendChild(b);
+}
+function vcAudioAsk(b64){
+  VC.turns++;var cfg=window.UNO_CFG,svcs=(C.services||[]).map(function(x){return x.t.en}).join("; "),fin=false;
+  var to=setTimeout(function(){if(fin)return;fin=true;vcCloudFail()},25000);
+  fetch(cfg.url+"/functions/v1/chat",{method:"POST",headers:{"Content-Type":"application/json",apikey:cfg.key,Authorization:"Bearer "+cfg.key},body:JSON.stringify({audio:b64,lang:h.lang,history:HIST.slice(-6),svcs:svcs})}).then(function(r){return r.json()}).then(function(j){
+    if(fin||!VC.on)return;fin=true;clearTimeout(to);
+    if(j.limited){vcCap("Uno",vcT("وصلت للحد المسموح حاليًا. جرب بعد شوية أو كلمنا على واتساب.","You've reached the current limit. Try again later or message us on WhatsApp."));vcAct({type:"whatsapp"});VA.st="idle";return}
+    if(!j.t&&!j.a){if(j.fail||j.quota){vcCloudFail();return}vcCap("Uno",vcT("ما سمعتكش كويس، ممكن تعيد؟","I didn't catch that, could you repeat?"));VA.st="listen";vcState("listen");return}
+    VC.fails=0;vcCap(vcT("إنت","You"),j.t||"…");HIST.push({r:"u",t:j.t||""},{r:"b",t:j.a||""});
+    setTimeout(function(){vcCap("Uno",j.a);vcChips(j.chips);vcAct(j.act);vcAfter(j.a)},350);
+  }).catch(function(){if(fin)return;fin=true;clearTimeout(to);vcCloudFail()});
+}
+function vcAfter(a){
+  if(VC.turns>=VTURNS){vcCap("Uno",vcT("خلصنا الحد المسموح للمكالمة. كلمنا على واتساب أو ابدأ مكالمة تانية بعدين.","Call limit reached. Message us on WhatsApp or start another call later."));setTimeout(vcEnd,4500);return}
+  vcSay(a)
+}
+function vcSay(a){
+  if(VC.mode!=="cloud"||!window.fetch){vcSpeak(a,function(){vcListen()});return}
+  var cfg=window.UNO_CFG;VA.st="think";vcState("think");
+  fetch(cfg.url+"/functions/v1/chat",{method:"POST",headers:{"Content-Type":"application/json",apikey:cfg.key,Authorization:"Bearer "+cfg.key},body:JSON.stringify({mode:"tts",text:a,lang:h.lang})}).then(function(r){return r.json()}).then(function(j){
+    if(!VC.on)return;
+    if(j&&j.audio&&vaPlay(j.audio,j.rate||24000))return;
+    $("#vc-note").textContent=vcT("الرد الصوتي مش متاح دلوقتي (حد الاستخدام المجاني)، بعرض الرد مكتوب.","Voice replies are unavailable right now (free usage limit), showing text.");
+    VA.st="listen";vcState("listen")
+  }).catch(function(){VA.st="listen";vcState("listen")});
+}
+function vcCloudFail(){
+  VC.fails=(VC.fails||0)+1;
+  if(VC.fails<2){vcCap("Uno",vcT("حصلت مشكلة بسيطة، جرب تقولها تاني.","Small hiccup, please say that again."));VA.st="listen";vcState("listen");return}
+  VA.st="idle";VC.mode="browser";$("#vc-note").textContent=vcT("الخدمة السحابية مشغولة دلوقتي، هستخدم صوت المتصفح.","Cloud voice is busy, switching to your browser's voice.");
+  if(vcSR())vcListen();else{vcState("text");$("#vc-tf").hidden=false}
+}
+function vaStart(cb){
+  var AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return cb(false);
+  try{VA.ctx=new AC();VA.ctx.resume&&VA.ctx.resume()}catch(e){return cb(false)}
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(function(st){
+    VA.stream=st;VA.src=VA.ctx.createMediaStreamSource(st);VA.an=VA.ctx.createAnalyser();VA.an.fftSize=512;VA.src.connect(VA.an);
+    VA.proc=VA.ctx.createScriptProcessor(4096,1,1);VA.src.connect(VA.proc);var z=VA.ctx.createGain();z.gain.value=0;VA.proc.connect(z);z.connect(VA.ctx.destination);VA.proc.onaudioprocess=vaChunk;
+    VA.cal=0;VA.calN=0;VA.pre=[];VA.buf=[];VA.rec=false;VA.st="listen";VA.lv=setInterval(vaLevel,60);cb(true)
+  }).catch(function(e){cb(false,e&&e.name)});
+}
+function vaClose(){clearInterval(VA.lv);vaStop();try{VA.proc&&(VA.proc.onaudioprocess=null,VA.proc.disconnect())}catch(e){}try{VA.stream&&VA.stream.getTracks().forEach(function(t){t.stop()})}catch(e){}try{VA.ctx&&VA.ctx.close()}catch(e){}VA.ctx=null;VA.stream=null;VA.pan=null;VA.an=null;VA.st="idle"}
 function vcStart(){
   if(VC.on)return;
   var day=new Date().toISOString().slice(0,10),n=0;try{var j=JSON.parse(localStorage.getItem("uno_vc")||"{}");n=j.d===day?j.n:0;if(n>=VDAY){alert(vcT("وصلت للحد اليومي للمكالمات الصوتية. ممكن تكتب في الشات أو تكلمنا على واتساب.","Daily voice call limit reached. You can use the text chat or WhatsApp."));return}localStorage.setItem("uno_vc",JSON.stringify({d:day,n:n+1}))}catch(e){}
   if(chatOpen)closeChat();
   var ch=C.chatbot,SR=vcSR();
-  document.body.insertAdjacentHTML("beforeend",'<div id="vc" role="dialog" aria-modal="true" aria-label="'+U(vcT("مكالمة صوتية مع أونو","Voice call with Uno"))+'" data-s="think"><div class="vc-top"><span id="vc-tm">00:00</span><span class="vc-live"></span></div><div class="vc-orb"><i></i><i></i><i></i><img src="'+U(ch.avatar)+'" alt="Uno"></div><h2>Uno</h2><p id="vc-st" class="vc-st" aria-live="polite"></p><div id="vc-cap" class="vc-cap" aria-live="polite"></div><p id="vc-note" class="vc-note"></p><form id="vc-tf" class="vc-tf" '+(SR?'hidden':'')+'><input id="vc-ti" type="text" autocomplete="off" maxlength="300" placeholder="'+U(vcT("اكتب سؤالك...","Type your question..."))+'"><button type="submit" aria-label="Send">\u27A4</button></form><div class="vc-btns"><button type="button" id="vc-mu" aria-pressed="false" aria-label="Mute"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/><path class="sl" d="M4 4l16 16"/></svg><span>'+vcT("كتم","Mute")+'</span></button><button type="button" id="vc-kb" aria-label="Keyboard"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg><span>'+vcT("كتابة","Type")+'</span></button><button type="button" id="vc-end" class="end" aria-label="End call"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 9c-3 0-5.700.8-8 2.400-.5.400-.6 1-.2 1.500l1.500 2c.3.400.9.500 1.300.2l2-1.200c.3-.2.500-.5.500-.9V12c1.600-.5 3.300-.5 4.900 0v1c0 .4.200.700.500.900l2 1.200c.400.300 1 .2 1.300-.2l1.500-2c.400-.5.300-1.100-.2-1.500C17.700 9.800 15 9 12 9z"/></svg><span>'+vcT("إنهاء","End")+'</span></button></div></div>');
-  document.body.classList.add("vc-open");VC.on=true;VC.mute=false;VC.turns=0;VC.busy=false;VC.t0=Date.now();VC.tick=setInterval(vcTimer,1000);
+  document.body.insertAdjacentHTML("beforeend",'<div id="vc" role="dialog" aria-modal="true" aria-label="'+U(vcT("مكالمة صوتية مع أونو","Voice call with Uno"))+'" data-s="think"><div class="vc-top"><span id="vc-tm">00:00</span><span class="vc-live"></span></div><div class="vc-orb"><i></i><i></i><i></i><img src="'+U(ch.avatar)+'" alt="Uno"></div><h2>Uno</h2><p id="vc-st" class="vc-st" aria-live="polite"></p><div id="vc-cap" class="vc-cap" aria-live="polite"></div><div id="vc-act" class="vc-act"></div><div id="vc-chips" class="vc-chips"></div><p id="vc-note" class="vc-note"></p><form id="vc-tf" class="vc-tf" '+(SR?'hidden':'')+'><input id="vc-ti" type="text" autocomplete="off" maxlength="300" placeholder="'+U(vcT("اكتب سؤالك...","Type your question..."))+'"><button type="submit" aria-label="Send">\u27A4</button></form><div class="vc-btns"><button type="button" id="vc-mu" aria-pressed="false" aria-label="Mute"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/><path class="sl" d="M4 4l16 16"/></svg><span>'+vcT("كتم","Mute")+'</span></button><button type="button" id="vc-kb" aria-label="Keyboard"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg><span>'+vcT("كتابة","Type")+'</span></button><button type="button" id="vc-end" class="end" aria-label="End call"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 9c-3 0-5.700.8-8 2.400-.5.400-.6 1-.2 1.500l1.500 2c.3.400.9.500 1.300.2l2-1.200c.3-.2.500-.5.500-.9V12c1.600-.5 3.300-.5 4.900 0v1c0 .4.200.700.500.900l2 1.200c.400.300 1 .2 1.300-.2l1.500-2c.400-.5.300-1.100-.2-1.500C17.700 9.800 15 9 12 9z"/></svg><span>'+vcT("إنهاء","End")+'</span></button></div></div>');
+  document.body.classList.add("vc-open");VC.on=true;VC.fails=0;VC.mute=false;VC.turns=0;VC.busy=false;VC.t0=Date.now();VC.tick=setInterval(vcTimer,1000);
   $("#vc-end").onclick=vcEnd;
-  $("#vc-mu").onclick=function(){VC.mute=!VC.mute;this.setAttribute("aria-pressed",VC.mute);this.classList.toggle("on",VC.mute);if(VC.mute){try{VC.rec&&VC.rec.abort()}catch(e){}vcState("idle")}else vcListen()};
+  $("#vc-mu").onclick=function(){VC.mute=!VC.mute;this.setAttribute("aria-pressed",VC.mute);this.classList.toggle("on",VC.mute);if(VC.mute){try{VC.rec&&VC.rec.abort()}catch(e){}vaStop();VA.rec=false;VA.buf=[];vcState("idle")}else{if(VC.mode==="cloud"){VA.st="listen";vcState("listen")}else vcListen()}};
   $("#vc-kb").onclick=function(){var f=$("#vc-tf");f.hidden=!f.hidden;if(!f.hidden)$("#vc-ti").focus()};
-  $("#vc-tf").onsubmit=function(e){e.preventDefault();var i=$("#vc-ti"),v=i.value.trim();if(!v)return;i.value="";try{VC.rec&&VC.rec.abort()}catch(e2){}try{speechSynthesis.cancel()}catch(e3){}VC.busy=false;vcAsk(v)};
+  $("#vc-tf").onsubmit=function(e){e.preventDefault();var i=$("#vc-ti"),v=i.value.trim();if(!v)return;i.value="";vaStop();VA.rec=false;try{VC.rec&&VC.rec.abort()}catch(e2){}try{speechSynthesis.cancel()}catch(e3){}VC.busy=false;vcAsk(v)};
   document.addEventListener("keydown",function esc2(e){if(!VC.on){document.removeEventListener("keydown",esc2);return}if(e.key==="Escape")vcEnd()});
   if(window.speechSynthesis)speechSynthesis.getVoices();
-  if(!SR)$("#vc-note").textContent=vcT("متصفحك مش بيدعم التعرف على الصوت. اكتب سؤالك وهسمعك الرد.","Your browser doesn't support speech recognition. Type your question and I'll read the answer.");
-  else $("#vc-note").textContent=vcT("الصوت بيتعالج بخدمة التعرف على الكلام في متصفحك.","Speech is processed by your browser's speech recognition service.");
   var g=vcT("أهلاً! أنا أونو. اتفضل اسألني عن خدماتنا.","Hi! I'm Uno. Ask me about our services.");vcCap("Uno",g);
-  vcSpeak(g,function(){vcListen()});
+  vcChips((C.chatbot.quick||[]).slice(0,3).map(function(q){return L(q.t)}));
+  vcState("think");VC.mode="cloud";
+  vaStart(function(ok,err){
+    if(!VC.on)return;
+    if(ok){$("#vc-note").textContent=vcT("اتكلم عادي، وممكن تقاطعني في أي وقت. الصوت بيتعالج على السيرفر بتاعنا باستخدام Gemini.","Just talk, and interrupt anytime. Audio is processed on our server using Gemini.");vcState("listen")}
+    else{VC.mode="browser";
+      if(err==="NotAllowedError"||err==="SecurityError"){$("#vc-note").textContent=vcT("المايك مش مسموح. فعّل إذن المايك من إعدادات المتصفح، أو اكتب سؤالك.","Microphone blocked. Allow it in browser settings, or type your question.");vcState("text");$("#vc-tf").hidden=false}
+      else if(SR){$("#vc-note").textContent=vcT("الصوت بيتعالج بخدمة التعرف على الكلام في متصفحك.","Speech is processed by your browser's speech recognition service.");vcListen()}
+      else{$("#vc-note").textContent=vcT("جهازك مش بيدعم المايك هنا. اكتب سؤالك وهعرضلك الرد.","Microphone is not available here. Type your question and I will show the answer.");vcState("text");$("#vc-tf").hidden=false}}
+  });
 }
 window.UNO_voice=vcStart;
 function boot(){

@@ -328,3 +328,11 @@ body.vc-open{overflow:hidden}
 .vc-btns .sl{display:none}.vc-btns button.on .sl{display:block}
 body.vc-open #chat-fab,body.vc-open .mbar,body.vc-open #top-btn{display:none!important}
 @media(prefers-reduced-motion:reduce){.vc-orb i,.vc-orb img{animation:none!important}}
+
+#vc{--lv:0}
+#vc[data-s=speak] .vc-orb img{animation:none;transform:scale(calc(1 + var(--lv)*.2))}
+#vc[data-s=listen] .vc-orb img{transform:scale(calc(1 + var(--lv)*.12))}
+#vc[data-s=speak] .vc-orb i{animation:vcr 1.2s infinite}
+.vc-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0;max-width:520px}
+.vc-chips button{border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.15);color:#fff;border-radius:20px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer;min-height:40px}
+.vc-act{margin:6px 0}.vc-actb{border:0;background:#fff;color:#F65A00;font:inherit;font-weight:800;border-radius:24px;padding:12px 20px;cursor:pointer;min-height:46px;box-shadow:0 6px 18px rgba(0,0,0,.2)}
