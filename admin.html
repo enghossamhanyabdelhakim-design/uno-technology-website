@@ -46,15 +46,15 @@ details.it>.in{padding:6px 12px 12px}
 <div class="note"><b>النشر:</b> عدّل، اضغط «نشر أونلاين» والموقع يتحدّث فورًا لكل الزوار. الصور بتترفع على التخزين السحابي. «معاينة» بتفتح الموقع بتعديلاتك قبل النشر.<br><b>Publish:</b> edit, press Publish and the live site updates for every visitor. Images upload to cloud storage. Preview shows your changes first.</div>
 <div class="layout"><div class="side" id="side"></div><div class="main" id="main"></div></div>
 <div id="lg" style="position:fixed;inset:0;background:#F7F4F1;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px"><form id="lf" style="background:#fff;border:1px solid var(--ln);border-radius:16px;padding:26px;width:100%;max-width:360px"><img src="assets/logo-uno-technology.png" alt="" style="height:44px;margin-bottom:12px"><h2 style="margin-bottom:10px">دخول الإدارة / Admin login</h2><label class="f"><span>Email</span><input type="email" id="em" dir="ltr" autocomplete="username" required></label><label class="f"><span>Password / كلمة السر</span><input type="password" id="pw" dir="ltr" autocomplete="current-password" required style="width:100%;font:inherit;padding:8px 12px;border:1.5px solid var(--ln);border-radius:10px"></label><button style="width:100%;margin-top:8px">دخول / Sign in</button><p id="le" class="dirty" style="margin-top:8px"></p></form></div>
-<script src="assets/config.js?v=20261125i"></script>
-<script src="assets/content.js?v=20261125i"></script>
-<script src="assets/cloud.js?v=20261125i"></script>
+<script src="assets/config.js?v=20261125k"></script>
+<script src="assets/content.js?v=20261125k"></script>
+<script src="assets/cloud.js?v=20261125k"></script>
 <script>
 (function(){
 function start(){document.getElementById("lg").style.display="none";
  CLOUD.load().then(function(r){try{localStorage.removeItem("uno_draft")}catch(e){}
   if(r&&r.data&&r.data.site){window.UNO=window.UNO_FILL(r.data,window.UNO)}
- }).catch(function(){}).then(function(){var x=document.createElement("script");x.src="assets/admin.js?v=20261125i";document.body.appendChild(x)})}
+ }).catch(function(){}).then(function(){var x=document.createElement("script");x.src="assets/admin.js?v=20261125k";document.body.appendChild(x)})}
 if(CLOUD.loggedIn()){CLOUD.check().then(start).catch(function(){CLOUD.logout()})}
 document.getElementById("lf").onsubmit=function(e){e.preventDefault();var le=document.getElementById("le");le.textContent="...";
  CLOUD.login(document.getElementById("em").value.trim(),document.getElementById("pw").value).then(start).catch(function(er){le.textContent="فشل الدخول / Login failed: "+er.message})}
