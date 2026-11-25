@@ -76,7 +76,7 @@ var RENDER={};
 RENDER.dash=function(mn){
  var P=function(p,perm){return can(perm)?api("GET",p).catch(function(){return null}):Promise.resolve(null)};
  Promise.all([P("products?select=id,stock,active","store"),P("categories?select=id","store"),P("orders?select=id,status,total,created_at&order=created_at.desc&limit=500","orders"),P("requests?select=id,created_at,name,phone,service&order=created_at.desc&limit=6","requests"),P("activity_log?select=*&order=created_at.desc&limit=6","log")]).then(function(r){
-  var pr=r[0],ct=r[1],od=r[2],rq=r[3],lg=r[4],h='<h2>'+bi("أهلاً","Welcome")+(USER&&USER.email?" · "+esc(USER.email):"")+"</h2><div class=\"cards\">";
+  var pr=r[0],ct=r[1],od=r[2],rq=r[3],lg=r[4],h='<h2>'+bi("أهلاً","Welcome")+"</h2><div class=\"cards\">";
   function card(n,l){h+='<div class="card"><b>'+n+"</b><span>"+l+"</span></div>"}
   if(pr){card(pr.length,bi("منتجات","Products"));card(pr.filter(function(x){return x.active}).length,bi("منتجات ظاهرة","Visible"));card(pr.filter(function(x){return x.stock<=0}).length,bi("نفد المخزون","Out of stock"));card(pr.filter(function(x){return x.stock>0&&x.stock<=3}).length,bi("مخزون قليل (3 أو أقل)","Low stock (3 or less)"))}
   if(ct)card(ct.length,bi("تصنيفات","Categories"));
