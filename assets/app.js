@@ -42,7 +42,7 @@ function header(){
   var N=C.nav, link=function(href,k,pg){return '<a href="'+href+'"'+(PAGE===pg?' class="act"':'')+'>'+B(N[k])+'</a>'};
   return '<header><div class="wrap nav"><a href="index.html" aria-label="Home"><img src="'+U(C.images.logoHeader)+'" alt="'+U(C.site.name.en)+'"></a><nav>'+
   link("index.html","about","home_")+link("index.html#services","services","x")+link("tools.html","tools","tools")+link("blog.html","blog","blog")+link("index.html#contact","contact","x")+
-  '</nav><div class="tools"><button class="icb" id="theme" type="button" aria-label="Dark mode">\u263E</button><button class="lang" id="lang" type="button" aria-label="Language"><span class="ar">English</span><span class="en">\u0627\u0644\u0639\u0631\u0628\u064A\u0629</span></button><button class="icb" id="menu" type="button" aria-label="Menu">\u2630</button></div></div></header>';
+  '</nav><div class="tools"><button class="icb" id="theme" type="button" aria-label="Dark mode">\u263E</button><button class="lang" id="lang" type="button" aria-label="Language / اللغة"><span class="ar">English</span><span class="en">\u0627\u0644\u0639\u0631\u0628\u064A\u0629</span></button><button class="icb" id="menu" type="button" aria-label="Menu">\u2630</button></div></div></header>';
 }
 function footer(){
   return '<footer><div class="wrap"><img src="'+U(C.images.logoMark)+'" alt=""><br>'+B(C.footer.text)+' \u00A9 <span id="yr"></span><div class="fsoc">'+socials("fl")+'</div></div></footer>';
@@ -97,7 +97,7 @@ function home(){
    C.services.map(function(s){return '<article class="card rv" data-c="'+U(s.cat)+'"><div class="ic">'+(s.img?'<img src="'+U(s.img)+'" alt="">':ico(s.icon))+'</div><h3>'+B(s.t)+'</h3><ul>'+s.items.map(function(i){return '<li>'+B(i)+'</li>'}).join("")+'</ul></article>'}).join("")+'</div></div></section>';
   o+='<section class="alt-bg"><div class="wrap"><h2>'+B(x.tools.t)+'</h2><p class="sub">'+B(x.tools.d)+'</p><div class="grid">'+C.toolCards.map(function(t){return '<a class="card tcard rv" href="'+U(t.link)+'"><div class="ic">'+ico(t.icon)+'</div><h3>'+B(t.t)+'</h3><p>'+B(t.d)+'</p><span class="more">'+B(t.btn)+' \u2192</span></a>'}).join("")+'</div></div></section>';
   o+='<section><div class="wrap"><h2>'+B(x.mascot.t)+'</h2><p class="sub">'+B(x.mascot.d)+'</p><div class="mas"><div class="poses">'+C.poses.map(function(p){return '<img class="pose" style="width:120px;height:120px" src="'+U(p)+'" alt="" loading="lazy">'}).join("")+'</div></div></div></section>';
-  o+='<section id="portfolio" class="alt-bg"><div class="wrap"><h2>'+B(x.portfolio.t)+'</h2><p class="sub">'+B(x.portfolio.d)+'</p><div class="pgrid">'+C.portfolio.map(function(p){return '<div class="pcard rv"><div class="pimg">'+(p.img?'<img src="'+U(p.img)+'" alt="" loading="lazy"><em class="smp">'+B(C.portfolioSample||{ar:"",en:""})+'</em>':'<span>'+ico(p.icon)+'</span><small>'+B(C.portfolioSoon)+'</small>')+'</div><h3>'+B(p.t)+'</h3>'+(p.d&&(p.d.ar||p.d.en)?'<p class="pd">'+B(p.d)+'</p>':'')+'</div>'}).join("")+'</div></div></section>';
+  normPort();o+='<section id="portfolio" class="alt-bg"><div class="wrap"><h2>'+B(x.portfolio.t)+'</h2><p class="sub">'+B(x.portfolio.d)+'</p><div class="pgrid">'+C.portfolio.map(function(p){return '<a class="pcard rv" href="#project/'+U(p.slug||"")+'" data-slug="'+U(p.slug||"")+'"><div class="pimg">'+(p.img?'<img src="'+U(p.img)+'" alt="" loading="lazy"><em class="smp">'+B(C.portfolioSample||{ar:"",en:""})+'</em>':'<span>'+ico(p.icon)+'</span><small>'+B(C.portfolioSoon)+'</small>')+'</div><h3>'+B(p.t)+'</h3>'+(p.d&&(p.d.ar||p.d.en)?'<p class="pd">'+B(p.d)+'</p>':'')+'<span class="pmore">'+B({ar:"التفاصيل",en:"View details"})+'</span></a>'}).join("")+'</div></div></section>';
   var posts=C.blog.posts.filter(function(p){return p.published!==false}).slice(0,3);
   o+='<section><div class="wrap"><h2>'+B(x.blog.t)+'</h2><p class="sub">'+B(x.blog.d)+'</p><div class="pgrid3">'+posts.map(postCard).join("")+'</div><p style="text-align:center;margin-top:24px"><a class="btn" href="blog.html">'+B(C.blog.all)+'</a></p></div></section>';
   var HW=C.how||{steps:[]};
@@ -115,7 +115,7 @@ function home(){
     f.onsubmit=function(e){e.preventDefault();var st=$("#rq-st"),d=new FormData(f);if(!d.get("name").trim()||!d.get("phone").trim()){st.textContent=L({ar:"اكتب الاسم ورقم التليفون.",en:"Please enter your name and phone."});return}
       st.textContent="...";
       fetch(cfg.url+"/rest/v1/requests",{method:"POST",headers:{apikey:cfg.key,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({name:d.get("name").trim(),phone:d.get("phone").trim(),service:d.get("service"),message:(d.get("msg")||"").trim(),lang:h.lang})}).then(function(r){if(!r.ok)throw 0;st.textContent=L(F.ok);f.reset()}).catch(function(){st.textContent=L(F.err)})}})();
-  $$(".card[data-c] h3").forEach(function(hh){hh.setAttribute("role","button");hh.tabIndex=0;var t=function(){hh.parentNode.classList.toggle("open")};hh.onclick=t;hh.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();t()}}});
+  $$(".card[data-c] h3").forEach(function(hh){if(hh.querySelector("button"))return;hh.innerHTML='<button type="button" class="h3b" aria-expanded="false">'+hh.innerHTML+"</button>";var bt=hh.firstChild;bt.onclick=function(){var c=hh.parentNode;c.classList.toggle("open");bt.setAttribute("aria-expanded",c.classList.contains("open"))}});
   var ask=function(){openChat(true)}; $("#hero-ask").onclick=ask; $("#hero-bot").onclick=ask;
 }
 
@@ -319,7 +319,7 @@ function reveal(){$$(".rv:not(.in)").forEach(function(x){io?io.observe(x):x.clas
 function wire(){
   var T0=$("#theme");
   T0.onclick=function(){setTheme(h.dataset.theme==="dark"?"light":"dark")};
-  $("#lang").onclick=function(){setLang(h.lang==="ar"?"en":"ar");$("#ch-i")&&($("#ch-i").placeholder=L(C.chatbot.placeholder))};
+  $("#lang").onclick=function(){setLang(h.lang==="ar"?"en":"ar");if(projOpen)projRoute();$("#ch-i")&&($("#ch-i").placeholder=L(C.chatbot.placeholder))};
   var nv=$("nav");$("#menu").onclick=function(){nv.classList.toggle("open")};nv.onclick=function(){nv.classList.remove("open")};
   document.body.insertAdjacentHTML("beforeend",'<button id="top-btn" aria-label="Top">\u2191</button>');
   var tb=$("#top-btn");tb.onclick=function(){scrollTo({top:0,behavior:"smooth"})};
@@ -331,13 +331,48 @@ function store(){
   $("#app").innerHTML='<section><div class="wrap soon"><div class="soon-ic">'+ico("\uD83D\uDED2")+'</div><h2>'+B({ar:"متجر أونو",en:"Uno Store"})+'</h2><p class="sub">'+B({ar:"المتجر الإلكتروني قيد التجهيز وهيفتح قريب. لحد ما يفتح، تقدر تطلب أي منتج أو خدمة من خلال واتساب.",en:"The online store is being prepared and opens soon. Until then you can ask for any product or service on WhatsApp."})+'</p><div class="btns">'+(n?'<a class="btn" href="https://wa.me/'+U(n)+'" target="_blank" rel="noopener">'+B({ar:"اطلب على واتساب",en:"Order on WhatsApp"})+'</a>':'')+'<a class="btn alt" href="index.html#services">'+B({ar:"شوف الخدمات",en:"See services"})+'</a></div></div></section>';
   document.title=(h.lang==="en"?"Store | ":"المتجر | ")+((C.site&&C.site.name&&(C.site.name.en))||"Uno");
 }
+
+/* ---------- project details (hash routed) ---------- */
+var SVCMAP={network:1,cctv:2,office:3,code:0,web:0,pos:4,design:5,print:6,electro:8};
+function normPort(){(C.portfolio||[]).forEach(function(p){if(!p.slug&&p.img)p.slug=String(p.img).split("/").pop().replace(/\.\w+$/,"");if(p.svc==null&&SVCMAP[p.slug]!=null)p.svc=SVCMAP[p.slug]})}
+var projOpen=false;
+function projRoute(){normPort();
+  var m=/^#project\/([\w-]+)/.exec(location.hash||""),pr=m&&(C.portfolio||[]).filter(function(x){return x.slug===m[1]})[0];
+  var el=$("#proj");
+  if(!pr){if(el){el.remove()}document.body.classList.remove("proj-open");projOpen=false;return}
+  var sv=C.services[pr.svc]||null,lg=h.lang;
+  var rows=sv?sv.items.map(function(it){return "<li>"+B(it)+"</li>"}).join(""):"";
+  var wa=intl((C.contact&&(C.contact.whatsapp||C.contact.phone))||"").replace("+","");
+  var url=location.href.split("#")[0]+"#project/"+pr.slug;
+  var html='<div class="pj-box" role="dialog" aria-modal="true" aria-label="'+U(L(pr.t))+'"><div class="pj-bar"><button type="button" class="pj-x" id="pj-x" aria-label="'+(lg==="ar"?"إغلاق":"Close")+'">'+"\u2715"+'</button></div>'
+   +'<div class="pj-gal"><img src="'+U(pr.img)+'" alt="'+U(L(pr.t))+'"><em class="smp">'+B(C.portfolioSample)+'</em></div>'
+   +'<div class="pj-in"><h2>'+B(pr.t)+'</h2>'
+   +'<p class="pj-note">'+B({ar:"الصورة توضيحية وليست من مشروع فعلي لعميل. هنضيف صور مشاريعنا الحقيقية قريبًا.",en:"This image is illustrative and not from a specific client project. Real project photos will be added soon."})+'</p>'
+   +(pr.d&&(pr.d.ar||pr.d.en)?'<p>'+B(pr.d)+'</p>':'')
+   +(sv?'<h3>'+B({ar:"الخدمة المستخدمة",en:"Service area"})+'</h3><p class="pj-svc">'+B(sv.t)+'</p><h3>'+B({ar:"نطاق العمل",en:"Typical scope"})+'</h3><ul>'+rows+'</ul>':'')
+   +'<div class="pj-cta"><button type="button" class="btn" id="pj-req">'+B({ar:"اطلب مشروع مشابه",en:"Request a similar project"})+'</button>'
+   +'<button type="button" class="btn alt" id="pj-share">'+B({ar:"مشاركة",en:"Share"})+'</button></div><p class="rq-st" id="pj-st" role="status"></p></div></div>';
+  if(!el){el=document.createElement("div");el.id="proj";document.body.appendChild(el)}
+  el.innerHTML=html;document.body.classList.add("proj-open");projOpen=true;
+  $("#pj-x").onclick=function(){if(history.length>1&&/^#project/.test(location.hash)){history.back()}else{location.hash="portfolio"}};
+  el.onclick=function(e){if(e.target===el)$("#pj-x").click()};
+  $("#pj-share").onclick=function(){var t=L(pr.t)+" | Uno Technology",st=$("#pj-st");
+    if(navigator.share){navigator.share({title:t,url:url}).catch(function(){})}
+    else if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){st.textContent=lg==="ar"?"تم نسخ الرابط":"Link copied"})}else{st.textContent=url}};
+  $("#pj-req").onclick=function(){var f=$("#rq");history.replaceState(null,"","#request");projRoute();
+    if(f){var s2=f.querySelector("select[name=service]");if(s2&&sv)s2.value=sv.t.en;var ms=f.querySelector("textarea");if(ms&&!ms.value)ms.value=(lg==="ar"?"عايز مشروع مشابه لـ: ":"I'd like a project similar to: ")+L(pr.t);$("#request").scrollIntoView()}};
+  var xb=$("#pj-x");xb&&xb.focus();
+}
+window.addEventListener("hashchange",function(){if(PAGE==="home")projRoute()});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&projOpen){var b=$("#pj-x");b&&b.click()}});
 function boot(){
   shell(); setLang(q||sl||C.site.defaultLang||"ar");
   if(PAGE==="home")home(); else if(PAGE==="blog")blog(); else if(PAGE==="tools")tools(); else if(PAGE==="store")store();
   chatUI(); wire(); (function(){var b=$("#mb-chat");if(b)b.onclick=function(){openChat()}})();
   setTheme(st||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
   reveal();
-  if(PAGE==="home"&&location.hash){var el=$(location.hash);if(el)setTimeout(function(){el.scrollIntoView()},50)}
+  if(PAGE==="home"&&/^#project\//.test(location.hash)){projRoute()}
+  else if(PAGE==="home"&&location.hash){var el=$(location.hash);if(el)setTimeout(function(){el.scrollIntoView()},50)}
 }
 if(PAGE!=="admin")boot();
 })();

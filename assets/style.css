@@ -279,3 +279,24 @@ body.chat-open{overflow:hidden}
  #chat .ch-f{flex:0 0 auto;position:sticky;bottom:0;background:var(--bg)}
  #chat .ch-f input{font-size:16px}
 }
+/* portfolio cards + project details */
+a.pcard{display:block;text-decoration:none;color:inherit;cursor:pointer;transition:transform .2s,box-shadow .2s}
+a.pcard:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(246,90,0,.15)}
+a.pcard:focus-visible{outline:3px solid var(--o);outline-offset:2px}
+.pmore{display:inline-block;margin:0 16px 16px;color:var(--o);font-weight:700;font-size:14px}
+.pcard h3{margin:14px 16px 6px}
+.h3b{all:unset;cursor:pointer;display:block;width:100%;box-sizing:border-box}
+.h3b:focus-visible{outline:2px solid var(--o)}
+body.proj-open{overflow:hidden}
+#proj{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;animation:pjf .2s}
+@keyframes pjf{from{opacity:0}to{opacity:1}}
+.pj-box{background:var(--bg);color:var(--ink,inherit);width:100%;max-width:720px;max-height:94dvh;overflow-y:auto;border-radius:22px 22px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom));animation:pju .28s ease-out;position:relative}
+@keyframes pju{from{transform:translateY(40px)}to{transform:none}}
+.pj-bar{position:sticky;top:0;z-index:2;display:flex;justify-content:flex-end;padding:10px 12px 0;height:0}
+.pj-x{width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:18px;cursor:pointer;position:relative;top:4px}
+.pj-gal{position:relative}.pj-gal img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;border-radius:22px 22px 0 0}
+.pj-in{padding:16px 20px}.pj-in h2{margin:0 0 8px}.pj-in h3{margin:18px 0 6px;font-size:16px;color:var(--o)}
+.pj-in ul{padding-inline-start:20px;margin:0}.pj-in li{margin:4px 0}
+.pj-note{font-size:13px;opacity:.8}.pj-svc{font-weight:700;margin:0}
+.pj-cta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+@media(min-width:821px){#proj{align-items:center}.pj-box{border-radius:22px;max-height:90vh}}
