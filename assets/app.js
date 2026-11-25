@@ -50,8 +50,17 @@ function footer(){
 function shell(){
   var main=$("#app"); document.body.insertAdjacentHTML("afterbegin",header()); document.body.insertAdjacentHTML("beforeend",footer());
   $("#yr").textContent=new Date().getFullYear();
-  (function(){var k=C.contact||{},n=intl(k.whatsapp||k.phone||"").replace("+","");
-    document.body.insertAdjacentHTML("beforeend",'<nav class="mbar" aria-label="Quick actions">'+(k.phone?'<a href="tel:'+U(intl(k.phone))+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11 11 0 003.5.56 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.2.2 2.4.56 3.5a1 1 0 01-.25 1z" fill="currentColor"/></svg><span>'+B({ar:"اتصل",en:"Call"})+'</span></a>':'')+(n?'<a class="wa" href="https://wa.me/'+U(n)+'" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 00-8.7 14.9L2 22l5.3-1.4A10 10 0 1012 2zm0 2a8 8 0 110 16 8 8 0 01-4-1.1l-.3-.2-2.4.6.7-2.3-.2-.3A8 8 0 0112 4z" fill="currentColor"/></svg><span>WhatsApp</span></a>':'')+'<button type="button" id="mb-chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H9l-5 5z" fill="currentColor"/></svg><span>'+B({ar:"اسأل أونو",en:"Ask Uno"})+'</span></button></nav>');})();
+  (function(){
+    var I={home:'<path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>',svc:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',store:'<path d="M3 4h2l2.5 11h10L20 8H6.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>',tools:'<path d="M14.5 6.5a4 4 0 005 5L21 13l-8 8a2.1 2.1 0 01-3-3l8-8zM14.5 6.5a4 4 0 00-5.500-4l3 3-2 2-3-3a4 4 0 005 5.500"/>',contact:'<path d="M4 4h16v12H9l-5 5z"/>'};
+    var T=[["home","index.html",{ar:"الرئيسية",en:"Home"},"home"],["svc","index.html#services",{ar:"خدماتنا",en:"Services"},"services"],["store","store.html",{ar:"المتجر",en:"Store"},"store"],["tools","tools.html",{ar:"أدوات",en:"Tools"},"tools"],["contact","index.html#contact",{ar:"تواصل",en:"Contact"},"contact"]];
+    var cur=PAGE==="home"?"home":PAGE==="store"?"store":PAGE==="tools"?"tools":PAGE==="blog"?"":"";
+    document.body.insertAdjacentHTML("beforeend",'<nav class="mbar" aria-label="App navigation">'+T.map(function(t){return '<a href="'+t[1]+'" data-k="'+t[3]+'"'+(cur===t[3]?' class="on" aria-current="page"':'')+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+I[t[0]]+'</svg><span>'+B(t[2])+'</span></a>'}).join("")+'</nav>');
+    if(PAGE==="home"&&"IntersectionObserver" in window){var bar=$(".mbar"),mark=function(k){bar.querySelectorAll("a").forEach(function(a){var on=a.dataset.k===k;a.classList.toggle("on",on);if(on)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")})};
+      var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)mark(e.target.id==="services"?"services":e.target.id==="contact"?"contact":"home")})},{rootMargin:"-45% 0px -50% 0px"});
+      ["services","contact","about","how","faq","request","founder"].forEach(function(id){var el=document.getElementById(id);if(el){if(id==="services"||id==="contact")io.observe(el);else{var o=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)mark("home")})},{rootMargin:"-45% 0px -50% 0px"});o.observe(el)}}});
+      var h=document.querySelector(".hero");if(h){var o2=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)mark("home")})},{rootMargin:"-30% 0px -60% 0px"});o2.observe(h)}}
+  })();
+  if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){try{navigator.serviceWorker.register("sw.js")}catch(e){}}
   if(PREVIEW)document.body.insertAdjacentHTML("afterbegin",'<div class="pvbar">Preview: unpublished draft from the admin panel</div>');
 }
 
@@ -314,9 +323,15 @@ function wire(){
   var tb=$("#top-btn");tb.onclick=function(){scrollTo({top:0,behavior:"smooth"})};
   addEventListener("scroll",function(){tb.classList.toggle("show",scrollY>600)});
 }
+
+function store(){
+  var k=C.contact||{},n=intl(k.whatsapp||k.phone||"").replace("+","");
+  $("#app").innerHTML='<section><div class="wrap soon"><div class="soon-ic">'+ico("\uD83D\uDED2")+'</div><h2>'+B({ar:"متجر أونو",en:"Uno Store"})+'</h2><p class="sub">'+B({ar:"المتجر الإلكتروني قيد التجهيز وهيفتح قريب. لحد ما يفتح، تقدر تطلب أي منتج أو خدمة من خلال واتساب.",en:"The online store is being prepared and opens soon. Until then you can ask for any product or service on WhatsApp."})+'</p><div class="btns">'+(n?'<a class="btn" href="https://wa.me/'+U(n)+'" target="_blank" rel="noopener">'+B({ar:"اطلب على واتساب",en:"Order on WhatsApp"})+'</a>':'')+'<a class="btn alt" href="index.html#services">'+B({ar:"شوف الخدمات",en:"See services"})+'</a></div></div></section>';
+  document.title=(h.lang==="en"?"Store | ":"المتجر | ")+((C.site&&C.site.name&&(C.site.name.en))||"Uno");
+}
 function boot(){
   shell(); setLang(q||sl||C.site.defaultLang||"ar");
-  if(PAGE==="home")home(); else if(PAGE==="blog")blog(); else if(PAGE==="tools")tools();
+  if(PAGE==="home")home(); else if(PAGE==="blog")blog(); else if(PAGE==="tools")tools(); else if(PAGE==="store")store();
   chatUI(); wire(); (function(){var b=$("#mb-chat");if(b)b.onclick=function(){openChat()}})();
   setTheme(st||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
   reveal();
