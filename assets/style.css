@@ -367,3 +367,4 @@ section>.wrap>h2{font-size:clamp(30px,4.4vw,52px);letter-spacing:-.02em}section{
 @media(min-width:900px){#services .grid>.card.sc:last-child:nth-child(3n+1){grid-column:2}}
 @media(prefers-reduced-motion:reduce){.why div,.strip{transition:none}}
 @media(max-width:480px){.hero .fx-chip{display:none}}
+a.icb{display:inline-grid;place-items:center;text-decoration:none;color:var(--ink)}a.icb:hover{color:var(--o)}
