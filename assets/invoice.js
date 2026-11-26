@@ -18,7 +18,7 @@ var SAMPLE={no:"INV-0001",date:"2026-11-26",customer:{name:{ar:"عميل نمو�
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function m(n){return (Math.round(n*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
 function pick(v,lg){return v&&typeof v==="object"?(v[lg]||v.ar||v.en||""):v}
-function calc(d,o){var sub=0;d.items.forEach(function(i){sub+=i.q*i.p});var disc=d.discount||0,rate=o.taxOn?(+o.taxRate||0):0,base=Math.max(0,sub-disc),tax=base*rate/100;return{sub:sub,disc:disc,rate:rate,tax:tax,grand:base+tax}}
+function calc(d,o){var sub=0,rate=+o.taxRate||0,dm=d.vatMode||"inherit";d.items.forEach(function(i){sub+=i.q*i.p});var disc=d.discount||0,tax=0;d.items.forEach(function(i){var md=i.vat&&i.vat!=="inherit"?i.vat:(dm!=="inherit"?dm:(o.taxOn?"on":"off"));var lt=i.q*i.p,base=lt-(sub?disc*lt/sub:0);if(md==="on")tax+=o.pricesIncl?base-base/(1+rate/100):base*rate/100});var net=Math.max(0,sub-disc);return{sub:sub,disc:disc,rate:tax>0?rate:0,tax:tax,grand:o.pricesIncl?net:net+tax}}
 function rows(d,o,lg,cls){return d.items.map(function(i,k){return '<tr><td class="n">'+(k+1)+'</td><td>'+esc(pick(i.n,lg))+'</td><td class="c">'+i.q+'</td><td class="r">'+m(i.p)+'</td><td class="r">'+m(i.q*i.p)+"</td></tr>"}).join("")}
 function totals(c,o,lg,t){var s='<table class="tt"><tr><td>'+t.sub+'</td><td class="r">'+m(c.sub)+"</td></tr>";if(c.disc)s+='<tr><td>'+t.disc+'</td><td class="r">-'+m(c.disc)+"</td></tr>";if(c.rate)s+='<tr><td>'+t.tax+' '+c.rate+'%</td><td class="r">'+m(c.tax)+"</td></tr>";return s+'<tr class="g"><td>'+t.grand+'</td><td class="r">'+m(c.grand)+" "+t.cur+"</td></tr></table>"}
 function css(tp,o,lg){
