@@ -18,7 +18,7 @@ var I={
 function ic(n){return '<svg class="i" viewBox="0 0 24 24">'+I[n]+'</svg>'}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 var ROLES={owner:"المالك / Owner",admin:"مدير / Admin",store_manager:"مدير المتجر / Store manager",content_editor:"محرر المحتوى / Content editor",support:"الدعم / Support"};
-var PERM={owner:["users","log","content","store","orders","requests"],admin:["log","content","store","orders","requests"],store_manager:["store","orders"],content_editor:["content"],support:["orders","requests"]};
+var PERM={owner:["users","log","content","store","orders","requests","core"],admin:["log","content","store","orders","requests","core"],store_manager:["store","orders"],content_editor:["content"],support:["orders","requests"]};
 var ROLE=null,USER=null,MOD="",PH=window.matchMedia("(max-width:900px)");
 function can(p){return !p||(PERM[ROLE]||[]).indexOf(p)>-1}
 function api(method,path,body,prefer){return CLOUD.token().then(function(t){var h={apikey:C.key,Authorization:"Bearer "+t,"Content-Type":"application/json"};if(prefer)h.Prefer=prefer;return fetch(C.url+"/rest/v1/"+path,{method:method,headers:h,body:body?JSON.stringify(body):undefined}).then(function(r){return r.text().then(function(x){var d=null;try{d=x?JSON.parse(x):null}catch(e){d=x}if(!r.ok)throw new Error((d&&(d.message||d.msg))||r.status);return d})})})}
@@ -48,6 +48,10 @@ var MODS=[
  {id:"kb",g:"المحتوى / Content",p:"content",ic:"kb",l:"المعرفة / Knowledge"},
  {id:"req",g:"العملاء / Customers",p:"requests",ic:"inbox",l:"الطلبات والمحادثات / Requests and chats"},
  {id:"users",g:"الفريق / Team",p:"users",ic:"users",l:"المستخدمون والصلاحيات / Users and roles"},
+ {id:"cco",g:"النظام الداخلي / UNO Core",p:"core",ic:"kb",l:"بيانات الشركة / Company"},
+ {id:"cbr",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"الفروع والمخازن / Branches and warehouses"},
+ {id:"cun",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"وحدات القياس / Units"},
+ {id:"cpa",g:"النظام الداخلي / UNO Core",p:"core",ic:"users",l:"العملاء والموردون / Partners"},
  {id:"bk",g:"الفريق / Team",p:"users",ic:"kb",l:"نسخة احتياطية / Backup"},
  {id:"log",g:"الفريق / Team",p:"log",ic:"log",l:"سجل النشاط / Activity log"}
 ];
@@ -283,6 +287,35 @@ RENDER.rv=function(mn){
    [].forEach.call($("#rl").querySelectorAll("[data-a]"),function(b){b.onclick=function(){set(b.dataset.a,"approved").then(draw)}});
    [].forEach.call($("#rl").querySelectorAll("[data-r]"),function(b){b.onclick=function(){set(b.dataset.r,"rejected").then(draw)}})}
   $("#rf").onchange=draw;draw();
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
+/* UNO Core R8: company, branches/warehouses, units, partners */
+function coreCrud(mn,cfg){
+ api("GET",cfg.t+"?select=*&order=created_at.desc,code.asc").catch(function(){return api("GET",cfg.t+"?select=*")}).then(function(rows){
+  mn.innerHTML='<h2>'+bi(cfg.ar,cfg.en)+'</h2><div class="tb"><button id="add" type="button">+ '+bi(cfg.nar,cfg.nen)+'</button><input type="search" id="cq" placeholder="'+bi("بحث","Search").replace(/<[^>]*>/g,"")+'" style="max-width:240px"></div><div id="cl"></div>';
+  function draw(){var q=($("#cq").value||"").toLowerCase(),f=rows.filter(function(x){return !q||JSON.stringify(x).toLowerCase().indexOf(q)>-1});
+   $("#cl").innerHTML=f.length?tbl(cfg.f.filter(function(c){return c.list}).map(function(c){return bi(c.ar,c.en)}).concat([bi("الحالة","Status"),""]),f.map(function(x){return cfg.f.filter(function(c){return c.list}).map(function(c){var v=x[c.k];if(c.opts){var o=c.opts.filter(function(p){return p[0]===v})[0];v=o?o[1]:v}return esc(v==null?"":v)}).concat([x.active?pill("نشط / Active","g"):pill("موقوف / Inactive"),'<button class="sec sm" data-e="'+x.id+'" type="button">'+bi("تعديل","Edit")+"</button>"])})):empty("لا توجد بيانات بعد","Nothing here yet");
+   [].forEach.call($("#cl").querySelectorAll("[data-e]"),function(b){b.onclick=function(){form(rows.filter(function(x){return x.id===b.dataset.e})[0])}})}
+  function form(r){r=r||{};
+   openDlg('<h2>'+(r.id?bi("تعديل","Edit"):bi(cfg.nar,cfg.nen))+'</h2>'+cfg.f.map(function(c,i){return '<label class="f"><span>'+bi(c.ar,c.en)+'</span>'+(c.opts?'<select id="cf'+i+'">'+c.opts.map(function(o){return '<option value="'+o[0]+'">'+esc(o[1])+"</option>"}).join("")+"</select>":(c.ta?'<textarea id="cf'+i+'" rows="2"></textarea>':'<input type="text" id="cf'+i+'"'+(c.ltr?' dir="ltr"':"")+">"))+"</label>"}).join("")+'<label class="f"><span>'+bi("الحالة","Status")+'</span><select id="cfa"><option value="1">نشط / Active</option><option value="0">موقوف / Inactive</option></select></label><p id="f-er" class="dirty"></p><div class="tb"><button id="f-sv" type="button">'+bi("حفظ","Save")+'</button><button class="sec" id="f-cx" type="button">'+bi("إلغاء","Cancel")+"</button></div>");
+   cfg.f.forEach(function(c,i){$("#cf"+i).value=r[c.k]==null?(c.def||""):r[c.k]});$("#cfa").value=r.active===false?"0":"1";
+   $("#f-cx").onclick=closeDlg;
+   $("#f-sv").onclick=function(){var d={active:$("#cfa").value==="1"},bad="";cfg.f.forEach(function(c,i){var v=$("#cf"+i).value.trim();if(c.req&&!v)bad=bi("الحقول المطلوبة ناقصة","Required fields are missing").replace(/<[^>]*>/g,"");d[c.k]=v||null});
+    if(bad){$("#f-er").textContent=bad;return}
+    api(r.id?"PATCH":"POST",cfg.t+(r.id?"?id=eq."+r.id:""),d,"return=minimal").then(function(){closeDlg();status("تم الحفظ ✓ / Saved ✓");RENDER[cfg.id]($("#main"))}).catch(function(e){$("#f-er").textContent=e.message})}}
+  $("#add").onclick=function(){form()};$("#cq").oninput=draw;draw();
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+}
+RENDER.cbr=function(mn){coreCrud(mn,{id:"cbr",t:"core_branches",ar:"الفروع والمخازن",en:"Branches and warehouses",nar:"فرع/مخزن جديد",nen:"New branch/warehouse",f:[{k:"code",ar:"الكود",en:"Code",ltr:1,list:1},{k:"name_ar",ar:"الاسم بالعربي",en:"Arabic name",req:1,list:1},{k:"name_en",ar:"الاسم بالإنجليزي",en:"English name",list:1},{k:"kind",ar:"النوع",en:"Type",def:"branch",list:1,opts:[["branch","فرع / Branch"],["warehouse","مخزن / Warehouse"]]},{k:"address",ar:"العنوان",en:"Address",ta:1},{k:"phone",ar:"الهاتف",en:"Phone",ltr:1}]})};
+RENDER.cun=function(mn){coreCrud(mn,{id:"cun",t:"core_units",ar:"وحدات القياس",en:"Units",nar:"وحدة جديدة",nen:"New unit",f:[{k:"code",ar:"الكود",en:"Code",ltr:1,req:1,list:1},{k:"name_ar",ar:"الاسم بالعربي",en:"Arabic name",req:1,list:1},{k:"name_en",ar:"الاسم بالإنجليزي",en:"English name",req:1,list:1}]})};
+RENDER.cpa=function(mn){coreCrud(mn,{id:"cpa",t:"core_partners",ar:"العملاء والموردون",en:"Customers and suppliers",nar:"طرف جديد",nen:"New partner",f:[{k:"name",ar:"الاسم",en:"Name",req:1,list:1},{k:"kind",ar:"النوع",en:"Type",def:"customer",list:1,opts:[["customer","عميل / Customer"],["supplier","مورد / Supplier"],["both","الاثنين / Both"]]},{k:"phone",ar:"الهاتف",en:"Phone",ltr:1,list:1},{k:"email",ar:"البريد",en:"Email",ltr:1},{k:"address",ar:"العنوان",en:"Address",ta:1},{k:"tax_id",ar:"الرقم الضريبي",en:"Tax ID",ltr:1},{k:"notes",ar:"ملاحظات",en:"Notes",ta:1}]})};
+RENDER.cco=function(mn){
+ api("GET","core_company?id=eq.1&select=*").then(function(rr){var r=rr[0]||{id:1};
+  var F=[["name_ar","اسم الشركة بالعربي","Company name (Arabic)"],["name_en","اسم الشركة بالإنجليزي","Company name (English)"],["phone","الهاتف","Phone"],["email","البريد","Email"],["address","العنوان","Address"],["tax_id","الرقم الضريبي","Tax ID"],["currency","العملة","Currency"]];
+  mn.innerHTML='<h2>'+bi("بيانات الشركة","Company settings")+'</h2><p class="hint" style="margin-bottom:12px">'+bi("نظام داخلي لشركة واحدة. الأرقام الضريبية والبيانات تُدخل من المالك فقط.","Internal single-company system. Tax and company details are entered by the owner only.")+'</p>'+F.map(function(x,i){return '<label class="f"><span>'+bi(x[1],x[2])+'</span><input type="text" id="co'+i+'"></label>'}).join("")+'<p id="co-er" class="dirty"></p><div class="tb"><button id="co-sv" type="button">'+bi("حفظ","Save")+"</button></div>";
+  F.forEach(function(x,i){$("#co"+i).value=r[x[0]]||""});
+  $("#co-sv").onclick=function(){var d={updated_at:new Date().toISOString()};F.forEach(function(x,i){var v=$("#co"+i).value.trim();d[x[0]]=v||null});if(!d.name_ar||!d.name_en||!d.currency){$("#co-er").textContent="الاسم والعملة مطلوبين / Names and currency are required";return}
+   api("PATCH","core_company?id=eq.1",d,"return=minimal").then(function(){status("تم الحفظ ✓ / Saved ✓")}).catch(function(e){$("#co-er").textContent=e.message})};
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
 RENDER.bk=function(mn){
