@@ -42,10 +42,10 @@ var MODS=[
  {id:"prod",g:"المتجر / Store",p:"store",ic:"box",l:"المنتجات / Products"},
  {id:"cat",g:"المتجر / Store",p:"store",ic:"tag",l:"التصنيفات / Categories"},
  {id:"ord",g:"المتجر / Store",p:"orders",ic:"cart",l:"الطلبات / Orders"},
+ {id:"rv",g:"المتجر / Store",p:"orders",ic:"star",l:"التقييمات / Reviews"},
  {id:"content",g:"المحتوى / Content",p:"content",ic:"edit",l:"محتوى الموقع / Site content"},
  {id:"ads",g:"المحتوى / Content",p:"content",ic:"ads",l:"الإعلانات / Ads"},
  {id:"kb",g:"المحتوى / Content",p:"content",ic:"kb",l:"المعرفة / Knowledge"},
- {id:"rv",g:"المتجر / Store",p:"content",ic:"star",l:"التقييمات / Reviews"},
  {id:"req",g:"العملاء / Customers",p:"requests",ic:"inbox",l:"الطلبات والمحادثات / Requests and chats"},
  {id:"users",g:"الفريق / Team",p:"users",ic:"users",l:"المستخدمون والصلاحيات / Users and roles"},
  {id:"log",g:"الفريق / Team",p:"log",ic:"log",l:"سجل النشاط / Activity log"}
