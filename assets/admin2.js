@@ -56,6 +56,7 @@ var MODS=[
  {id:"cbr",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"الفروع والمخازن / Branches and warehouses"},
  {id:"cun",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"وحدات القياس / Units"},
  {id:"cpa",g:"النظام الداخلي / UNO Core",p:"core",ic:"users",l:"العملاء والموردون / Partners"},
+ {id:"pos",g:"النظام الداخلي / UNO Core",p:"core",ic:"cart",l:"نقطة البيع / POS"},
  {id:"sal",g:"النظام الداخلي / UNO Core",p:"core",ic:"cart",l:"المبيعات والفواتير / Sales and invoices"},
  {id:"pay",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"المدفوعات والمالية / Payments and finance"},
  {id:"inv",g:"النظام الداخلي / UNO Core",p:"core",ic:"kb",l:"تصميمات الفاتورة / Invoice designs"},
@@ -357,7 +358,7 @@ RENDER.inv=function(mn){
    [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. This is not an official invoice. Continue?"))return;var w=window.open("","_blank");if(!w)return;var o=opts();o.sample=true;w.document.open();w.document.write(I.render(b.dataset.p,null,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}});
    draw()})
  }
- if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127o";x.onload=go;document.body.appendChild(x)}
+ if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127p";x.onload=go;document.body.appendChild(x)}
 }
 /* tax and ETA e-invoice settings. No credentials are stored here: ETA secrets come only through vault links. */
 RENDER.tax=function(mn){
@@ -420,7 +421,7 @@ RENDER.sal=function(mn){
        var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:b.vat_mode==="on"||(b.vat_mode==="inherit"&&TX.vat_enabled),taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:co,base:base,sample:false};
        if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. Not an official invoice. Continue?"))return;
        var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render(tid,doc,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127o";x.onload=go;document.body.appendChild(x)}})}
+      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127p";x.onload=go;document.body.appendChild(x)}})}
    })}
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
@@ -510,6 +511,41 @@ RENDER.pay=function(mn){
    $("#f-cx").onclick=closeDlg;$("#ex-s").onclick=function(){var a=parseFloat($("#ex-a").value),ds=$("#ex-d").value.trim();if(!ds||!(a>0)){$("#f-er").textContent="الوصف والمبلغ مطلوبين / Description and amount required";return}
     api("POST","core_expenses",{category:$("#ex-c").value,description:ds,amount:a,spent_at:$("#ex-t").value,method:$("#ex-m").value},"return=minimal").then(function(){closeDlg();status("تم الحفظ ✓ / Saved ✓");RENDER.pay($("#main"))}).catch(function(e){$("#f-er").textContent=e.message})}};
   [].forEach.call(mn.querySelectorAll("[data-x]"),function(b){b.onclick=function(){var e=E[b.dataset.x];if(!confirm("حذف المصروف؟ / Delete this expense?"))return;api("DELETE","core_expenses?id=eq."+e.id,null,"return=minimal").then(function(){RENDER.pay($("#main"))}).catch(function(x){alert(x.message)})}});
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
+
+/* POS: fast counter sale. Creates an invoice, issues it on the server (numbering, totals, stock) and records the payment. */
+RENDER.pos=function(mn){
+ Promise.all([api("GET","products?select=id,name_ar,name_en,price&active=eq.true&order=name_en.asc&limit=500"),api("GET","core_branches?select=id,name_ar&kind=eq.warehouse&active=eq.true"),api("GET","core_tax_settings?id=eq.1&select=*").catch(function(){return[]}),api("GET","core_company?id=eq.1&select=*").catch(function(){return[]})]).then(function(r){
+  var PR=r[0],W=r[1],TX=(r[2]&&r[2][0])||{},CO=(r[3]&&r[3][0])||{},cart=[],MT={cash:"نقدي / Cash",card:"بطاقة / Card",transfer:"تحويل / Transfer",wallet:"محفظة / Wallet"};
+  function f(n){return (Math.round((n||0)*100)/100).toFixed(2)}
+  mn.innerHTML='<h2>'+bi("نقطة البيع","Point of sale")+'</h2><p class="hint" style="margin-bottom:10px">'+bi("بيع سريع على الكاونتر: اختر الأصناف، حدد الدفع، وتتصدر فاتورة بالسيرفر وتتسجل الدفعة وتُطبع إيصال حراري. الضريبة حسب الإعداد العام. "+(CO.is_placeholder!==false?"بيانات الشركة وهمية: الإيصال غير رسمي.":""),"Quick counter sale: pick items, choose payment; the server issues the invoice, records the payment and a thermal receipt prints. VAT follows the global setting. "+(CO.is_placeholder!==false?"Company data is placeholder: receipts are unofficial.":""))+'</p>'
+   +'<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start"><div style="flex:2;min-width:280px"><input type="search" id="pos-q" placeholder="بحث عن صنف / Search items" style="width:100%;margin-bottom:10px"><div id="pos-g" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px"></div></div>'
+   +'<div class="card" style="flex:1;min-width:290px;padding:14px"><h3>'+bi("السلة","Cart")+'</h3><div id="pos-c"></div><div id="pos-t" style="font-weight:700;font-size:18px;margin:10px 0" dir="ltr"></div>'
+   +'<label class="f"><span>'+bi("خصم (ج.م)","Discount (EGP)")+'</span><input type="number" id="pos-d" min="0" step="any" value="0"></label>'
+   +'<label class="f"><span>'+bi("طريقة الدفع","Payment method")+'</span><select id="pos-m">'+Object.keys(MT).map(function(k){return '<option value="'+k+'">'+MT[k]+"</option>"}).join("")+'</select></label>'
+   +'<label class="f"><span>'+bi("المخزن (لخصم المخزون)","Warehouse (stock out)")+'</span><select id="pos-w"><option value="">- '+"بدون خصم مخزون / No stock deduction"+'</option>'+W.map(function(w){return '<option value="'+w.id+'">'+esc(w.name_ar)+"</option>"}).join("")+'</select></label>'
+   +'<label class="f"><span>'+bi("اسم العميل (اختياري)","Customer (optional)")+'</span><input type="text" id="pos-n" maxlength="80"></label><label class="f"><span>'+bi("المستلم من العميل (ج.م)","Cash received (EGP)")+'</span><input type="number" id="pos-r" min="0" step="any"></label><p id="pos-ch" class="hint"></p><p id="pos-er" class="dirty"></p>'
+   +'<div class="tb"><button id="pos-go" type="button">'+bi("تحصيل وإصدار","Charge and issue")+'</button><button id="pos-cl" type="button" class="alt">'+bi("مسح","Clear")+"</button></div></div></div>";
+  var g=$("#pos-g");function grid(){var q=($("#pos-q").value||"").toLowerCase();g.innerHTML=PR.filter(function(p){return !q||(p.name_ar+" "+p.name_en).toLowerCase().indexOf(q)>-1}).slice(0,120).map(function(p){return '<button type="button" class="alt" data-i="'+p.id+'" style="text-align:start;padding:10px;min-height:64px"><div style="font-weight:600">'+esc(p.name_ar)+'</div><div class="hint" dir="ltr">'+esc(p.name_en)+" · "+f(p.price)+"</div></button>"}).join("")||'<p class="hint">'+bi("لا أصناف","No items")+"</p>";
+   [].forEach.call(g.querySelectorAll("[data-i]"),function(b){b.onclick=function(){var p=PR.filter(function(x){return x.id===b.dataset.i})[0],l=cart.filter(function(x){return x.id===p.id})[0];if(l)l.q++;else cart.push({id:p.id,n:p.name_ar,p:Number(p.price),q:1});draw()}})}
+  function calc(){var sub=0,rate=Number(TX.vat_rate==null?14:TX.vat_rate);cart.forEach(function(l){sub+=l.q*l.p});var disc=Math.min(parseFloat($("#pos-d").value)||0,sub),tax=0;if(TX.vat_enabled){var base=sub-disc;tax=TX.prices_include_vat?base-base/(1+rate/100):base*rate/100}return{sub:sub,disc:disc,tax:tax,total:TX.vat_enabled&&!TX.prices_include_vat?sub-disc+tax:sub-disc}}
+  function draw(){var c=$("#pos-c");c.innerHTML=cart.length?cart.map(function(l,i){return '<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><span style="flex:1">'+esc(l.n)+'</span><input type="number" min="1" step="1" value="'+l.q+'" data-q="'+i+'" style="width:60px"><span dir="ltr">'+f(l.q*l.p)+'</span><button type="button" class="alt" data-r="'+i+'" aria-label="x">x</button></div>'}).join(""):'<p class="hint">'+bi("السلة فارغة","Cart is empty")+"</p>";
+   [].forEach.call(c.querySelectorAll("[data-q]"),function(e){e.oninput=function(){cart[e.dataset.q].q=Math.max(1,parseInt(e.value)||1);tot()}});[].forEach.call(c.querySelectorAll("[data-r]"),function(b){b.onclick=function(){cart.splice(b.dataset.r,1);draw()}});tot()}
+  function tot(){var k=calc();$("#pos-t").textContent="Total "+f(k.total)+(TX.vat_enabled?"  (VAT "+f(k.tax)+")":"");var rc=parseFloat($("#pos-r").value);$("#pos-ch").textContent=rc>0&&rc>=k.total?"الباقي / Change: "+f(rc-k.total):""}
+  $("#pos-q").oninput=grid;$("#pos-d").oninput=tot;$("#pos-r").oninput=tot;$("#pos-cl").onclick=function(){cart=[];$("#pos-d").value=0;$("#pos-r").value="";draw()};
+  $("#pos-go").onclick=function(){var er=$("#pos-er");er.textContent="";if(!cart.length){er.textContent="السلة فارغة / Cart is empty";return}
+   var wh=$("#pos-w").value||null,k=calc(),btn=this;if(!confirm("تحصيل "+f(k.total)+" وإصدار الفاتورة؟ / Charge "+f(k.total)+" and issue the invoice?"))return;btn.disabled=true;
+   var doc={kind:"invoice",customer_name:$("#pos-n").value.trim()||"عميل نقدي / Walk-in",vat_mode:"inherit",discount:k.disc,notes:"POS"},did;
+   api("POST","core_sales_docs",doc,"return=representation").then(function(x){did=x[0].id;return api("POST","core_sales_lines",cart.map(function(l,i){return{doc_id:did,product_id:l.id,warehouse_id:wh,description:l.n,qty:l.q,unit_price:l.p,vat_mode:"inherit",sort:i}}),"return=minimal")})
+   .then(function(){return api("POST","rpc/core_issue_doc",{p_id:did})}).then(function(){return api("GET","core_sales_docs?id=eq."+did+"&select=*")}).then(function(x){var d=x[0];return api("POST","rpc/core_record_payment",{p_doc:did,p_amount:Number(d.total),p_method:$("#pos-m").value,p_ref:"POS"}).then(function(){return d})})
+   .then(function(d){status("تم: "+d.number+" ✓ / Done: "+d.number+" ✓");var S={};try{S=JSON.parse(localStorage.getItem("uno_inv")||"{}")}catch(e){}
+     var items=cart.map(function(l){return{n:l.n,q:l.q,p:l.p,vat:"inherit"}}),dd={no:d.number,date:d.doc_date,type:"invoice",customer:{name:doc.customer_name,phone:""},items:items,discount:k.disc,notes:"",vatMode:"inherit"};
+     var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:!!TX.vat_enabled,taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:CO,base:location.href.replace(/[^\/]*$/,""),sample:false};
+     function pr(){var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render("t80",dd,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
+     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127p";x.onload=pr;document.body.appendChild(x)}}
+     cart=[];btn.disabled=false;RENDER.pos($("#main"))}).catch(function(e){btn.disabled=false;er.textContent=/no_lines|forbidden|overpay/.test(e.message)?e.message:"تعذر الإتمام، راجع المبيعات والمدفوعات / Could not complete, check Sales and Payments: "+e.message})};
+  grid();draw();
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
 
