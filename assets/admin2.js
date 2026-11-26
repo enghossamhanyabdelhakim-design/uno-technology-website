@@ -48,6 +48,7 @@ var MODS=[
  {id:"kb",g:"المحتوى / Content",p:"content",ic:"kb",l:"المعرفة / Knowledge"},
  {id:"req",g:"العملاء / Customers",p:"requests",ic:"inbox",l:"الطلبات والمحادثات / Requests and chats"},
  {id:"users",g:"الفريق / Team",p:"users",ic:"users",l:"المستخدمون والصلاحيات / Users and roles"},
+ {id:"bk",g:"الفريق / Team",p:"users",ic:"kb",l:"نسخة احتياطية / Backup"},
  {id:"log",g:"الفريق / Team",p:"log",ic:"log",l:"سجل النشاط / Activity log"}
 ];
 function buildNav(){
@@ -283,6 +284,16 @@ RENDER.rv=function(mn){
    [].forEach.call($("#rl").querySelectorAll("[data-r]"),function(b){b.onclick=function(){set(b.dataset.r,"rejected").then(draw)}})}
   $("#rf").onchange=draw;draw();
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
+RENDER.bk=function(mn){
+ var TB=["orders","order_items","order_events","products","categories","customers","customer_addresses","product_reviews","kb_items","site_content","requests","chat_log","ads_config","activity_log","whatsapp_conversations","whatsapp_messages"];
+ mn.innerHTML='<h2>'+bi("نسخة احتياطية","Backup")+'</h2><p class="hint" style="margin-bottom:12px">'+bi("نزّل نسخة من بيانات الموقع على جهازك (مجانًا). الملف فيه بيانات العملاء، فاحفظه في مكان آمن ومتشاركوش.","Download a copy of the site data to your device (free). The file contains customer data, so keep it somewhere safe and do not share it.")+'</p><div class="tb"><button id="bk-all" type="button">'+bi("تنزيل كل البيانات (JSON)","Download all data (JSON)")+'</button></div><p id="bk-st" class="hint" style="margin-top:10px"></p><div id="bk-l"></div>';
+ function all(t){var out=[];function pg(o){return api("GET",t+"?select=*&order=created_at.asc.nullslast&limit=1000&offset="+o).catch(function(){return api("GET",t+"?select=*&limit=1000&offset="+o)}).then(function(r){out=out.concat(r);return r.length===1000?pg(o+1000):out})}return pg(0)}
+ function dl(name,obj){var b=new Blob([JSON.stringify(obj,null,1)],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
+ var d=new Date().toISOString().slice(0,10);
+ $("#bk-l").innerHTML=tbl([bi("الجدول","Table"),""],TB.map(function(t){return [esc(t),'<button class="sec sm" data-t="'+t+'" type="button">'+bi("تنزيل","Download")+"</button>"]}),1);
+ [].forEach.call($("#bk-l").querySelectorAll("[data-t]"),function(b){b.onclick=function(){var t=b.dataset.t;$("#bk-st").textContent=t+" ...";all(t).then(function(r){dl("uno-"+t+"-"+d+".json",r);$("#bk-st").textContent=t+": "+r.length+" rows"}).catch(function(e){$("#bk-st").textContent=t+": "+e.message})}});
+ $("#bk-all").onclick=function(){var res={exported_at:new Date().toISOString()},i=0,sk=[];function next(){if(i>=TB.length){res.skipped=sk;dl("uno-backup-"+d+".json",res);$("#bk-st").textContent=bi("تم. تم تخطي: ","Done. Skipped: ").replace(/<[^>]*>/g,"")+(sk.join(", ")||"-");return}var t=TB[i++];$("#bk-st").textContent=t+" ("+i+"/"+TB.length+")";all(t).then(function(r){res[t]=r}).catch(function(){sk.push(t)}).then(next)}next()};
 };
 (function(){var K="uno_adm_theme",r=document.documentElement;function cur(){var v=null;try{v=localStorage.getItem(K)}catch(e){}return v||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light")}function apply(v){r.setAttribute("data-theme",v)}apply(cur());
 var b=document.createElement("button");b.id="thm";b.type="button";b.setAttribute("aria-label","theme");function ic(){b.innerHTML=cur()==="dark"?'<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>':'<svg class="i" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/></svg>'}ic();
