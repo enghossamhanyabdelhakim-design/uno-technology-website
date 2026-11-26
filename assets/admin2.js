@@ -56,6 +56,8 @@ var MODS=[
  {id:"cbr",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"الفروع والمخازن / Branches and warehouses"},
  {id:"cun",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"وحدات القياس / Units"},
  {id:"cpa",g:"النظام الداخلي / UNO Core",p:"core",ic:"users",l:"العملاء والموردون / Partners"},
+ {id:"inv",g:"النظام الداخلي / UNO Core",p:"core",ic:"kb",l:"تصميمات الفاتورة / Invoice designs"},
+ {id:"tax",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"الضريبة والفاتورة الإلكترونية / Tax and e-invoice"},
  {id:"cin",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"المخزون / Inventory"}
 ];
 function buildNav(){
@@ -334,12 +336,52 @@ function coreCrud(mn,cfg){
   $("#add").onclick=function(){form()};$("#cq").oninput=draw;draw();
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 }
+/* invoice designs: preview + print, settings kept in this browser until the sales module stores them */
+RENDER.inv=function(mn){
+ var S={};try{S=JSON.parse(localStorage.getItem("uno_inv")||"{}")}catch(e){}
+ S.color=S.color||"#F65A00";S.lang=S.lang||"ar";S.taxRate=S.taxRate==null?14:S.taxRate;S.tpl=S.tpl||"a4c";
+ function go(){
+  var I=window.UNOINV;if(!I)return;
+  api("GET","core_company?id=eq.1&select=*").catch(function(){return[]}).then(function(rr){var co=(rr&&rr[0])||{};
+   var base=location.href.replace(/[^\/]*$/,"");
+   function opts(){return {lang:S.lang,color:S.color,taxOn:!!S.taxOn,taxRate:S.taxRate,logo:S.logo!==false,footer:S.footer||"",company:co,base:base}}
+   mn.innerHTML='<h2>'+bi("تصميمات الفاتورة","Invoice designs")+'</h2><p class="hint" style="margin-bottom:12px">'+bi("اختر التصميم وعدّل اللون واللغة. المعاينة ببيانات نموذجية. الضريبة والبيانات القانونية قيم مؤقتة تتعدل من بيانات الشركة.","Pick a design, then change colour and language. Preview uses sample data. Tax and legal data are editable placeholders (see Company).")+'</p>'
+    +'<div class="tb" style="flex-wrap:wrap;gap:10px;align-items:center"><label>'+bi("اللون","Colour")+' <input type="color" id="iv-c" value="'+esc(S.color)+'"></label><label>'+bi("اللغة","Language")+' <select id="iv-l"><option value="ar">العربية</option><option value="en">English</option></select></label><label><input type="checkbox" id="iv-t"> '+bi("ضريبة","Tax")+'</label><label>% <input type="number" id="iv-r" min="0" max="100" step="0.5" style="width:70px" value="'+S.taxRate+'"></label><label><input type="checkbox" id="iv-g"> '+bi("الشعار","Logo")+'</label><label>'+bi("نص الذيل","Footer")+' <input type="text" id="iv-f" maxlength="120" value="'+esc(S.footer||"")+'"></label></div>'
+    +'<div id="iv-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-top:14px">'+I.templates.map(function(t){return '<div class="card" style="padding:10px"><div style="height:300px;overflow:hidden;border:1px solid var(--bd,#ddd);border-radius:8px;background:#fff;position:relative"><iframe data-t="'+t.id+'" title="'+esc(t.en)+'" style="border:0;position:absolute;top:0;left:0;transform-origin:0 0;pointer-events:none"></iframe></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px"><b>'+esc(t.ar)+" / "+esc(t.en)+'</b><button type="button" data-p="'+t.id+'">'+bi("طباعة","Print")+'</button></div></div>'}).join("")+'</div><p class="hint" style="margin-top:10px">'+bi("الطباعة الحرارية: اختر حجم الورق 58 أو 80 مم في نافذة الطباعة وألغِ الهوامش.","Thermal: pick the 58 or 80 mm paper size in the print dialog and set margins to none.")+'</p>';
+   $("#iv-l").value=S.lang;$("#iv-t").checked=!!S.taxOn;$("#iv-g").checked=S.logo!==false;
+   function draw(){[].forEach.call(mn.querySelectorAll("iframe[data-t]"),function(fr){var tp=I.templates.filter(function(x){return x.id===fr.dataset.t})[0],px=Math.round(parseFloat(tp.w)*3.78),h=tp.kind==="th"?900:Math.round(px*1.414);fr.style.width=px+"px";fr.style.height=h+"px";var k=Math.min(230/px,300/h);fr.style.transform="scale("+k+")";fr.style.left=Math.max(0,(250-px*k)/2-8)+"px";fr.srcdoc=I.render(tp.id,null,opts())})}
+   function save(){S.color=$("#iv-c").value;S.lang=$("#iv-l").value;S.taxOn=$("#iv-t").checked;S.taxRate=parseFloat($("#iv-r").value)||0;S.logo=$("#iv-g").checked;S.footer=$("#iv-f").value;localStorage.setItem("uno_inv",JSON.stringify(S));draw()}
+   ["iv-c","iv-l","iv-t","iv-r","iv-g","iv-f"].forEach(function(i){$("#"+i).onchange=save});
+   [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. This is not an official invoice. Continue?"))return;var w=window.open("","_blank");if(!w)return;var o=opts();o.sample=true;w.document.open();w.document.write(I.render(b.dataset.p,null,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}});
+   draw()})
+ }
+ if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127k";x.onload=go;document.body.appendChild(x)}
+}
+/* tax and ETA e-invoice settings. No credentials are stored here: ETA secrets come only through vault links. */
+RENDER.tax=function(mn){
+ Promise.all([api("GET","core_tax_settings?id=eq.1&select=*"),api("GET","core_company?id=eq.1&select=*")]).then(function(a){
+  var t=a[0][0]||{id:1,vat_enabled:false,vat_rate:14,eta_enabled:false,eta_mode:"off",eta_issuer_type:"B"},c=a[1][0]||{},ph=c.is_placeholder!==false;
+  function ck(id,v,ar,en){return '<label class="f" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="'+id+'"'+(v?" checked":"")+'><span>'+bi(ar,en)+"</span></label>"}
+  mn.innerHTML='<h2>'+bi("الضريبة والفاتورة الإلكترونية","Tax and e-invoice")+'</h2>'
+   +'<div class="card" style="padding:14px;margin-bottom:12px;border:1px solid '+(ph?"#e0c060":"#2e7d32")+'"><b>'+(ph?bi("بيانات الشركة وهمية حاليا","Company data is still placeholder"):bi("بيانات الشركة مؤكدة","Company data confirmed"))+'</b><p class="hint">'+bi("الاسم: ","Name: ")+esc(c.name_ar||"")+" · "+bi("الرقم الضريبي: ","Tax ID: ")+esc(c.tax_id||"")+'</p>'+ck("tx-ph",!ph,"أؤكد أن بيانات الشركة حقيقية (من صفحة بيانات الشركة)","I confirm the company data is real (edit it in Company)")+"</div>"
+   +'<h3>'+bi("ضريبة القيمة المضافة","VAT")+'</h3><p class="hint">'+bi("الافتراضي العام. تقدر تلغيها أو تفعلها على فاتورة أو بند معين وقت إنشاء الفاتورة.","Global default. Each invoice or line can override it when the invoice is created.")+'</p>'
+   +ck("tx-v",t.vat_enabled,"تفعيل الضريبة افتراضيا","Apply VAT by default")+'<label class="f"><span>'+bi("النسبة %","Rate %")+'</span><input type="number" id="tx-r" min="0" max="100" step="0.5" value="'+esc(t.vat_rate)+'"></label>'+ck("tx-i",t.prices_include_vat,"الأسعار شاملة الضريبة","Prices include VAT")
+   +'<h3 style="margin-top:16px">'+bi("الربط مع مصلحة الضرائب (ETA)","Egyptian Tax Authority link (ETA)")+'</h3><p class="hint">'+bi("مغلق افتراضيا. التجريبي لا يرسل شيئا. الإرسال الحقيقي والـ sandbox يحتاجان بيانات شركة حقيقية وبيانات اعتماد ETA عبر رابط الخزنة.","Off by default. Dry run sends nothing. Sandbox and live need real company data and ETA credentials through a vault link.")+'</p>'
+   +ck("tx-e",t.eta_enabled,"تفعيل الربط","Enable ETA link")+'<label class="f"><span>'+bi("الوضع","Mode")+'</span><select id="tx-m"><option value="dryrun">'+bi("تجريبي بدون إرسال","Dry run (no sending)")+'</option><option value="sandbox">Sandbox</option><option value="live">Live</option></select></label>'
+   +'<label class="f"><span>'+bi("كود النشاط","Activity code")+'</span><input type="text" id="tx-a" dir="ltr" maxlength="12" value="'+esc(t.eta_activity_code||"")+'"></label><label class="f"><span>'+bi("كود الفرع","Branch code")+'</span><input type="text" id="tx-b" dir="ltr" maxlength="12" value="'+esc(t.eta_branch_code||"")+'"></label>'
+   +'<p class="hint">'+bi("المطلوب للتشغيل الفعلي: بيانات شركة حقيقية، رقم التسجيل الضريبي، Client ID وSecret من بوابة ETA، وشهادة التوقيع الإلكتروني. تُسلَّم عبر رابط الخزنة فقط.","Needed to go live: real company data, tax registration number, ETA portal Client ID and Secret, and the e-signing certificate. Provide them through a vault link only.")+'</p><p id="tx-er" class="dirty"></p><div class="tb"><button id="tx-sv" type="button">'+bi("حفظ","Save")+"</button></div>";
+  $("#tx-m").value=t.eta_mode==="off"?"dryrun":t.eta_mode;
+  $("#tx-sv").onclick=function(){var d={vat_enabled:$("#tx-v").checked,vat_rate:parseFloat($("#tx-r").value)||0,prices_include_vat:$("#tx-i").checked,eta_enabled:$("#tx-e").checked,eta_mode:$("#tx-m").value,eta_activity_code:$("#tx-a").value||null,eta_branch_code:$("#tx-b").value||null};
+   var ok=$("#tx-ph").checked===!ph?Promise.resolve():api("PATCH","core_company?id=eq.1",{is_placeholder:!$("#tx-ph").checked},"return=minimal");
+   ok.then(function(){return api("PATCH","core_tax_settings?id=eq.1",d,"return=minimal")}).then(function(){status("تم الحفظ ✓ / Saved ✓");RENDER.tax(mn)}).catch(function(e){$("#tx-er").textContent=/eta_needs_real/.test(e.message)?"لازم بيانات شركة حقيقية أولا / Real company data is required first":e.message})}
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+}
 RENDER.cbr=function(mn){coreCrud(mn,{id:"cbr",t:"core_branches",ar:"الفروع والمخازن",en:"Branches and warehouses",nar:"فرع/مخزن جديد",nen:"New branch/warehouse",f:[{k:"code",ar:"الكود",en:"Code",ltr:1,list:1},{k:"name_ar",ar:"الاسم بالعربي",en:"Arabic name",req:1,list:1},{k:"name_en",ar:"الاسم بالإنجليزي",en:"English name",list:1},{k:"kind",ar:"النوع",en:"Type",def:"branch",list:1,opts:[["branch","فرع / Branch"],["warehouse","مخزن / Warehouse"]]},{k:"address",ar:"العنوان",en:"Address",ta:1},{k:"phone",ar:"الهاتف",en:"Phone",ltr:1}]})};
 RENDER.cun=function(mn){coreCrud(mn,{id:"cun",t:"core_units",ar:"وحدات القياس",en:"Units",nar:"وحدة جديدة",nen:"New unit",f:[{k:"code",ar:"الكود",en:"Code",ltr:1,req:1,list:1},{k:"name_ar",ar:"الاسم بالعربي",en:"Arabic name",req:1,list:1},{k:"name_en",ar:"الاسم بالإنجليزي",en:"English name",req:1,list:1}]})};
 RENDER.cpa=function(mn){coreCrud(mn,{id:"cpa",t:"core_partners",ar:"العملاء والموردون",en:"Customers and suppliers",nar:"طرف جديد",nen:"New partner",f:[{k:"name",ar:"الاسم",en:"Name",req:1,list:1},{k:"kind",ar:"النوع",en:"Type",def:"customer",list:1,opts:[["customer","عميل / Customer"],["supplier","مورد / Supplier"],["both","الاثنين / Both"]]},{k:"phone",ar:"الهاتف",en:"Phone",ltr:1,list:1},{k:"email",ar:"البريد",en:"Email",ltr:1},{k:"address",ar:"العنوان",en:"Address",ta:1},{k:"tax_id",ar:"الرقم الضريبي",en:"Tax ID",ltr:1},{k:"notes",ar:"ملاحظات",en:"Notes",ta:1}]})};
 RENDER.cco=function(mn){
  api("GET","core_company?id=eq.1&select=*").then(function(rr){var r=rr[0]||{id:1};
-  var F=[["name_ar","اسم الشركة بالعربي","Company name (Arabic)"],["name_en","اسم الشركة بالإنجليزي","Company name (English)"],["phone","الهاتف","Phone"],["email","البريد","Email"],["address","العنوان","Address"],["tax_id","الرقم الضريبي","Tax ID"],["currency","العملة","Currency"]];
+  var F=[["name_ar","اسم الشركة بالعربي","Company name (Arabic)"],["name_en","اسم الشركة بالإنجليزي","Company name (English)"],["phone","الهاتف","Phone"],["email","البريد","Email"],["address","العنوان","Address"],["tax_id","الرقم الضريبي","Tax ID"],["commercial_reg","السجل التجاري","Commercial registration"],["currency","العملة","Currency"]];
   mn.innerHTML='<h2>'+bi("بيانات الشركة","Company settings")+'</h2><p class="hint" style="margin-bottom:12px">'+bi("نظام داخلي لشركة واحدة. الأرقام الضريبية والبيانات تُدخل من المالك فقط.","Internal single-company system. Tax and company details are entered by the owner only.")+'</p>'+F.map(function(x,i){return '<label class="f"><span>'+bi(x[1],x[2])+'</span><input type="text" id="co'+i+'"></label>'}).join("")+'<p id="co-er" class="dirty"></p><div class="tb"><button id="co-sv" type="button">'+bi("حفظ","Save")+"</button></div>";
   F.forEach(function(x,i){$("#co"+i).value=r[x[0]]||""});
   $("#co-sv").onclick=function(){var d={updated_at:new Date().toISOString()};F.forEach(function(x,i){var v=$("#co"+i).value.trim();d[x[0]]=v||null});if(!d.name_ar||!d.name_en||!d.currency){$("#co-er").textContent="الاسم والعملة مطلوبين / Names and currency are required";return}

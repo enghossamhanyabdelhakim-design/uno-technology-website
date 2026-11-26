@@ -1,0 +1,51 @@
+/* UNO invoice designs: pure render functions, no network. Sample data only; real data comes from the sales module. */
+(function(){
+var T=[
+ {id:"a4c",ar:"A4 كلاسيك",en:"A4 Classic",size:"A4",w:"210mm",kind:"a4"},
+ {id:"a4m",ar:"A4 عصري",en:"A4 Modern",size:"A4",w:"210mm",kind:"a4"},
+ {id:"a4b",ar:"A4 بشريط جانبي",en:"A4 Side band",size:"A4",w:"210mm",kind:"a4"},
+ {id:"a5q",ar:"A5 عرض سعر",en:"A5 Quote",size:"A5",w:"148mm",kind:"a5"},
+ {id:"t80",ar:"حراري 80 مم",en:"Thermal 80mm",size:"80mm auto",w:"80mm",kind:"th"},
+ {id:"t58",ar:"حراري 58 مم",en:"Thermal 58mm",size:"58mm auto",w:"58mm",kind:"th"}
+];
+var L={
+ ar:{inv:"فاتورة",quo:"عرض سعر",no:"رقم",date:"التاريخ",to:"العميل",phone:"الهاتف",item:"الصنف",qty:"الكمية",price:"السعر",total:"الإجمالي",sub:"المجموع",disc:"الخصم",tax:"الضريبة",grand:"الإجمالي النهائي",notes:"ملاحظات",thanks:"شكراً لتعاملكم مع أونو",tid:"الرقم الضريبي",sample:"نموذج للمعاينة",cur:"ج.م",sig:"التوقيع",valid:"العرض ساري 7 أيام (قابل للتعديل)"},
+ en:{inv:"INVOICE",quo:"QUOTATION",no:"No.",date:"Date",to:"Bill to",phone:"Phone",item:"Item",qty:"Qty",price:"Price",total:"Total",sub:"Subtotal",disc:"Discount",tax:"Tax",grand:"Grand total",notes:"Notes",thanks:"Thank you for choosing Uno",tid:"Tax ID",sample:"Preview sample",cur:"EGP",sig:"Signature",valid:"Valid 7 days (editable)"}
+};
+var SAMPLE={no:"INV-0001",date:"2026-11-26",customer:{name:{ar:"عميل نموذجي",en:"Sample customer"},phone:"01000000000"},
+ items:[{n:{ar:"كاميرا مراقبة 2MP (نموذج)",en:"2MP CCTV camera (sample)"},q:4,p:1000},{n:{ar:"كابل شبكة CAT6 متر (نموذج)",en:"CAT6 cable per metre (sample)"},q:50,p:12},{n:{ar:"خدمة تركيب (نموذج)",en:"Installation (sample)"},q:1,p:500}],
+ discount:100,notes:{ar:"بيانات نموذجية للمعاينة فقط.",en:"Sample data for preview only."}};
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function m(n){return (Math.round(n*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function pick(v,lg){return v&&typeof v==="object"?(v[lg]||v.ar||v.en||""):v}
+function calc(d,o){var sub=0;d.items.forEach(function(i){sub+=i.q*i.p});var disc=d.discount||0,rate=o.taxOn?(+o.taxRate||0):0,base=Math.max(0,sub-disc),tax=base*rate/100;return{sub:sub,disc:disc,rate:rate,tax:tax,grand:base+tax}}
+function rows(d,o,lg,cls){return d.items.map(function(i,k){return '<tr><td class="n">'+(k+1)+'</td><td>'+esc(pick(i.n,lg))+'</td><td class="c">'+i.q+'</td><td class="r">'+m(i.p)+'</td><td class="r">'+m(i.q*i.p)+"</td></tr>"}).join("")}
+function totals(c,o,lg,t){var s='<table class="tt"><tr><td>'+t.sub+'</td><td class="r">'+m(c.sub)+"</td></tr>";if(c.disc)s+='<tr><td>'+t.disc+'</td><td class="r">-'+m(c.disc)+"</td></tr>";if(c.rate)s+='<tr><td>'+t.tax+' '+c.rate+'%</td><td class="r">'+m(c.tax)+"</td></tr>";return s+'<tr class="g"><td>'+t.grand+'</td><td class="r">'+m(c.grand)+" "+t.cur+"</td></tr></table>"}
+function css(tp,o,lg){
+ var ac=o.color||"#F65A00",f=lg==="ar"?"Cairo,Tahoma,Arial,sans-serif":"Poppins,Arial,sans-serif",th=tp.kind==="th";
+ var b='@page{size:'+tp.size+';margin:'+(th?"2mm":tp.kind==="a5"?"8mm":"12mm")+'}*{box-sizing:border-box}html,body{margin:0;position:relative;background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:'+f+';font-size:'+(th?(tp.id==="t58"?"10px":"11.5px"):"12px")+';line-height:1.45}.pg{width:'+tp.w+';margin:0 auto;'+(th?'padding:2mm':"padding:0")+'}table{width:100%;border-collapse:collapse}.r{text-align:end}.c{text-align:center}.n{width:6%;text-align:center}.logo{height:'+(th?"34px":tp.kind==="a5"?"38px":"54px")+'}.mut{color:#666}.tt{margin-top:10px;width:'+(th?"100%":"45%")+';margin-inline-start:auto}.tt td{padding:4px 6px}.tt .g td{font-weight:800;font-size:1.15em;border-top:2px solid '+ac+';color:'+ac+'}.smp{font-size:.8em;color:#999;text-align:center;margin-top:8px}';
+ if(tp.id==="a4c")b+='.h{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid '+ac+';padding-bottom:10px}.h h1{margin:0;font-size:26px;color:'+ac+'}.meta{display:flex;justify-content:space-between;margin:14px 0}.box{border:1px solid #ddd;border-radius:6px;padding:8px 12px;min-width:46%}.it th{background:#f3f3f3;border:1px solid #ddd;padding:7px}.it td{border:1px solid #ddd;padding:7px}';
+ if(tp.id==="a4m")b+='.h{background:'+ac+';color:#fff;padding:22px 26px;border-radius:0 0 22px 22px;display:flex;justify-content:space-between;align-items:center}.h h1{margin:0;font-size:30px;letter-spacing:1px}.h .logo{background:#fff;border-radius:10px;padding:6px}.meta{display:flex;gap:12px;margin:18px 14px}.box{flex:1;background:#fff6f0;border-radius:12px;padding:10px 14px}.it{margin:0 14px;width:calc(100% - 28px)}.it th{color:'+ac+';border-bottom:2px solid '+ac+';padding:8px;text-align:start}.it td{padding:8px;border-bottom:1px solid #eee}.tt{margin-inline-end:14px;width:46%}.ft{margin:20px 14px}';
+ if(tp.id==="a4b")b+='.pg{display:flex;min-height:270mm}.side{width:48mm;background:#16181d;color:#fff;padding:18px 12px;text-align:center}.side .logo{background:#fff;border-radius:8px;padding:6px;height:46px}.side h1{color:'+ac+';font-size:22px;margin:18px 0 4px}.side p{font-size:11px;color:#bbb;margin:4px 0}.main{flex:1;padding:18px 20px}.it th{background:'+ac+';color:#fff;padding:7px;text-align:start}.it td{padding:7px;border-bottom:1px solid #e5e5e5}.meta{margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #eee}';
+ if(tp.id==="a5q")b+='.h{display:flex;justify-content:space-between;align-items:center;border-bottom:2px dashed '+ac+';padding-bottom:8px}.h h1{margin:0;font-size:20px;color:'+ac+'}.meta{margin:10px 0}.it th{background:'+ac+';color:#fff;padding:6px;text-align:start}.it td{padding:6px;border-bottom:1px solid #eee}.sg{display:flex;justify-content:space-between;margin-top:26px}.sg div{border-top:1px solid #999;width:40%;text-align:center;padding-top:4px;font-size:.85em}';
+ if(th)b+='.h{text-align:center;border-bottom:1px dashed #000;padding-bottom:6px}.h h1{margin:4px 0;font-size:1.3em}.meta{margin:6px 0;border-bottom:1px dashed #000;padding-bottom:6px}.it th{border-bottom:1px solid #000;padding:3px 0;text-align:start}.it td,.it th{padding:3px 2px;vertical-align:top;white-space:nowrap}.it td:nth-child(2){white-space:normal;width:100%}.it .n,.it th.n{display:none}.tt td{padding:2px 0}.tt .g td{border-top:1px dashed #000;color:#000}.ft{text-align:center;border-top:1px dashed #000;margin-top:8px;padding-top:6px}';
+ return b}
+function doc(tid,d,o){
+ o=o||{};var tp=T.filter(function(x){return x.id===tid})[0]||T[0],lg=o.lang==="en"?"en":"ar",t=L[lg],d=d||SAMPLE,c=calc(d,o),co=o.company||{},
+ cn=(lg==="ar"?co.name_ar:co.name_en)||co.name_ar||"أونو للخدمات التكنولوجية",title=d.type==="quote"||tid==="a5q"?t.quo:t.inv,
+ logo=o.logo!==false?'<img class="logo" src="'+esc(o.base||"")+'assets/logo-uno-technology.png" alt="">':"",
+ info='<div><b>'+esc(cn)+'</b></div><div class="mut">'+esc(co.phone||"01505946321")+(co.address?" · "+esc(co.address):"")+'</div>'+(co.tax_id?'<div class="mut">'+t.tid+": "+esc(co.tax_id)+"</div>":""),
+ cust='<div class="box"><div class="mut">'+t.to+'</div><b>'+esc(pick(d.customer.name,lg))+'</b><div>'+t.phone+': <span dir="ltr">'+esc(d.customer.phone)+"</span></div></div>",
+ mt='<div class="box"><div>'+t.no+': <b dir="ltr">'+esc(d.no)+'</b></div><div>'+t.date+': <b dir="ltr">'+esc(d.date)+"</b></div></div>",
+ tbl='<table class="it"><thead><tr><th class="n">#</th><th>'+t.item+'</th><th class="c">'+t.qty+'</th><th class="r">'+t.price+'</th><th class="r">'+t.total+"</th></tr></thead><tbody>"+rows(d,o,lg)+"</tbody></table>"+totals(c,o,lg,t),
+ note=d.notes?'<p class="mut"><b>'+t.notes+":</b> "+esc(pick(d.notes,lg))+"</p>":"",
+ foot=(o.footer?'<p>'+esc(o.footer)+"</p>":"<p>"+t.thanks+"</p>")+(o.sample!==false?'<div class="smp">'+t.sample+"</div>":""),body;
+ if(tp.id==="a4c")body='<div class="h"><div>'+info+"</div><div style=\"text-align:end\">"+logo+"<h1>"+title+"</h1></div></div><div class=\"meta\">"+cust+mt+"</div>"+tbl+note+'<div class="ft c">'+foot+"</div>";
+ else if(tp.id==="a4m")body='<div class="h"><div><h1>'+title+"</h1><div>"+esc(cn)+"</div></div>"+logo+'</div><div class="meta">'+cust+mt+"</div>"+tbl+'<div class="ft">'+note+"<div class=\"c\">"+foot+"</div></div>";
+ else if(tp.id==="a4b")body='<div class="side">'+logo+"<h1>"+title+"</h1><p>"+esc(cn)+"</p><p dir=\"ltr\">"+esc(co.phone||"01505946321")+"</p>"+(co.tax_id?"<p>"+t.tid+": "+esc(co.tax_id)+"</p>":"")+'</div><div class="main"><div class="meta">'+cust.replace(/class="box"/,"")+mt.replace(/class="box"/,"")+"</div>"+tbl+note+'<div class="c">'+foot+"</div></div>";
+ else if(tp.id==="a5q")body='<div class="h"><div>'+info+"</div><div style=\"text-align:end\">"+logo+"<h1>"+title+"</h1></div></div><div class=\"meta\">"+cust.replace(/class="box"/,"")+mt.replace(/class="box"/,"")+"</div>"+tbl+"<p class=\"mut\">"+t.valid+"</p>"+note+'<div class="sg"><div>'+t.sig+"</div><div>"+t.sig+"</div></div><div class=\"c\">"+foot+"</div>";
+ else body='<div class="h">'+logo+"<h1>"+title+"</h1>"+info+'</div><div class="meta"><div>'+t.no+": <b dir=\"ltr\">"+esc(d.no)+"</b></div><div>"+t.date+": <span dir=\"ltr\">"+esc(d.date)+"</span></div><div>"+t.to+": "+esc(pick(d.customer.name,lg))+"</div></div>"+tbl+'<div class="ft">'+foot+"</div>";
+ var ph=(o.company&&o.company.is_placeholder!==false&&o.company.is_placeholder!==undefined)||o.placeholder;body=(ph?'<div class="phb">'+(lg==="ar"?"بيانات شركة وهمية: ليست فاتورة رسمية":"Placeholder company data: not an official invoice")+"</div>":"")+body;
+ return '<!DOCTYPE html><html lang="'+lg+'" dir="'+(lg==="ar"?"rtl":"ltr")+'"><head><meta charset="utf-8"><title>'+esc(title+" "+d.no)+'</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"><style>'+css(tp,o,lg)+'.phb{background:#fff3cd;color:#7a5b00;border:1px solid #e0c060;text-align:center;font-weight:700;padding:3px;font-size:.85em}</style></head><body><div class="pg">'+body+"</div></body></html>"}
+window.UNOINV={templates:T,sample:SAMPLE,render:doc};
+})();
