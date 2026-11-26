@@ -356,3 +356,13 @@ section>.wrap>h2{font-size:clamp(30px,4.4vw,52px);letter-spacing:-.02em}section{
 .gl{transform:none!important;margin-bottom:0}.hero{padding-bottom:clamp(32px,5vw,56px)}.hero+section{padding-top:clamp(64px,9vw,112px)}
 .mbar a span,.mbar a span *{white-space:nowrap;font-size:10.5px}.mbar a{min-width:0;padding-inline:2px}.gl b,.gl b *{font:inherit;color:inherit}
 .strips{padding:clamp(24px,4vw,48px) 0}.strips .wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}.strip{display:block;border-radius:22px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.08);transition:transform .25s,box-shadow .25s}.strip:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(246,90,0,.2)}.strip img{display:block;width:100%;height:auto}@media(max-width:700px){.strips .wrap{grid-template-columns:1fr}}
+.gl b,.gl b *{font-weight:700}
+/* v-o: about / why */
+.about{gap:clamp(24px,5vw,64px);margin-top:clamp(28px,5vw,56px)}.about p{font-size:clamp(17px,1.8vw,21px);line-height:1.75;max-width:62ch}
+.about img{filter:drop-shadow(0 18px 30px rgba(246,90,0,.25))}
+.why{gap:16px;margin-top:clamp(32px,5vw,56px)}.why div{text-align:start;padding:26px 24px;border-radius:24px;background:var(--bg2,var(--bg));transition:transform .25s,box-shadow .25s,border-color .25s;font-size:15.5px;color:var(--mut);line-height:1.6}
+.why div:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(246,90,0,.14);border-color:var(--o)}.why b{font-size:19px;margin-bottom:6px;color:var(--ink)}
+.why .pose{width:64px;height:64px;border-radius:18px;object-fit:cover;margin-bottom:12px;box-shadow:0 0 0 3px rgba(246,90,0,.25)}
+.strips{padding-top:0}.alt-bg+.strips{padding-top:0}
+@media(min-width:900px){#services .grid>.card.sc:last-child:nth-child(3n+1){grid-column:2}}
+@media(prefers-reduced-motion:reduce){.why div,.strip{transition:none}}
