@@ -375,7 +375,7 @@ RENDER.inv=function(mn){
    [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. This is not an official invoice. Continue?"))return;var w=window.open("","_blank");if(!w)return;var o=opts();o.sample=true;w.document.open();w.document.write(I.render(b.dataset.p,null,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}});
    draw()})
  }
- if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127w";x.onload=go;document.body.appendChild(x)}
+ if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127x";x.onload=go;document.body.appendChild(x)}
 }
 /* tax and ETA e-invoice settings. No credentials are stored here: ETA secrets come only through vault links. */
 RENDER.tax=function(mn){
@@ -438,7 +438,7 @@ RENDER.sal=function(mn){
        var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:b.vat_mode==="on"||(b.vat_mode==="inherit"&&TX.vat_enabled),taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:co,base:base,sample:false};
        if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. Not an official invoice. Continue?"))return;
        var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render(tid,doc,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127w";x.onload=go;document.body.appendChild(x)}})}
+      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127x";x.onload=go;document.body.appendChild(x)}})}
    })}
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
@@ -560,7 +560,7 @@ RENDER.pos=function(mn){
      var items=cart.map(function(l){return{n:l.n,q:l.q,p:l.p,vat:"inherit"}}),dd={no:d.number,date:d.doc_date,type:"invoice",customer:{name:doc.customer_name,phone:""},items:items,discount:k.disc,notes:"",vatMode:"inherit"};
      var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:!!TX.vat_enabled,taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:CO,base:location.href.replace(/[^\/]*$/,""),sample:false};
      function pr(){var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render("t80",dd,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127w";x.onload=pr;document.body.appendChild(x)}}
+     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127x";x.onload=pr;document.body.appendChild(x)}}
      cart=[];btn.disabled=false;RENDER.pos($("#main"))}).catch(function(e){btn.disabled=false;er.textContent=/no_lines|forbidden|overpay/.test(e.message)?e.message:"تعذر الإتمام، راجع المبيعات والمدفوعات / Could not complete, check Sales and Payments: "+e.message})};
   grid();draw();
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
@@ -646,6 +646,28 @@ RENDER.ins=function(mn){
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
 
+
+
+/* Cashier shifts: open with opening cash, close with counted cash. Expected cash is computed on the server from this user's cash payments. */
+(function(){
+ var P0=RENDER.pos;
+ function f(n){return (Math.round((n||0)*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+ function dt(x){return x?new Date(x).toLocaleString("en-GB",{dateStyle:"short",timeStyle:"short"}):"-"}
+ function cur(){return api("GET","core_shifts?closed_at=is.null&select=*&order=opened_at.desc&limit=50").then(function(r){return r.filter(function(x){return USER&&x.opened_by===USER.id})[0]||null})}
+ function hist(box){return api("GET","core_shifts?select=*&order=opened_at.desc&limit=30").then(function(r){
+  box.innerHTML='<h3 style="margin-top:22px">'+bi("سجل الورديات","Shift history")+'</h3>'+(r.length?'<div class="tw"><table><thead><tr><th>'+bi("فتح","Opened")+"</th><th>"+bi("إغلاق","Closed")+"</th><th>"+bi("افتتاحي","Opening")+"</th><th>"+bi("المتوقع","Expected")+"</th><th>"+bi("المعدود","Counted")+"</th><th>"+bi("الفرق","Diff")+"</th><th>"+bi("المبيعات","Sales")+"</th></tr></thead><tbody>"+r.map(function(x){var d=Number(x.diff);return "<tr><td>"+dt(x.opened_at)+"</td><td>"+(x.closed_at?dt(x.closed_at):'<span class="pill">'+bi("مفتوحة","Open")+"</span>")+'</td><td dir="ltr">'+f(x.opening_cash)+'</td><td dir="ltr">'+(x.closed_at?f(x.expected_cash):"-")+'</td><td dir="ltr">'+(x.closed_at?f(x.counted_cash):"-")+'</td><td dir="ltr" style="color:'+(x.closed_at&&Math.abs(d)>0.001?"#dc2626":"inherit")+'">'+(x.closed_at?(d>0?"+":"")+f(d):"-")+'</td><td dir="ltr">'+(x.closed_at?f(x.sales_total)+" ("+x.sales_count+")":"-")+"</td></tr>"}).join("")+"</tbody></table></div>":'<p class="hint">'+bi("لا توجد ورديات بعد","No shifts yet")+"</p>")}).catch(function(){})}
+ RENDER.pos=function(mn){
+  cur().then(function(sh){
+   if(!sh){mn.innerHTML='<h2>'+bi("فتح وردية","Open a shift")+'</h2><div class="card" style="padding:16px;max-width:420px"><p class="hint">'+bi("ابدأ الوردية بعدّ النقدية الموجودة في الدرج.","Start the shift by counting the cash in the drawer.")+'</p><label class="f"><span>'+bi("النقدية الافتتاحية (ج.م)","Opening cash (EGP)")+'</span><input type="number" id="sh-o" min="0" step="any" value="0"></label><p id="sh-er" class="dirty"></p><div class="tb"><button id="sh-go" type="button">'+bi("فتح الوردية","Open shift")+'</button></div></div><div id="sh-h"></div>';
+    $("#sh-go").onclick=function(){var b=this;b.disabled=true;api("POST","rpc/core_shift_open",{p_cash:parseFloat($("#sh-o").value)||0}).then(function(){RENDER.pos(mn)}).catch(function(e){b.disabled=false;$("#sh-er").textContent=e.message})};hist($("#sh-h"));return}
+   P0(mn);
+   var bar=document.createElement("div");bar.className="card";bar.style.cssText="padding:10px 14px;margin-bottom:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap";
+   bar.innerHTML='<span class="pill">'+bi("وردية مفتوحة","Shift open")+"</span><span>"+dt(sh.opened_at)+'</span><span class="hint">'+bi("افتتاحي","Opening")+' <b dir="ltr">'+f(sh.opening_cash)+'</b></span><span style="flex:1"></span><button type="button" id="sh-cl" class="alt" style="width:auto">'+bi("إغلاق الوردية","Close shift")+"</button>";
+   mn.insertBefore(bar,mn.firstChild);
+   $("#sh-cl").onclick=function(){openDlg('<h2>'+bi("إغلاق الوردية","Close shift")+'</h2><p class="hint">'+bi("عدّ النقدية في الدرج وأدخل المبلغ. يحسب النظام المتوقع (الافتتاحي + المبيعات النقدية).","Count the drawer and enter the amount. The system computes the expected cash (opening + cash sales).")+'</p><label class="f"><span>'+bi("النقدية المعدودة (ج.م)","Counted cash (EGP)")+'</span><input type="number" id="sh-c" min="0" step="any"></label><label class="f"><span>'+bi("ملاحظة","Note")+'</span><input type="text" id="sh-n" maxlength="300"></label><p id="sh-er" class="dirty"></p><div class="tb"><button id="sh-ok" type="button">'+bi("إغلاق","Close")+'</button><button id="sh-x" type="button" class="alt">'+bi("إلغاء","Cancel")+"</button></div>");
+    $("#sh-x").onclick=closeDlg;$("#sh-ok").onclick=function(){var v=parseFloat($("#sh-c").value);if(!(v>=0)){$("#sh-er").textContent=bi("أدخل المبلغ","Enter the amount");return}var b=this;b.disabled=true;api("POST","rpc/core_shift_close",{p_counted:v,p_note:$("#sh-n").value||null}).then(function(r){var d=Number(r.diff);openDlg('<h2>'+bi("تم إغلاق الوردية","Shift closed")+'</h2><table><tbody><tr><td>'+bi("المتوقع","Expected")+'</td><td dir="ltr">'+f(r.expected)+"</td></tr><tr><td>"+bi("المعدود","Counted")+'</td><td dir="ltr">'+f(r.counted)+"</td></tr><tr><td>"+bi("الفرق","Difference")+'</td><td dir="ltr" style="font-weight:700;color:'+(Math.abs(d)>0.001?"#dc2626":"#16a34a")+'">'+(d>0?"+":"")+f(d)+"</td></tr><tr><td>"+bi("المدفوعات","Payments")+'</td><td dir="ltr">'+f(r.sales)+" ("+r.count+")</td></tr></tbody></table>"+'<div class="tb"><button id="sh-d" type="button">OK</button></div>');$("#sh-d").onclick=function(){closeDlg();RENDER.pos(mn)}}).catch(function(e){b.disabled=false;$("#sh-er").textContent=e.message})}};
+   var h=document.createElement("div");mn.appendChild(h);hist(h)})};
+})();
 
 /* top bar: search button and notifications bell. Counts come from the same server data, filtered by the user's permissions. */
 (function(){
