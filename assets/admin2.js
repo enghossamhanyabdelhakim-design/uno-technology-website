@@ -53,7 +53,8 @@ var MODS=[
  {id:"cco",g:"النظام الداخلي / UNO Core",p:"core",ic:"kb",l:"بيانات الشركة / Company"},
  {id:"cbr",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"الفروع والمخازن / Branches and warehouses"},
  {id:"cun",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"وحدات القياس / Units"},
- {id:"cpa",g:"النظام الداخلي / UNO Core",p:"core",ic:"users",l:"العملاء والموردون / Partners"}
+ {id:"cpa",g:"النظام الداخلي / UNO Core",p:"core",ic:"users",l:"العملاء والموردون / Partners"},
+ {id:"cin",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"المخزون / Inventory"}
 ];
 function buildNav(){
  var side=$("#side"),nav=$("#nav");side.parentNode&&side.parentNode.removeChild(side);nav.innerHTML="";var last="";
@@ -316,6 +317,23 @@ RENDER.cco=function(mn){
   F.forEach(function(x,i){$("#co"+i).value=r[x[0]]||""});
   $("#co-sv").onclick=function(){var d={updated_at:new Date().toISOString()};F.forEach(function(x,i){var v=$("#co"+i).value.trim();d[x[0]]=v||null});if(!d.name_ar||!d.name_en||!d.currency){$("#co-er").textContent="الاسم والعملة مطلوبين / Names and currency are required";return}
    api("PATCH","core_company?id=eq.1",d,"return=minimal").then(function(){status("تم الحفظ ✓ / Saved ✓")}).catch(function(e){$("#co-er").textContent=e.message})};
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
+/* UNO Core R9: inventory (stock levels and movements) */
+var MV=[["opening","رصيد افتتاحي / Opening","+"],["purchase","شراء / Purchase","+"],["return","مرتجع / Return","+"],["transfer_in","تحويل وارد / Transfer in","+"],["sale","بيع / Sale","-"],["transfer_out","تحويل صادر / Transfer out","-"],["adjust","تسوية (+/-) / Adjustment (+/-)","*"]];
+RENDER.cin=function(mn){
+ Promise.all([api("GET","products?select=id,name_ar,name_en&order=name_en.asc&limit=500"),api("GET","core_branches?select=id,name_ar,name_en,kind&kind=eq.warehouse&active=eq.true"),api("GET","core_stock_levels?select=*"),api("GET","core_stock_moves?select=*&order=created_at.desc&limit=100")]).then(function(r){
+  var P=r[0],W=r[1],LV=r[2],MS=r[3],pn={},wn={};P.forEach(function(p){pn[p.id]=p.name_ar+" / "+p.name_en});W.forEach(function(w){wn[w.id]=w.name_ar});
+  mn.innerHTML='<h2>'+bi("المخزون","Inventory")+'</h2><p class="hint" style="margin-bottom:12px">'+bi("أرصدة المخازن الداخلية وحركاتها. لا تغيّر مخزون المتجر العام.","Internal warehouse stock and movements. This does not change the public store stock.")+'</p><div class="tb"><button id="add" type="button">+ '+bi("حركة مخزون","Stock movement")+'</button></div>'+(W.length?"":'<p class="dirty">'+bi("أضف مخزنًا أولًا من الفروع والمخازن.","Add a warehouse first under Branches and warehouses.")+"</p>")+'<h3 style="margin:14px 0 6px">'+bi("الأرصدة","Stock levels")+'</h3>'+(LV.length?tbl([bi("المنتج","Product"),bi("المخزن","Warehouse"),bi("الكمية","Qty"),bi("آخر حركة","Last move")],LV.map(function(x){return [esc(pn[x.product_id]||x.product_id),esc(wn[x.warehouse_id]||x.warehouse_id),'<b'+(Number(x.qty)<0?' class="dirty"':"")+">"+esc(Number(x.qty))+"</b>",esc(dt(x.last_move))]})):empty("لا توجد أرصدة بعد","No stock yet"))+'<h3 style="margin:14px 0 6px">'+bi("آخر الحركات","Recent movements")+'</h3>'+(MS.length?tbl([bi("التاريخ","Date"),bi("المنتج","Product"),bi("المخزن","Warehouse"),bi("النوع","Type"),bi("الكمية","Qty"),bi("ملاحظة","Note")],MS.map(function(x){var k=MV.filter(function(m){return m[0]===x.kind})[0];return [esc(dt(x.created_at)),esc(pn[x.product_id]||""),esc(wn[x.warehouse_id]||""),esc(k?k[1]:x.kind),esc(Number(x.qty)),esc(x.note||"")]})):empty("لا توجد حركات","No movements"));
+  $("#add").onclick=function(){if(!W.length){status("أضف مخزنًا أولًا / Add a warehouse first",1);return}
+   openDlg('<h2>'+bi("حركة مخزون","Stock movement")+'</h2><label class="f"><span>'+bi("المنتج","Product")+'</span><select id="mp">'+P.map(function(p){return '<option value="'+p.id+'">'+esc(pn[p.id])+"</option>"}).join("")+'</select></label><label class="f"><span>'+bi("المخزن","Warehouse")+'</span><select id="mw">'+W.map(function(w){return '<option value="'+w.id+'">'+esc(w.name_ar)+"</option>"}).join("")+'</select></label><div class="pair"><label class="f"><span>'+bi("النوع","Type")+'</span><select id="mk">'+MV.map(function(m){return '<option value="'+m[0]+'">'+esc(m[1])+"</option>"}).join("")+'</select></label><label class="f"><span>'+bi("الكمية","Quantity")+'</span><input type="number" id="mq" min="0" step="any" dir="ltr"></label></div><label class="f"><span>'+bi("ملاحظة","Note")+'</span><input type="text" id="mn"></label><p class="hint">'+bi("في التسوية اكتب الكمية بالسالب للنقص.","For an adjustment, use a negative quantity to reduce.")+'</p><p id="f-er" class="dirty"></p><div class="tb"><button id="f-sv" type="button">'+bi("حفظ","Save")+'</button><button class="sec" id="f-cx" type="button">'+bi("إلغاء","Cancel")+"</button></div>");
+   $("#mq").removeAttribute("min");$("#f-cx").onclick=closeDlg;
+   $("#f-sv").onclick=function(){var k=$("#mk").value,q=parseFloat($("#mq").value),m=MV.filter(function(x){return x[0]===k})[0];
+    if(!q||isNaN(q)){$("#f-er").textContent="الكمية مطلوبة / Quantity is required";return}
+    if(m[2]!=="*"&&q<0){$("#f-er").textContent="الكمية لازم تكون موجبة / Quantity must be positive";return}
+    var s=m[2]==="-"?-Math.abs(q):q;
+    if(s<0){var cur=LV.filter(function(l){return l.product_id===$("#mp").value&&l.warehouse_id===$("#mw").value})[0];if(!cur||Number(cur.qty)+s<0){$("#f-er").textContent="الرصيد غير كافٍ / Not enough stock in this warehouse";return}}
+    api("POST","core_stock_moves",{product_id:$("#mp").value,warehouse_id:$("#mw").value,kind:k,qty:s,note:$("#mn").value.trim()||null},"return=minimal").then(function(){closeDlg();status("تم الحفظ ✓ / Saved ✓");RENDER.cin($("#main"))}).catch(function(e){$("#f-er").textContent=e.message})}}
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
 RENDER.bk=function(mn){
