@@ -11,7 +11,8 @@ var I={
  inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 01-2 2H4a2 2 0 01-2-2v-6l3.5-7z"/>',
  users:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.9"/><path d="M16 3.1a4 4 0 010 7.8"/>',
  log:'<path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/>',
- ads:'<path d="M3 10v4l9 4V6z"/><path d="M12 6l8-3v18l-8-3"/>'
+ ads:'<path d="M3 10v4l9 4V6z"/><path d="M12 6l8-3v18l-8-3"/>',
+ kb:'<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/>'
 };
 function ic(n){return '<svg class="i" viewBox="0 0 24 24">'+I[n]+'</svg>'}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -42,6 +43,7 @@ var MODS=[
  {id:"ord",g:"المتجر / Store",p:"orders",ic:"cart",l:"الطلبات / Orders"},
  {id:"content",g:"المحتوى / Content",p:"content",ic:"edit",l:"محتوى الموقع / Site content"},
  {id:"ads",g:"المحتوى / Content",p:"content",ic:"ads",l:"الإعلانات / Ads"},
+ {id:"kb",g:"المحتوى / Content",p:"content",ic:"kb",l:"المعرفة / Knowledge"},
  {id:"req",g:"العملاء / Customers",p:"requests",ic:"inbox",l:"الطلبات والمحادثات / Requests and chats"},
  {id:"users",g:"الفريق / Team",p:"users",ic:"users",l:"المستخدمون والصلاحيات / Users and roles"},
  {id:"log",g:"الفريق / Team",p:"log",ic:"log",l:"سجل النشاط / Activity log"}
@@ -187,7 +189,33 @@ RENDER.ads=function(mn){
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
 
+/* knowledge review */
+var KST=[["draft","مسودة / Draft","o"],["approved","معتمد / Approved","g"],["needs_owner","محتاج رد المالك / Needs owner","o"],["rejected","مرفوض / Rejected","r"]];
+RENDER.kb=function(mn){
+ api("GET","kb_items?select=*&order=created_at.desc&limit=600").then(function(rows){
+  mn.innerHTML='<h2>'+bi("قاعدة المعرفة","Knowledge base")+'</h2><p class="hint" style="margin-bottom:8px">'+bi("الشات بوت بيرد بس من الإجابات المعتمدة. راجع كل مسودة واعتمدها أو عدّلها.","The chatbot answers only from approved items. Review each draft, then approve or edit it.")+'</p><div class="tb"><select id="kf"><option value="">'+bi("كل الحالات","All statuses")+'</option>'+KST.map(function(s){return '<option value="'+s[0]+'">'+esc(s[1])+" ("+rows.filter(function(x){return x.status===s[0]}).length+")</option>"}).join("")+'</select><input id="kq" placeholder="'+esc("بحث / Search")+'"><button id="kadd" type="button">'+bi("إضافة","Add")+'</button><button class="sec" id="kimp" type="button">'+bi("استيراد","Import")+'</button><button class="sec" id="kall" type="button">'+bi("اعتماد المسودات الظاهرة","Approve shown drafts")+'</button></div><div id="kl"></div>';
+  var shown=[];
+  function setSt(id,st){return api("PATCH","kb_items?id=eq."+id,{status:st},"return=minimal").then(function(){var r=rows.filter(function(x){return x.id===id})[0];if(r)r.status=st})}
+  function draw(){var f=$("#kf").value,q=$("#kq").value.trim().toLowerCase();shown=rows.filter(function(x){return(!f||x.status===f)&&(!q||((x.question_ar||"")+" "+(x.question_en||"")+" "+(x.answer_ar||"")+" "+(x.answer_en||"")).toLowerCase().indexOf(q)>-1)}).slice(0,200);
+   $("#kl").innerHTML=shown.length?tbl([bi("السؤال","Question"),bi("الإجابة","Answer"),bi("الحالة","Status"),""],shown.map(function(x){var m=KST.filter(function(s){return s[0]===x.status})[0]||[0,x.status,""];return [esc(x.question_ar||"")+'<br><small style="color:var(--mut)">'+esc(x.question_en||"")+"</small>",esc((x.answer_ar||"").slice(0,140))+(x.source?'<br><small style="color:var(--mut)">'+esc(x.source)+"</small>":""),pill(m[1],m[2]),'<button class="sec sm" data-a="'+x.id+'" type="button">'+bi("اعتماد","Approve")+'</button> <button class="sec sm" data-r="'+x.id+'" type="button">'+bi("رفض","Reject")+'</button> <button class="sec sm" data-e="'+x.id+'" type="button">'+bi("تعديل","Edit")+"</button>"]}),1):empty("لا توجد عناصر","No items");
+   [].forEach.call($("#kl").querySelectorAll("[data-a]"),function(b){b.onclick=function(){setSt(b.dataset.a,"approved").then(draw)}});
+   [].forEach.call($("#kl").querySelectorAll("[data-r]"),function(b){b.onclick=function(){setSt(b.dataset.r,"rejected").then(draw)}});
+   [].forEach.call($("#kl").querySelectorAll("[data-e]"),function(b){b.onclick=function(){form(rows.filter(function(x){return x.id===b.dataset.e})[0])}})}
+  function form(x){var n=!x;x=x||{status:"draft",variants:[]};
+   openDlg('<h2>'+(n?bi("عنصر جديد","New item"):bi("تعديل","Edit"))+'</h2><label class="f"><span>'+bi("السؤال (عربي)","Question (AR)")+'</span><input id="k-qa" value="'+esc(x.question_ar||"")+'"></label><label class="f"><span>'+bi("السؤال (إنجليزي)","Question (EN)")+'</span><input id="k-qe" dir="ltr" value="'+esc(x.question_en||"")+'"></label><label class="f"><span>'+bi("الإجابة (عربي)","Answer (AR)")+'</span><textarea id="k-aa" rows="3">'+esc(x.answer_ar||"")+'</textarea></label><label class="f"><span>'+bi("الإجابة (إنجليزي)","Answer (EN)")+'</span><textarea id="k-ae" dir="ltr" rows="3">'+esc(x.answer_en||"")+'</textarea></label><label class="f"><span>'+bi("صيغ تانية للسؤال (سطر لكل صيغة)","Question variants (one per line)")+'</span><textarea id="k-v" rows="3">'+esc((x.variants||[]).join("\n"))+'</textarea></label><label class="f"><span>'+bi("التصنيف","Category")+'</span><input id="k-c" value="'+esc(x.category||"")+'"></label><label class="f"><span>'+bi("الحالة","Status")+'</span><select id="k-s">'+KST.map(function(s){return '<option value="'+s[0]+'">'+esc(s[1])+"</option>"}).join("")+'</select></label><p id="k-er" class="dirty"></p><div class="tb"><button id="k-sv" type="button">'+bi("حفظ","Save")+'</button><button class="sec" id="k-cx" type="button">'+bi("إغلاق","Close")+"</button></div>");
+   $("#k-s").value=x.status;$("#k-cx").onclick=closeDlg;
+   $("#k-sv").onclick=function(){var b={question_ar:$("#k-qa").value.trim(),question_en:$("#k-qe").value.trim(),answer_ar:$("#k-aa").value.trim(),answer_en:$("#k-ae").value.trim(),variants:$("#k-v").value.split("\n").map(function(v){return v.trim()}).filter(Boolean),category:$("#k-c").value.trim()||null,status:$("#k-s").value};if(!(b.question_ar||b.question_en)){$("#k-er").textContent="Question required";return}if(b.status==="approved"&&!(b.answer_ar||b.answer_en)){$("#k-er").textContent="An approved item needs an answer";return}if(n)b.source="admin";
+    api(n?"POST":"PATCH",n?"kb_items":"kb_items?id=eq."+x.id,b,"return=minimal").then(function(){closeDlg();status("تم ✓ / Saved ✓");RENDER.kb($("#main"))}).catch(function(e){$("#k-er").textContent=e.message})}}
+  $("#kf").onchange=draw;$("#kq").oninput=draw;$("#kadd").onclick=function(){form(null)};
+  $("#kall").onclick=function(){var d=shown.filter(function(x){return x.status==="draft"&&(x.answer_ar||x.answer_en)});if(!d.length)return;if(!confirm("اعتماد "+d.length+" مسودة؟ / Approve "+d.length+" drafts?"))return;api("PATCH","kb_items?id=in.("+d.map(function(x){return x.id}).join(",")+")",{status:"approved"},"return=minimal").then(function(){status("تم ✓ / Done ✓");RENDER.kb($("#main"))}).catch(function(e){status(e.message,1)})};
+  $("#kimp").onclick=function(){openDlg('<h2>'+bi("استيراد","Import")+'</h2><p class="hint">'+bi("سطر لكل عنصر: السؤال | الإجابة (حد أقصى 200). بيتضاف كمسودة.","One item per line: question | answer (max 200). Added as drafts.")+'</p><textarea id="k-imp" rows="8" style="width:100%;box-sizing:border-box"></textarea><p id="k-er" class="dirty"></p><div class="tb"><button id="k-go" type="button">'+bi("استيراد","Import")+'</button><button class="sec" id="k-cx" type="button">'+bi("إغلاق","Close")+"</button></div>");$("#k-cx").onclick=closeDlg;
+   $("#k-go").onclick=function(){var L=$("#k-imp").value.split("\n").map(function(l){return l.split("|")}).filter(function(p){return p.length>=2&&p[0].trim()&&p[1].trim()}).slice(0,200).map(function(p){var q=p[0].trim(),a=p.slice(1).join("|").trim(),ar=/[\u0600-\u06FF]/.test(q);return ar?{question_ar:q,answer_ar:a,status:"draft",source:"import"}:{question_en:q,answer_en:a,status:"draft",source:"import"}});if(!L.length){$("#k-er").textContent="No valid lines";return}api("POST","kb_items",L,"return=minimal").then(function(){closeDlg();status("تم ✓ / Imported "+L.length);RENDER.kb($("#main"))}).catch(function(e){$("#k-er").textContent=e.message})}};
+  draw();
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
+
 /* requests + chat log */
+
 
 RENDER.req=function(mn){
  Promise.all([api("GET","requests?select=*&order=created_at.desc&limit=200"),api("GET","chat_log?select=*&order=created_at.desc&limit=100").catch(function(){return []})]).then(function(r){
