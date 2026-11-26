@@ -48,12 +48,12 @@ var MODS=[
  {id:"kb",g:"المحتوى / Content",p:"content",ic:"kb",l:"المعرفة / Knowledge"},
  {id:"req",g:"العملاء / Customers",p:"requests",ic:"inbox",l:"الطلبات والمحادثات / Requests and chats"},
  {id:"users",g:"الفريق / Team",p:"users",ic:"users",l:"المستخدمون والصلاحيات / Users and roles"},
+ {id:"bk",g:"الفريق / Team",p:"users",ic:"kb",l:"نسخة احتياطية / Backup"},
+ {id:"log",g:"الفريق / Team",p:"log",ic:"log",l:"سجل النشاط / Activity log"},
  {id:"cco",g:"النظام الداخلي / UNO Core",p:"core",ic:"kb",l:"بيانات الشركة / Company"},
  {id:"cbr",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"الفروع والمخازن / Branches and warehouses"},
  {id:"cun",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"وحدات القياس / Units"},
- {id:"cpa",g:"النظام الداخلي / UNO Core",p:"core",ic:"users",l:"العملاء والموردون / Partners"},
- {id:"bk",g:"الفريق / Team",p:"users",ic:"kb",l:"نسخة احتياطية / Backup"},
- {id:"log",g:"الفريق / Team",p:"log",ic:"log",l:"سجل النشاط / Activity log"}
+ {id:"cpa",g:"النظام الداخلي / UNO Core",p:"core",ic:"users",l:"العملاء والموردون / Partners"}
 ];
 function buildNav(){
  var side=$("#side"),nav=$("#nav");side.parentNode&&side.parentNode.removeChild(side);nav.innerHTML="";var last="";
