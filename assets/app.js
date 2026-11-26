@@ -282,7 +282,17 @@ function chatUI(){
   $("#ch-f").onsubmit=function(e){e.preventDefault();var i=$("#ch-i"),v=i.value.trim();if(!v)return;i.value="";user(v);ask(v)};
 }
 var HIST=[];
+function kbAsk(v,cfg){
+  if(!cfg||!window.fetch)return Promise.resolve(null);
+  var ctl=window.AbortController?new AbortController():null,t=setTimeout(function(){ctl&&ctl.abort()},4000);
+  return fetch(cfg.url+"/rest/v1/rpc/kb_search",{method:"POST",signal:ctl?ctl.signal:undefined,headers:{"Content-Type":"application/json",apikey:cfg.key,Authorization:"Bearer "+cfg.key},body:JSON.stringify({q:v,lim:3})}).then(function(r){return r.ok?r.json():[]}).then(function(a){clearTimeout(t);var x=a&&a[0];if(!x||x.score<0.3)return null;var ans=h.lang==="ar"?(x.answer_ar||x.answer_en):(x.answer_en||x.answer_ar);return ans||null}).catch(function(){clearTimeout(t);return null})
+}
 function ask(v){
+  var cfg=window.UNO_CFG;
+  msg("b typing","\u2026");var tp0=$("#ch-b").lastChild;
+  return kbAsk(v,cfg).then(function(a){tp0.remove();if(a){HIST.push({r:"u",t:v},{r:"b",t:a});msg("b",esc(a).replace(/\n/g,"<br>"));return}ask2(v)});
+}
+function ask2(v){
   var cfg=window.UNO_CFG;msg("b typing","\u2026");var tp=$("#ch-b").lastChild,done=false;
   function local(){if(done)return;done=true;tp.remove();bot(brain(v))}
   if(!cfg||!window.fetch){return local()}
@@ -622,7 +632,7 @@ window.UNO_voice=vcStart;
 function boot(){
   shell(); setLang(q||sl||C.site.defaultLang||"ar");
   if(PAGE==="home")home(); else if(PAGE==="blog")blog(); else if(PAGE==="tools")tools(); else if(PAGE==="store")store(); else if(PAGE==="account")account(); else if(PAGE==="privacy")privacy();
-  if(PAGE==="home"||PAGE==="blog"||PAGE==="tools"||PAGE==="store"){var ad=document.createElement("script");ad.src="assets/ads.js?v=20261126s";document.body.appendChild(ad)}
+  if(PAGE==="home"||PAGE==="blog"||PAGE==="tools"||PAGE==="store"){var ad=document.createElement("script");ad.src="assets/ads.js?v=20261126v";document.body.appendChild(ad)}
   chatUI(); wire(); (function(){var b=$("#mb-chat");if(b)b.onclick=function(){openChat()}})();
   setTheme(st||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
   reveal();
