@@ -338,12 +338,12 @@ function wire(){
 }
 
 function store(){
-  window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src="assets/store.js?v=20261126q";document.body.appendChild(sc);
+  window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src="assets/store.js?v=20261126w";document.body.appendChild(sc);
   document.title=(h.lang==="en"?"Store | ":"المتجر | ")+((C.site&&C.site.name&&(C.site.name.en))||"Uno");
 }
 
 function account(){
-  window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src="assets/account.js?v=20261126q";document.body.appendChild(sc);
+  window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src="assets/account.js?v=20261126w";document.body.appendChild(sc);
 }
 
 function privacy(){
