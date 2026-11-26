@@ -18,7 +18,7 @@ var I={
 function ic(n){return '<svg class="i" viewBox="0 0 24 24">'+I[n]+'</svg>'}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 var ROLES={owner:"المالك / Owner",admin:"مدير / Admin",store_manager:"مدير المتجر / Store manager",content_editor:"محرر المحتوى / Content editor",support:"الدعم / Support"};
-var PERM={owner:["users","log","content","store","orders","requests","core"],admin:["log","content","store","orders","requests","core"],store_manager:["store","orders"],content_editor:["content"],support:["orders","requests"]};
+var PERM={owner:["users","log","content","store","orders","requests","core","chat"],admin:["log","content","store","orders","requests","core","chat"],store_manager:["store","orders"],content_editor:["content"],support:["orders","requests","chat"]};
 var ROLE=null,USER=null,MOD="",PH=window.matchMedia("(max-width:900px)");
 function can(p){return !p||(PERM[ROLE]||[]).indexOf(p)>-1}
 function api(method,path,body,prefer){return CLOUD.token().then(function(t){var h={apikey:C.key,Authorization:"Bearer "+t,"Content-Type":"application/json"};if(prefer)h.Prefer=prefer;return fetch(C.url+"/rest/v1/"+path,{method:method,headers:h,body:body?JSON.stringify(body):undefined}).then(function(r){return r.text().then(function(x){var d=null;try{d=x?JSON.parse(x):null}catch(e){d=x}if(!r.ok)throw new Error((d&&(d.message||d.msg))||r.status);return d})})})}
@@ -46,6 +46,7 @@ var MODS=[
  {id:"content",g:"المحتوى / Content",p:"content",ic:"edit",l:"محتوى الموقع / Site content"},
  {id:"ads",g:"المحتوى / Content",p:"content",ic:"ads",l:"الإعلانات / Ads"},
  {id:"kb",g:"المحتوى / Content",p:"content",ic:"kb",l:"المعرفة / Knowledge"},
+ {id:"sup",g:"العملاء / Customers",p:"chat",ic:"inbox",l:"الدعم المباشر / Live support"},
  {id:"req",g:"العملاء / Customers",p:"requests",ic:"inbox",l:"الطلبات والمحادثات / Requests and chats"},
  {id:"users",g:"الفريق / Team",p:"users",ic:"users",l:"المستخدمون والصلاحيات / Users and roles"},
  {id:"bk",g:"الفريق / Team",p:"users",ic:"kb",l:"نسخة احتياطية / Backup"},
@@ -335,6 +336,23 @@ RENDER.cin=function(mn){
     if(s<0){var cur=LV.filter(function(l){return l.product_id===$("#mp").value&&l.warehouse_id===$("#mw").value})[0];if(!cur||Number(cur.qty)+s<0){$("#f-er").textContent="الرصيد غير كافٍ / Not enough stock in this warehouse";return}}
     api("POST","core_stock_moves",{product_id:$("#mp").value,warehouse_id:$("#mw").value,kind:k,qty:s,note:$("#mn").value.trim()||null},"return=minimal").then(function(){closeDlg();status("تم الحفظ ✓ / Saved ✓");RENDER.cin($("#main"))}).catch(function(e){$("#f-er").textContent=e.message})}}
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
+
+/* Live support chat (staff side) */
+var SUPT=null;
+RENDER.sup=function(mn){
+ var cur=null,list=[],lastId=0;
+ mn.innerHTML='<h2>'+bi("الدعم المباشر","Live support")+'</h2><p class="hint" style="margin-bottom:12px">'+bi("محادثات الزوار اللي اختاروا يتكلموا مع الدعم. الصفحة بتتحدّث كل ٣ ثواني وهي مفتوحة. مفيش إشعارات لما تقفل الصفحة.","Visitors who chose to talk to support. This page refreshes every 3 seconds while open. There are no notifications when it is closed.")+'</p><div class="sup"><div class="sup-l" id="sup-l"></div><div class="sup-c" id="sup-c"><p class="hint" style="padding:18px">'+bi("اختار محادثة","Pick a conversation")+'</p></div></div>';
+ function paintList(){$("#sup-l").innerHTML=list.length?list.map(function(c){return '<button type="button" class="sup-i'+(cur&&cur.id===c.id?" on":"")+'" data-id="'+c.id+'"><b>'+esc(c.name)+'</b>'+(c.unread_agent>0?'<span class="sup-n">'+c.unread_agent+'</span>':"")+'<small>'+(c.status==="open"?bi("مفتوحة","Open"):bi("مقفولة","Closed"))+" · "+esc(dt(c.last_at))+"</small></button>"}).join(""):empty("مفيش محادثات","No conversations");
+  [].forEach.call(document.querySelectorAll(".sup-i"),function(b){b.onclick=function(){cur=list.filter(function(c){return c.id===b.dataset.id})[0];lastId=0;openC()}})}
+ function loadList(){return api("GET","support_chats?select=*&order=last_at.desc&limit=100").then(function(r){list=r;if(cur){var n=r.filter(function(c){return c.id===cur.id})[0];if(n)cur=n}paintList()}).catch(function(e){$("#sup-l").innerHTML='<p class="dirty">'+esc(e.message)+"</p>"})}
+ function paintMsgs(ms,full){var box=$("#sup-m");if(!box)return;if(full)box.innerHTML="";ms.forEach(function(m){var d=document.createElement("div");d.className="sup-b "+m.sender;d.textContent=m.body;box.appendChild(d);lastId=Math.max(lastId,m.id)});if(ms.length)box.scrollTop=box.scrollHeight}
+ function pull(full){if(!cur)return;return api("GET","support_messages?select=*&chat_id=eq."+cur.id+"&id=gt."+lastId+"&order=id.asc&limit=200").then(function(ms){paintMsgs(ms,full);if(ms.length&&cur.unread_agent>0){api("PATCH","support_chats?id=eq."+cur.id,{unread_agent:0},"return=minimal").then(loadList)}})}
+ function openC(){paintList();var c=$("#sup-c");c.innerHTML='<div class="sup-h"><div><b>'+esc(cur.name)+'</b><small>'+esc(cur.phone||"")+'</small></div><button type="button" class="sec sm" id="sup-x">'+(cur.status==="open"?bi("قفل المحادثة","Close chat"):bi("إعادة فتح","Reopen"))+'</button></div><div class="sup-m" id="sup-m"></div><form class="sup-f" id="sup-f"><input id="sup-t" maxlength="1000" autocomplete="off" placeholder="'+"اكتب ردك / Type your reply"+'"><button type="submit">'+bi("إرسال","Send")+'</button></form>';
+  $("#sup-x").onclick=function(){api("PATCH","support_chats?id=eq."+cur.id,{status:cur.status==="open"?"closed":"open"},"return=minimal").then(loadList).then(openC)};
+  $("#sup-f").onsubmit=function(e){e.preventDefault();var v=$("#sup-t").value.trim();if(!v)return;$("#sup-t").value="";api("POST","support_messages",{chat_id:cur.id,sender:"agent",body:v},"return=minimal").then(function(){return api("PATCH","support_chats?id=eq."+cur.id,{last_at:new Date().toISOString()},"return=minimal")}).then(function(){return pull(false)}).catch(function(er){status(er.message,1)})};
+  pull(true)}
+ loadList();clearInterval(SUPT);SUPT=setInterval(function(){if(MOD!=="sup"){clearInterval(SUPT);return}loadList();pull(false)},3000);
 };
 RENDER.bk=function(mn){
  var TB=["orders","order_items","order_events","products","categories","customers","customer_addresses","product_reviews","kb_items","site_content","requests","chat_log","ads_config","activity_log","whatsapp_conversations","whatsapp_messages"];

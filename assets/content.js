@@ -88,8 +88,8 @@ window.UNO={
     "en": "Uno Smart Tools"
    },
    "d": {
-    "ar": "أدوات مجانية تساعدك تقرر: مواصفات الجهاز المناسب وخطة كاميرات المراقبة.",
-    "en": "Free tools to help you decide: the right device specs and a CCTV plan."
+    "ar": "أدوات مجانية تساعدك تقرر: مواصفات الأجهزة، خطة الكاميرات والتخزين، سرعة الإنترنت، حجم UPS، وطلب عرض سعر.",
+    "en": "Free tools to help you decide: device specs, CCTV plan and storage, internet speed, UPS size, and a quote request."
    }
   },
   "mascot": {
@@ -801,6 +801,8 @@ window.UNO={
   {
    "icon": "🌐",
    "img": "assets/network.jpg",
+   "slug": "network",
+   "svc": 1,
    "t": {
     "ar": "مشاريع الشبكات والإنترنت",
     "en": "Network & internet projects"
@@ -813,6 +815,8 @@ window.UNO={
   {
    "icon": "📹",
    "img": "assets/cctv.jpg",
+   "slug": "cctv",
+   "svc": 2,
    "t": {
     "ar": "أنظمة كاميرات المراقبة",
     "en": "CCTV systems"
@@ -825,6 +829,8 @@ window.UNO={
   {
    "icon": "🖥️",
    "img": "assets/office.jpg",
+   "slug": "office",
+   "svc": 3,
    "t": {
     "ar": "تجهيزات الكمبيوتر والمكاتب",
     "en": "Computer and office setups"
@@ -837,6 +843,8 @@ window.UNO={
   {
    "icon": "💻",
    "img": "assets/code.jpg",
+   "slug": "code",
+   "svc": 0,
    "t": {
     "ar": "البرمجة وتطوير الأنظمة",
     "en": "Programming and system development"
@@ -849,6 +857,8 @@ window.UNO={
   {
    "icon": "🧩",
    "img": "assets/web.jpg",
+   "slug": "web",
+   "svc": 0,
    "t": {
     "ar": "تصميم المواقع الإلكترونية",
     "en": "Website design"
@@ -861,6 +871,8 @@ window.UNO={
   {
    "icon": "🛒",
    "img": "assets/pos.jpg",
+   "slug": "pos",
+   "svc": 4,
    "t": {
     "ar": "أنظمة نقاط البيع",
     "en": "Point of sale systems"
@@ -873,6 +885,8 @@ window.UNO={
   {
    "icon": "🎨",
    "img": "assets/design.jpg",
+   "slug": "design",
+   "svc": 5,
    "t": {
     "ar": "التصميم الجرافيكي والهوية",
     "en": "Graphic design and branding"
@@ -885,6 +899,8 @@ window.UNO={
   {
    "icon": "🖨️",
    "img": "assets/print.jpg",
+   "slug": "print",
+   "svc": 6,
    "t": {
     "ar": "الطباعة واللافتات",
     "en": "Printing and signage"
@@ -897,6 +913,8 @@ window.UNO={
   {
    "icon": "🔌",
    "img": "assets/electro.jpg",
+   "slug": "electro",
+   "svc": 8,
    "t": {
     "ar": "المشاريع الإلكترونية والحلول الذكية",
     "en": "Electronic projects and smart solutions"
