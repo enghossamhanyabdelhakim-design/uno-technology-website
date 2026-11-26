@@ -4,7 +4,8 @@ var X=window.__U,h=X.h,C=X.C,esc=X.esc,B=X.B,bi=X.bi,ico=X.ico,intl=X.intl,U=X.U
 var c=window.UNO_CFG,CK="uno_cart",cart={},cats=[],prods=[],f={cat:"",q:"",sort:"new"};
 try{cart=JSON.parse(localStorage.getItem(CK)||"{}")||{}}catch(e){cart={}}
 function save(){try{localStorage.setItem(CK,JSON.stringify(cart))}catch(e){}}
-function api(p,o){o=o||{};return fetch(c.url+"/rest/v1/"+p,{method:o.method||"GET",headers:{apikey:c.key,Authorization:"Bearer "+c.key,"Content-Type":"application/json"},body:o.body}).then(function(r){return r.text().then(function(t){var d;try{d=JSON.parse(t)}catch(e){d=t}if(!r.ok)throw new Error((d&&(d.message||d.hint))||r.status);return d})})}
+function cTok(){try{var s=JSON.parse(localStorage.getItem("uno_cs")||"null");if(s&&s.access_token&&(!s.expires_at||s.expires_at*1000>Date.now()+30000))return s.access_token}catch(e){}return c.key}
+function api(p,o){o=o||{};return fetch(c.url+"/rest/v1/"+p,{method:o.method||"GET",headers:{apikey:c.key,Authorization:"Bearer "+cTok(),"Content-Type":"application/json"},body:o.body}).then(function(r){return r.text().then(function(t){var d;try{d=JSON.parse(t)}catch(e){d=t}if(!r.ok)throw new Error((d&&(d.message||d.hint))||r.status);return d})})}
 function money(n){return Number(n).toLocaleString(h.lang==="en"?"en-US":"ar-EG")+" "+(h.lang==="en"?"EGP":"ج.م")}
 function nm(p){return h.lang==="en"?(p.name_en||p.name_ar):(p.name_ar||p.name_en)}
 function img(p){return (p.images&&p.images[0])||"assets/pimg-acc.svg"}
