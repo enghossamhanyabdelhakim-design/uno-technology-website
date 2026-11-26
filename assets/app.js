@@ -632,7 +632,7 @@ window.UNO_voice=vcStart;
 function boot(){
   shell(); setLang(q||sl||C.site.defaultLang||"ar");
   if(PAGE==="home")home(); else if(PAGE==="blog")blog(); else if(PAGE==="tools")tools(); else if(PAGE==="store")store(); else if(PAGE==="account")account(); else if(PAGE==="privacy")privacy();
-  if(PAGE==="home"||PAGE==="blog"||PAGE==="tools"||PAGE==="store"){var ad=document.createElement("script");ad.src="assets/ads.js?v=20261126v";document.body.appendChild(ad)}
+  if(PAGE==="home"||PAGE==="blog"||PAGE==="tools"||PAGE==="store"){var ad=document.createElement("script");ad.src="assets/ads.js?v=20261126w";document.body.appendChild(ad)}
   chatUI(); wire(); (function(){var b=$("#mb-chat");if(b)b.onclick=function(){openChat()}})();
   setTheme(st||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
   reveal();
