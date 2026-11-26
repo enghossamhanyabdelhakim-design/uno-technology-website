@@ -12,6 +12,7 @@ var I={
  users:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.9"/><path d="M16 3.1a4 4 0 010 7.8"/>',
  log:'<path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/>',
  ads:'<path d="M3 10v4l9 4V6z"/><path d="M12 6l8-3v18l-8-3"/>',
+ star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
  kb:'<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/>'
 };
 function ic(n){return '<svg class="i" viewBox="0 0 24 24">'+I[n]+'</svg>'}
@@ -44,6 +45,7 @@ var MODS=[
  {id:"content",g:"المحتوى / Content",p:"content",ic:"edit",l:"محتوى الموقع / Site content"},
  {id:"ads",g:"المحتوى / Content",p:"content",ic:"ads",l:"الإعلانات / Ads"},
  {id:"kb",g:"المحتوى / Content",p:"content",ic:"kb",l:"المعرفة / Knowledge"},
+ {id:"rv",g:"المتجر / Store",p:"content",ic:"star",l:"التقييمات / Reviews"},
  {id:"req",g:"العملاء / Customers",p:"requests",ic:"inbox",l:"الطلبات والمحادثات / Requests and chats"},
  {id:"users",g:"الفريق / Team",p:"users",ic:"users",l:"المستخدمون والصلاحيات / Users and roles"},
  {id:"log",g:"الفريق / Team",p:"log",ic:"log",l:"سجل النشاط / Activity log"}
@@ -270,6 +272,18 @@ function palette(){if($("#pal"))return;var items=MODS.filter(function(m){return 
  ul.onclick=function(e){var l=e.target.closest("li[data-i]");if(l)run(+l.dataset.i)};o.addEventListener("mousedown",function(e){if(e.target===o)o.remove()});draw();inp.focus()}
 document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();palette()}});
 
+RENDER.rv=function(mn){
+ api("GET","product_reviews?select=*,products(name_ar,name_en),customers(name)&order=created_at.desc&limit=300").then(function(rows){
+  var ST={pending:["معلّق / Pending","warn"],approved:["معتمد / Approved","ok"],rejected:["مرفوض / Rejected","bad"]};
+  mn.innerHTML='<h2>'+bi("تقييمات العملاء","Customer reviews")+'</h2><p class="hint" style="margin-bottom:8px">'+bi("التقييم بيتبعت بس من مشتري موثّق (طلب اتسلّم). التقييم مبيظهرش في المتجر غير بعد اعتمادك.","Only verified buyers (delivered order) can review. A review shows in the store only after you approve it.")+'</p><div class="tb"><select id="rf"><option value="">'+bi("كل الحالات","All statuses")+'</option><option value="pending">'+bi("معلّق","Pending")+'</option><option value="approved">'+bi("معتمد","Approved")+'</option><option value="rejected">'+bi("مرفوض","Rejected")+'</option></select></div><div id="rl"></div>';
+  function set(id,st){return api("PATCH","product_reviews?id=eq."+id,{status:st},"return=minimal").then(function(){var r=rows.filter(function(x){return x.id===id})[0];if(r)r.status=st})}
+  function draw(){var f=$("#rf").value,sh=rows.filter(function(x){return !f||x.status===f});
+   $("#rl").innerHTML=sh.length?tbl([bi("المنتج","Product"),bi("العميل","Customer"),bi("التقييم","Rating"),bi("الرأي","Review"),bi("الحالة","Status"),""],sh.map(function(x){var m=ST[x.status]||[x.status,""];return [esc((x.products&&x.products.name_ar)||""),esc((x.customers&&x.customers.name)||""),"\u2605 "+x.rating,esc(x.body||""),pill(m[0],m[1]),'<button class="sec sm" data-a="'+x.id+'" type="button">'+bi("اعتماد","Approve")+'</button> <button class="sec sm" data-r="'+x.id+'" type="button">'+bi("رفض","Reject")+"</button>"]}),1):empty("لا توجد تقييمات","No reviews yet");
+   [].forEach.call($("#rl").querySelectorAll("[data-a]"),function(b){b.onclick=function(){set(b.dataset.a,"approved").then(draw)}});
+   [].forEach.call($("#rl").querySelectorAll("[data-r]"),function(b){b.onclick=function(){set(b.dataset.r,"rejected").then(draw)}})}
+  $("#rf").onchange=draw;draw();
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
 (function(){var K="uno_adm_theme",r=document.documentElement;function cur(){var v=null;try{v=localStorage.getItem(K)}catch(e){}return v||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light")}function apply(v){r.setAttribute("data-theme",v)}apply(cur());
 var b=document.createElement("button");b.id="thm";b.type="button";b.setAttribute("aria-label","theme");function ic(){b.innerHTML=cur()==="dark"?'<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>':'<svg class="i" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/></svg>'}ic();
 b.onclick=function(){var v=cur()==="dark"?"light":"dark";try{localStorage.setItem(K,v)}catch(e){}apply(v);ic()};
