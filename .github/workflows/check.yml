@@ -1,0 +1,18 @@
+name: check
+on: [push, pull_request]
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: JS syntax
+        run: for f in assets/*.js sw.js; do node --check "$f" || exit 1; done
+      - name: Required files
+        run: for f in index.html store.html admin.html sw.js; do test -f "$f" || exit 1; done
+      - name: No secret keys or private docs
+        run: |
+          if grep -rIlE "sb_secret_|service_role" --include=*.js --include=*.html .; then exit 1; fi
+          if ls UNO_*.md 2>/dev/null | grep -q .; then exit 1; fi
