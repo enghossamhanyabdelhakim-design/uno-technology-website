@@ -97,15 +97,15 @@ h2,.card,td{overflow-wrap:anywhere}
 <div class="main" id="main"></div></div></div>
 <div id="dlg"><div class="box" id="dbx"></div></div>
 <div id="lg" style="position:fixed;inset:0;background:#F7F4F1;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px"><form id="lf" style="background:#fff;border:1px solid var(--ln);border-radius:16px;padding:26px;width:100%;max-width:360px"><img src="assets/logo-uno-technology.png" alt="" style="height:44px;margin-bottom:12px"><h2 style="margin-bottom:10px">دخول الإدارة / Admin login</h2><label class="f"><span>Email</span><input type="email" id="em" dir="ltr" autocomplete="username" required></label><label class="f"><span>Password / كلمة السر</span><input type="password" id="pw" dir="ltr" autocomplete="current-password" required style="width:100%;font:inherit;padding:8px 12px;border:1.5px solid var(--ln);border-radius:10px"></label><button style="width:100%;margin-top:8px">دخول / Sign in</button><p id="le" class="dirty" style="margin-top:8px"></p></form></div>
-<script src="assets/config.js?v=20261127a"></script>
-<script src="assets/content.js?v=20261127a"></script>
-<script src="assets/cloud.js?v=20261127a"></script>
+<script src="assets/config.js?v=20261127b"></script>
+<script src="assets/content.js?v=20261127b"></script>
+<script src="assets/cloud.js?v=20261127b"></script>
 <script>
 (function(){
 function start(){document.getElementById("lg").style.display="none";
  CLOUD.load().then(function(r){try{localStorage.removeItem("uno_draft")}catch(e){}
   if(r&&r.data&&r.data.site){window.UNO=window.UNO_FILL(r.data,window.UNO)}
- }).catch(function(){}).then(function(){var x=document.createElement("script");x.src="assets/admin.js?v=20261127a";x.onload=function(){var y=document.createElement("script");y.src="assets/admin2.js?v=20261127a";document.body.appendChild(y)};document.body.appendChild(x)})}
+ }).catch(function(){}).then(function(){var x=document.createElement("script");x.src="assets/admin.js?v=20261127b";x.onload=function(){var y=document.createElement("script");y.src="assets/admin2.js?v=20261127b";document.body.appendChild(y)};document.body.appendChild(x)})}
 if(CLOUD.loggedIn()){CLOUD.check().then(start).catch(function(){CLOUD.logout()})}
 document.getElementById("lf").onsubmit=function(e){e.preventDefault();var le=document.getElementById("le");le.textContent="...";
  CLOUD.login(document.getElementById("em").value.trim(),document.getElementById("pw").value).then(start).catch(function(er){le.textContent="فشل الدخول / Login failed: "+er.message})}
