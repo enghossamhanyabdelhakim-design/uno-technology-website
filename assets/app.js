@@ -45,7 +45,7 @@ function header(){
   '</nav><div class="tools"><a class="icb" href="account.html" id="acct" aria-label="My account / حسابي"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></a><button class="icb" id="theme" type="button" aria-label="Dark mode">\u263E</button><button class="lang" id="lang" type="button" aria-label="Language / اللغة"><span class="ar">English</span><span class="en">\u0627\u0644\u0639\u0631\u0628\u064A\u0629</span></button><button class="icb" id="menu" type="button" aria-label="Menu">\u2630</button></div></div></header>';
 }
 function footer(){
-  return '<footer><div class="wrap"><img src="'+U(C.images.logoMark)+'" alt=""><br>'+B(C.footer.text)+' \u00A9 <span id="yr"></span><div class="fsoc">'+socials("fl")+'</div></div></footer>';
+  return '<footer><div class="wrap"><img src="'+U(C.images.logoMark)+'" alt=""><br>'+B(C.footer.text)+' \u00A9 <span id="yr"></span><br><a href="privacy.html">'+B({ar:'سياسة الخصوصية',en:'Privacy policy'})+'</a><div class="fsoc">'+socials("fl")+'</div></div></footer>';
 }
 function shell(){
   var main=$("#app"); document.body.insertAdjacentHTML("afterbegin",header()); document.body.insertAdjacentHTML("beforeend",footer());
@@ -336,6 +336,19 @@ function account(){
   window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src="assets/account.js?v=20261126q";document.body.appendChild(sc);
 }
 
+function privacy(){
+  var ar=h.lang!=="en",R=function(a,e){return ar?a:e};
+  var S=[[R("ما الذي نجمعه","What we collect"),R("عند الطلب: الاسم ورقم الموبايل والعنوان والمنتجات. عند إنشاء حساب: البريد الإلكتروني والاسم والموبايل والعناوين المحفوظة. عند إرسال طلب خدمة أو رسالة: البيانات التي تكتبها. محادثات المساعد الذكي على الموقع قد تُحفظ لتحسين الخدمة.","When you order: name, phone, address and items. When you create an account: email, name, phone and saved addresses. When you send a service request or message: what you write. Chats with the site assistant may be saved to improve the service.")],
+  [R("كيف نستخدمها","How we use it"),R("لتنفيذ الطلبات والتواصل معك وتتبع الشحنات ودعم العملاء. لا نبيع بياناتك.","To fulfil orders, contact you, track shipments and support customers. We do not sell your data.")],
+  [R("التخزين على جهازك","Storage on your device"),R("نحفظ على جهازك اللغة والوضع الداكن وسلة المشتريات وجلسة الدخول واختيارك بخصوص الكوكيز. هذه ضرورية لعمل الموقع.","We keep your language, dark mode, cart, sign-in session and cookie choice on your device. These are needed for the site to work.")],
+  [R("الإعلانات","Advertising"),R("قد يعرض الموقع إعلانات من Google AdSense. لن يتم تحميل الإعلانات إلا بعد موافقتك على إشعار الكوكيز. Google وشركاؤها قد يستخدمون كوكيز لعرض إعلانات. يمكنك رفض الكوكيز وسيعمل الموقع كما هو. لمعرفة المزيد عن كيفية استخدام Google للبيانات ابحث عن سياسة خصوصية Google للإعلانات.","The site may show ads from Google AdSense. Ads load only after you accept the cookie notice. Google and its partners may use cookies to serve ads. You can decline and the site still works. To learn how Google uses data, search for Google's advertising privacy policy.")],
+  [R("خدمات نستعين بها","Services we use"),R("الاستضافة على GitHub Pages وقاعدة البيانات والمصادقة على Supabase، وقد نستخدم شركة شحن لتوصيل طلبك وسنشارك معها بيانات التوصيل فقط.","Hosting on GitHub Pages, database and sign-in on Supabase. We may use a courier to deliver your order and will share only the delivery details with it.")],
+  [R("حقوقك","Your choices"),R("يمكنك طلب تعديل بياناتك أو حذفها بالتواصل معنا.","You can ask us to correct or delete your data by contacting us.")],
+  [R("تواصل معنا","Contact"),R("واتساب وهاتف: 01505946321، فرشوط، قنا، مصر.","WhatsApp and phone: 01505946321, Farshout, Qena, Egypt.")]];
+  document.title=R("سياسة الخصوصية | Uno","Privacy policy | Uno");
+  $("#app").innerHTML='<section><div class="wrap" style="max-width:760px"><h1 style="font-size:clamp(28px,4vw,40px);letter-spacing:-.02em">'+R("سياسة الخصوصية","Privacy policy")+'</h1><p class="sub" style="color:var(--mut)">'+R("باختصار وبوضوح: ما نجمعه ولماذا.","What we collect and why, in plain words.")+'</p>'+S.map(function(x){return '<h2 style="font-size:1.2rem;margin:22px 0 6px">'+esc(x[0])+'</h2><p>'+esc(x[1])+'</p>'}).join("")+'</div></section>';
+}
+
 /* ---------- project details (hash routed) ---------- */
 var SVCMAP={network:1,cctv:2,office:3,code:0,web:0,pos:4,design:5,print:6,electro:8};
 function normPort(){(C.portfolio||[]).forEach(function(p){if(!p.slug&&p.img)p.slug=String(p.img).split("/").pop().replace(/\.\w+$/,"");if(p.svc==null&&SVCMAP[p.slug]!=null)p.svc=SVCMAP[p.slug]})}
@@ -608,7 +621,8 @@ function vcStart(){
 window.UNO_voice=vcStart;
 function boot(){
   shell(); setLang(q||sl||C.site.defaultLang||"ar");
-  if(PAGE==="home")home(); else if(PAGE==="blog")blog(); else if(PAGE==="tools")tools(); else if(PAGE==="store")store(); else if(PAGE==="account")account();
+  if(PAGE==="home")home(); else if(PAGE==="blog")blog(); else if(PAGE==="tools")tools(); else if(PAGE==="store")store(); else if(PAGE==="account")account(); else if(PAGE==="privacy")privacy();
+  if(PAGE==="home"||PAGE==="blog"||PAGE==="tools"||PAGE==="store"){var ad=document.createElement("script");ad.src="assets/ads.js?v=20261126s";document.body.appendChild(ad)}
   chatUI(); wire(); (function(){var b=$("#mb-chat");if(b)b.onclick=function(){openChat()}})();
   setTheme(st||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
   reveal();
