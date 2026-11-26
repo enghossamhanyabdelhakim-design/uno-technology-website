@@ -58,6 +58,7 @@ var MODS=[
  {id:"cpa",g:"النظام الداخلي / UNO Core",p:"core",ic:"users",l:"العملاء والموردون / Partners"},
  {id:"pos",g:"النظام الداخلي / UNO Core",p:"core",ic:"cart",l:"نقطة البيع / POS"},
  {id:"pur",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"المشتريات والموردين / Purchases and suppliers"},
+ {id:"ins",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"التحليلات والمتابعة / Insights and follow-up"},
  {id:"sal",g:"النظام الداخلي / UNO Core",p:"core",ic:"cart",l:"المبيعات والفواتير / Sales and invoices"},
  {id:"pay",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"المدفوعات والمالية / Payments and finance"},
  {id:"inv",g:"النظام الداخلي / UNO Core",p:"core",ic:"kb",l:"تصميمات الفاتورة / Invoice designs"},
@@ -359,7 +360,7 @@ RENDER.inv=function(mn){
    [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. This is not an official invoice. Continue?"))return;var w=window.open("","_blank");if(!w)return;var o=opts();o.sample=true;w.document.open();w.document.write(I.render(b.dataset.p,null,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}});
    draw()})
  }
- if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127s";x.onload=go;document.body.appendChild(x)}
+ if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127t";x.onload=go;document.body.appendChild(x)}
 }
 /* tax and ETA e-invoice settings. No credentials are stored here: ETA secrets come only through vault links. */
 RENDER.tax=function(mn){
@@ -422,7 +423,7 @@ RENDER.sal=function(mn){
        var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:b.vat_mode==="on"||(b.vat_mode==="inherit"&&TX.vat_enabled),taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:co,base:base,sample:false};
        if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. Not an official invoice. Continue?"))return;
        var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render(tid,doc,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127s";x.onload=go;document.body.appendChild(x)}})}
+      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127t";x.onload=go;document.body.appendChild(x)}})}
    })}
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
@@ -544,7 +545,7 @@ RENDER.pos=function(mn){
      var items=cart.map(function(l){return{n:l.n,q:l.q,p:l.p,vat:"inherit"}}),dd={no:d.number,date:d.doc_date,type:"invoice",customer:{name:doc.customer_name,phone:""},items:items,discount:k.disc,notes:"",vatMode:"inherit"};
      var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:!!TX.vat_enabled,taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:CO,base:location.href.replace(/[^\/]*$/,""),sample:false};
      function pr(){var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render("t80",dd,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127s";x.onload=pr;document.body.appendChild(x)}}
+     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127t";x.onload=pr;document.body.appendChild(x)}}
      cart=[];btn.disabled=false;RENDER.pos($("#main"))}).catch(function(e){btn.disabled=false;er.textContent=/no_lines|forbidden|overpay/.test(e.message)?e.message:"تعذر الإتمام، راجع المبيعات والمدفوعات / Could not complete, check Sales and Payments: "+e.message})};
   grid();draw();
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
@@ -562,7 +563,7 @@ RENDER.pur=function(mn){
   function card(t,v,c){return '<div class="card" style="padding:14px;flex:1;min-width:150px"><div class="hint">'+t+'</div><div dir="ltr" style="font-size:22px;font-weight:700;color:'+(c||"inherit")+'">'+f(v)+"</div></div>"}
   var ST={draft:"مسودة / Draft",received:"مستلمة / Received",cancelled:"ملغاة / Cancelled"};
   mn.innerHTML='<h2>'+bi("المشتريات والموردين","Purchases and suppliers")+'</h2><p class="hint" style="margin-bottom:12px">'+bi("أنشئ فاتورة شراء كمسودة، وعند الاستلام يضاف المخزون ويتحدد الرقم من السيرفر. سجّل دفعات الموردين (كاملة أو جزئية).","Create a purchase bill as a draft. On receiving, stock is added and the number is set by the server. Record supplier payments (full or partial).")+"</p>"
-   +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">'+card(bi("إجمالي المشتريات المستلمة","Received purchases"),tot)+card(bi("المتبقي للموردين","Owed to suppliers"),due,"#d97706")+card(bi("عدد الموردين","Suppliers"),S.length)+"</div>"
+   +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">'+card(bi("إجمالي المشتريات المستلمة","Received purchases"),tot)+card(bi("المتبقي للموردين","Owed to suppliers"),due,"#d97706")+card(bi("عدد الموردين","Suppliers"),S.length).replace(/\.00</,"<")+"</div>"
    +'<div class="tb"><button id="pu-new" type="button">+ '+bi("فاتورة شراء","Purchase bill")+'</button><button id="su-new" type="button" class="alt">+ '+bi("مورد","Supplier")+"</button></div>"
    +'<h3>'+bi("فواتير الشراء","Purchase bills")+'</h3><div class="tw"><table><thead><tr><th>'+bi("الرقم","No.")+"</th><th>"+bi("المورد","Supplier")+"</th><th>"+bi("التاريخ","Date")+"</th><th>"+bi("الحالة","Status")+"</th><th>"+bi("الإجمالي","Total")+"</th><th>"+bi("المتبقي","Due")+'</th><th></th></tr></thead><tbody>'
    +(P.length?P.map(function(p,i){var d=p.status==="received"?Number(p.total)-(paid[p.id]||0):0;return '<tr><td dir="ltr">'+esc(p.number||"-")+"</td><td>"+esc(sn[p.supplier_id]||"")+'</td><td dir="ltr">'+esc(p.bill_date)+"</td><td>"+ST[p.status]+'</td><td dir="ltr">'+(p.status==="received"?f(p.total):"-")+'</td><td dir="ltr">'+(p.status==="received"?f(d):"-")+'</td><td>'+(p.status==="draft"?'<button type="button" data-r="'+i+'">'+bi("استلام","Receive")+'</button> <button type="button" class="alt" data-d="'+i+'">'+bi("حذف","Delete")+"</button>":(d>0.001?'<button type="button" data-y="'+i+'">'+bi("دفعة","Pay")+"</button>":""))+"</td></tr>"}).join(""):'<tr><td colspan="7" class="hint">'+bi("لا فواتير شراء","No purchase bills")+"</td></tr>")+"</tbody></table></div>"
@@ -590,6 +591,43 @@ RENDER.pur=function(mn){
   [].forEach.call(mn.querySelectorAll("[data-y]"),function(b){b.onclick=function(){var p=P[b.dataset.y],d=Math.round((Number(p.total)-(paid[p.id]||0))*100)/100;
    openDlg('<h2>'+bi("دفعة للمورد ","Supplier payment ")+esc(p.number)+'</h2><p class="hint">'+bi("المتبقي ","Due ")+f(d)+'</p><label class="f"><span>'+bi("المبلغ","Amount")+'</span><input type="number" id="py-a" min="0.01" step="any" value="'+d+'"></label><label class="f"><span>'+bi("الطريقة","Method")+'</span><select id="py-m">'+mo(MT)+'</select></label><label class="f"><span>'+bi("مرجع (اختياري)","Reference (optional)")+'</span><input type="text" id="py-r" maxlength="60"></label><p id="f-er" class="dirty"></p><div class="tb"><button id="py-s" type="button">'+bi("حفظ","Save")+'</button><button id="f-cx" type="button" class="alt">'+bi("إغلاق","Close")+"</button></div>");
    $("#f-cx").onclick=closeDlg;$("#py-s").onclick=function(){var a=parseFloat($("#py-a").value);if(!(a>0)){$("#f-er").textContent="مبلغ غير صحيح / Invalid amount";return}api("POST","rpc/core_pay_purchase",{p_id:p.id,p_amount:a,p_method:$("#py-m").value,p_ref:$("#py-r").value.trim()||null}).then(function(){closeDlg();status("تم ✓ / Saved ✓");RENDER.pur($("#main"))}).catch(err)}}});
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
+
+
+/* Insights: attention list, reorder suggestions, customer statements with aging, daily cash close, profit per item. Read-only formulas on our own data. */
+RENDER.ins=function(mn){
+ function f(n){return (Math.round((n||0)*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+ var day=86400000,now=Date.now(),today=new Date().toISOString().slice(0,10),since=new Date(now-30*day).toISOString().slice(0,10);
+ Promise.all([api("GET","core_sales_docs?select=id,number,customer_name,customer_phone,total,status,kind,doc_date,created_at&kind=eq.invoice&status=in.(draft,issued,paid)&order=created_at.desc&limit=1000"),api("GET","core_payments?select=doc_id,amount,method,paid_at&limit=3000"),api("GET","core_expenses?select=amount,method,spent_at&limit=2000"),api("GET","core_sales_lines?select=doc_id,product_id,description,qty,unit_price&limit=5000"),api("GET","core_stock_moves?select=product_id,qty&limit=10000"),api("GET","products?select=id,name_ar,name_en&limit=500"),api("GET","core_purchases?select=id,status&status=eq.received&limit=1000").catch(function(){return[]}),api("GET","core_purchase_lines?select=purchase_id,product_id,qty,cost&limit=5000").catch(function(){return[]})]).then(function(r){
+  var D=r[0],PY=r[1],EX=r[2],LN=r[3],MV=r[4],PR=r[5],PU=r[6],PL=r[7],pn={},dm={},paid={},stock={},has={};
+  PR.forEach(function(p){pn[p.id]=p.name_ar+" / "+p.name_en});D.forEach(function(d){dm[d.id]=d});PY.forEach(function(p){paid[p.doc_id]=(paid[p.doc_id]||0)+Number(p.amount)});
+  MV.forEach(function(m){stock[m.product_id]=(stock[m.product_id]||0)+Number(m.qty);has[m.product_id]=1});
+  var live=function(id){var d=dm[id];return d&&(d.status==="issued"||d.status==="paid")};
+  /* statements with aging */
+  var cust={};D.filter(function(d){return d.status==="issued"}).forEach(function(d){var o=Number(d.total||0)-(paid[d.id]||0);if(o<=0.001)return;var k=(d.customer_name||"-")+"|"+(d.customer_phone||"");var c=cust[k]||(cust[k]={n:d.customer_name||"-",ph:d.customer_phone||"",b:[0,0,0],t:0,docs:[]});var age=Math.floor((now-new Date(d.doc_date).getTime())/day);c.b[age<=30?0:age<=60?1:2]+=o;c.t+=o;c.docs.push(d.number+" ("+f(o)+")")});
+  var CL=Object.keys(cust).map(function(k){return cust[k]}).sort(function(a,b){return b.t-a.t});
+  /* sales speed and cost */
+  var sp={},rev={},qty={};LN.forEach(function(l){if(!l.product_id||!live(l.doc_id))return;var d=dm[l.doc_id];rev[l.product_id]=(rev[l.product_id]||0)+l.qty*l.unit_price;qty[l.product_id]=(qty[l.product_id]||0)+Number(l.qty);if(d.doc_date>=since)sp[l.product_id]=(sp[l.product_id]||0)+Number(l.qty)});
+  var rc={};PU.forEach(function(p){rc[p.id]=1});var cs={},cq={};PL.forEach(function(l){if(!rc[l.purchase_id]||!l.product_id)return;cs[l.product_id]=(cs[l.product_id]||0)+l.qty*l.cost;cq[l.product_id]=(cq[l.product_id]||0)+Number(l.qty)});
+  var RO=Object.keys(has).map(function(id){var s=stock[id]||0,v=(sp[id]||0)/30,need=Math.max(0,Math.ceil(v*30-s));return {id:id,s:s,v:v,days:v>0?s/v:null,need:need}}).filter(function(x){return x.need>0||x.s<=0}).sort(function(a,b){return b.need-a.need});
+  var PF=Object.keys(rev).map(function(id){var ac=cq[id]?cs[id]/cq[id]:null;return {id:id,rev:rev[id],q:qty[id],cost:ac==null?null:ac*qty[id]}}).sort(function(a,b){return b.rev-a.rev});
+  /* cash close */
+  var cp={};PY.filter(function(p){return p.paid_at===today}).forEach(function(p){cp[p.method]=(cp[p.method]||0)+Number(p.amount)});var ce=0;EX.filter(function(e){return e.spent_at===today&&e.method==="cash"}).forEach(function(e){ce+=Number(e.amount)});var exp=(cp.cash||0)-ce;
+  /* attention */
+  var old=D.filter(function(d){return d.status==="issued"&&Number(d.total)-(paid[d.id]||0)>0.001&&(now-new Date(d.doc_date).getTime())>30*day}),dr=D.filter(function(d){return d.status==="draft"&&(now-new Date(d.created_at).getTime())>3*day});
+  function sec(t,h){return '<div class="card" style="padding:14px;margin-bottom:12px"><h3 style="margin:0 0 8px">'+t+"</h3>"+h+"</div>"}
+  function tb(h,rows){return '<div class="tw"><table><thead><tr>'+h.map(function(x){return "<th>"+x+"</th>"}).join("")+"</tr></thead><tbody>"+rows+"</tbody></table></div>"}
+  function empty(c){return '<tr><td colspan="'+c+'" class="hint">'+bi("لا بيانات","Nothing to show")+"</td></tr>"}
+  var att=[];if(old.length)att.push(bi("فواتير غير مسددة أقدم من 30 يوم: ","Unpaid invoices older than 30 days: ")+old.length);if(dr.length)att.push(bi("مسودات أقدم من 3 أيام: ","Drafts older than 3 days: ")+dr.length);var low=RO.filter(function(x){return x.s<=0}).length;if(low)att.push(bi("أصناف نفد مخزونها: ","Items out of stock: ")+low);var nr=RO.filter(function(x){return x.need>0}).length;if(nr)att.push(bi("أصناف تحتاج إعادة طلب: ","Items to reorder: ")+nr);
+  mn.innerHTML='<h2>'+bi("التحليلات والمتابعة","Insights and follow-up")+'</h2><p class="hint" style="margin-bottom:12px">'+bi("كل الأرقام محسوبة من بياناتك فقط. المبيعات قبل الضريبة. سرعة البيع = آخر 30 يوم. التكلفة = متوسط فواتير الشراء المستلمة.","All figures are calculated from your own data only. Sales are before VAT. Sales speed = last 30 days. Cost = average of received purchase bills.")+"</p>"
+   +sec(bi("يحتاج انتباه","Needs attention"),att.length?"<ul>"+att.map(function(a){return "<li>"+a+"</li>"}).join("")+"</ul>":'<p class="hint">'+bi("كل شيء تمام","All clear")+"</p>")
+   +sec(bi("الإقفال اليومي للخزنة","Daily cash close")+" - "+today,'<div style="display:flex;gap:14px;flex-wrap:wrap" dir="ltr"><div>Cash in: <b>'+f(cp.cash||0)+"</b></div><div>Card: <b>"+f(cp.card||0)+"</b></div><div>Transfer: <b>"+f(cp.transfer||0)+"</b></div><div>Wallet: <b>"+f(cp.wallet||0)+"</b></div><div>Cash expenses: <b>"+f(ce)+'</b></div><div>Expected cash: <b id="cc-e">'+f(exp)+'</b></div></div><label class="f" style="max-width:260px;margin-top:8px"><span>'+bi("النقد المعدود","Counted cash")+'</span><input type="number" id="cc-c" step="any"></label><p id="cc-d" class="hint" dir="ltr"></p>')
+   +sec(bi("اقتراحات إعادة الطلب","Reorder suggestions"),'<p class="hint">'+bi("الكمية المقترحة = بيع 30 يوم - الرصيد. تظهر الأصناف التي لها حركة مخزون فقط.","Suggested qty = 30 days of sales minus stock. Only items with stock movements are listed.")+"</p>"+tb([bi("الصنف","Item"),bi("الرصيد","Stock"),bi("مبيع/يوم","Sold/day"),bi("أيام تكفي","Days left"),bi("المقترح","Suggested")],RO.length?RO.map(function(x){return "<tr><td>"+esc(pn[x.id]||"")+'</td><td dir="ltr">'+f(x.s)+'</td><td dir="ltr">'+f(x.v)+'</td><td dir="ltr">'+(x.days==null?"-":Math.round(x.days))+'</td><td dir="ltr"><b>'+x.need+"</b></td></tr>"}).join(""):empty(5)))
+   +sec(bi("كشوف حساب العملاء (أعمار الديون)","Customer statements (aging)"),tb([bi("العميل","Customer"),"0-30","31-60","60+",bi("الإجمالي","Total"),""],CL.length?CL.map(function(c,i){return "<tr><td>"+esc(c.n)+'</td><td dir="ltr">'+f(c.b[0])+'</td><td dir="ltr">'+f(c.b[1])+'</td><td dir="ltr">'+f(c.b[2])+'</td><td dir="ltr"><b>'+f(c.t)+'</b></td><td><button type="button" class="alt" data-w="'+i+'">'+bi("نسخ رسالة واتساب","Copy WhatsApp text")+"</button></td></tr>"}).join(""):empty(6)))
+   +sec(bi("الربح لكل صنف","Profit per item"),tb([bi("الصنف","Item"),bi("الكمية","Qty"),bi("الإيراد","Revenue"),bi("التكلفة","Cost"),bi("الربح","Profit")],PF.length?PF.map(function(x){return "<tr><td>"+esc(pn[x.id]||"")+'</td><td dir="ltr">'+f(x.q)+'</td><td dir="ltr">'+f(x.rev)+'</td><td dir="ltr">'+(x.cost==null?"-":f(x.cost))+'</td><td dir="ltr">'+(x.cost==null?'<span class="hint">'+bi("لا تكلفة","no cost")+"</span>":"<b>"+f(x.rev-x.cost)+"</b>")+"</td></tr>"}).join(""):empty(5)));
+  $("#cc-c").oninput=function(){var v=parseFloat(this.value);$("#cc-d").textContent=isNaN(v)?"":"Difference: "+f(v-exp)+(Math.abs(v-exp)<0.005?" (matches)":v>exp?" (over)":" (short)")};
+  [].forEach.call(mn.querySelectorAll("[data-w]"),function(b){b.onclick=function(){var c=CL[b.dataset.w];var t="السلام عليكم "+c.n+"\nتذكير ودي: المتبقي على حضرتك "+f(c.t)+" جنيه\nالفواتير: "+c.docs.join("، ")+"\nشكرا لتعاملكم مع UNO Technology.";var done=function(){status("تم النسخ ✓ / Copied ✓")};if(navigator.clipboard)navigator.clipboard.writeText(t).then(done).catch(function(){prompt("Copy:",t)});else prompt("Copy:",t)}});
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
 
