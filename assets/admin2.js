@@ -356,7 +356,7 @@ RENDER.inv=function(mn){
    [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. This is not an official invoice. Continue?"))return;var w=window.open("","_blank");if(!w)return;var o=opts();o.sample=true;w.document.open();w.document.write(I.render(b.dataset.p,null,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}});
    draw()})
  }
- if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127m";x.onload=go;document.body.appendChild(x)}
+ if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127n";x.onload=go;document.body.appendChild(x)}
 }
 /* tax and ETA e-invoice settings. No credentials are stored here: ETA secrets come only through vault links. */
 RENDER.tax=function(mn){
@@ -389,7 +389,7 @@ RENDER.sal=function(mn){
    var locked=d.id&&d.status!=="draft";
    (d.id?api("GET","core_sales_lines?doc_id=eq."+d.id+"&select=*&order=sort.asc"):Promise.resolve([])).then(function(L){
     var VM='<option value="inherit">'+"افتراضي / Default"+'</option><option value="on">'+"بضريبة / VAT"+'</option><option value="off">'+"بدون / No VAT"+'</option>';
-    function lineRow(l){l=l||{};return '<tr class="ln"><td><select class="lp"><option value="">'+"بند حر / Free text"+'</option>'+PR.map(function(p){return '<option value="'+p.id+'" data-p="'+p.price+'" data-n="'+esc(p.name_ar)+'"'+(l.product_id===p.id?" selected":"")+">"+esc(p.name_ar+" / "+p.name_en)+"</option>"}).join("")+'</select><input class="ld" type="text" maxlength="160" placeholder="الوصف / Description" value="'+esc(l.description||"")+'"></td><td><input class="lq" type="number" min="0.001" step="any" value="'+(l.qty||1)+'" style="width:70px"></td><td><input class="lu" type="number" min="0" step="any" value="'+(l.unit_price==null?"":l.unit_price)+'" style="width:90px"></td><td><select class="lv">'+VM+'</select></td><td><select class="lw"><option value="">-</option>'+W.map(function(w){return '<option value="'+w.id+'"'+(l.warehouse_id===w.id?" selected":"")+">"+esc(w.name_ar)+"</option>"}).join("")+'</select></td><td><button type="button" class="dg lx">×</button></td></tr>'}
+    function lineRow(l){l=l||{};return '<tr class="ln"><td style="min-width:230px"><select class="lp" style="width:100%"><option value="">'+"بند حر / Free text"+'</option>'+PR.map(function(p){return '<option value="'+p.id+'" data-p="'+p.price+'" data-n="'+esc(p.name_ar)+'"'+(l.product_id===p.id?" selected":"")+">"+esc(p.name_ar+" / "+p.name_en)+"</option>"}).join("")+'</select><input class="ld" type="text" style="width:100%;margin-top:4px" maxlength="160" placeholder="الوصف / Description" value="'+esc(l.description||"")+'"></td><td><input class="lq" type="number" min="0.001" step="any" value="'+(l.qty||1)+'" style="width:70px"></td><td><input class="lu" type="number" min="0" step="any" value="'+(l.unit_price==null?"":l.unit_price)+'" style="width:90px"></td><td><select class="lv" style="min-width:120px">'+VM+'</select></td><td><select class="lw" style="min-width:140px"><option value="">-</option>'+W.map(function(w){return '<option value="'+w.id+'"'+(l.warehouse_id===w.id?" selected":"")+">"+esc(w.name_ar)+"</option>"}).join("")+'</select></td><td><button type="button" class="dg lx">×</button></td></tr>'}
     openDlg('<h2>'+(d.id?esc(d.number||"مسودة / Draft"):bi("مستند جديد","New document"))+'</h2>'
      +'<div class="pair"><label class="f"><span>'+bi("النوع","Type")+'</span><select id="s-k"><option value="invoice">فاتورة / Invoice</option><option value="quote">عرض سعر / Quote</option></select></label><label class="f"><span>'+bi("العميل","Customer")+'</span><select id="s-p"><option value="">- '+"عميل نقدي / Walk-in"+'</option>'+PA.map(function(p){return '<option value="'+p.id+'">'+esc(p.name)+"</option>"}).join("")+'</select></label></div>'
      +'<div class="pair"><label class="f"><span>'+bi("اسم العميل (اختياري)","Customer name (optional)")+'</span><input type="text" id="s-n" maxlength="80"></label><label class="f"><span>'+bi("الهاتف","Phone")+'</span><input type="text" id="s-t" dir="ltr" maxlength="30"></label></div>'
@@ -419,7 +419,7 @@ RENDER.sal=function(mn){
        var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:b.vat_mode==="on"||(b.vat_mode==="inherit"&&TX.vat_enabled),taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:co,base:base,sample:false};
        if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. Not an official invoice. Continue?"))return;
        var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render(tid,doc,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127m";x.onload=go;document.body.appendChild(x)}})}
+      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127n";x.onload=go;document.body.appendChild(x)}})}
    })}
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
