@@ -1,0 +1,3 @@
+# Uno Technology Services ads.txt placeholder.
+# After AdSense approval, add the line Google gives you, for example:
+# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
