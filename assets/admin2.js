@@ -315,7 +315,14 @@ function palette(){if($("#pal"))return;var items=MODS.filter(function(m){return 
  var o=document.createElement("div");o.id="pal";o.innerHTML='<div class="bx" role="dialog" aria-label="Command palette"><input type="text" placeholder="ابحث أو اكتب أمر / Search or type a command" aria-label="search"><ul></ul><small>↑↓ Enter · Esc</small></div>';document.body.appendChild(o);
  var inp=o.querySelector("input"),ul=o.querySelector("ul"),sel=0,cur=items;function draw(){ul.innerHTML=cur.map(function(x,i){return '<li class="'+(i===sel?"on":"")+'" data-i="'+i+'">'+esc(x.t)+"</li>"}).join("")||"<li>—</li>"}
  function run(i){var x=cur[i];o.remove();if(x)x.f()}
- inp.oninput=function(){var q=inp.value.toLowerCase();cur=items.filter(function(x){return x.t.toLowerCase().indexOf(q)>-1});sel=0;draw()};
+ var tmr=null,seq=0;
+ inp.oninput=function(){var q=inp.value.toLowerCase();cur=items.filter(function(x){return x.t.toLowerCase().indexOf(q)>-1});sel=0;draw();clearTimeout(tmr);var raw=inp.value.replace(/[%,()*\\:"'&]/g,"").trim();if(raw.length<2)return;var my=++seq;tmr=setTimeout(function(){
+  var L=[],e=encodeURIComponent("*"+raw+"*");
+  function add(path,mod,perm,fmt){if(!can(perm))return Promise.resolve();return api("GET",path).then(function(r){(r||[]).forEach(function(x){L.push({t:fmt(x),f:function(){setMod(mod,true)}})})}).catch(function(){})}
+  Promise.all([add("products?select=name_ar,name_en,price&or=(name_ar.ilike."+e+",name_en.ilike."+e+")&limit=5","prod","store",function(x){return "منتج / Product: "+x.name_ar+" / "+x.name_en}),
+   add("core_sales_docs?select=number,customer_name,total,kind&or=(number.ilike."+e+",customer_name.ilike."+e+")&order=created_at.desc&limit=5","sal","core",function(x){return "مستند / Document: "+(x.number||"draft")+" · "+(x.customer_name||"")+" · "+x.total}),
+   add("core_suppliers?select=name&name=ilike."+e+"&limit=5","pur","core",function(x){return "مورد / Supplier: "+x.name}),
+   add("core_partners?select=name&name=ilike."+e+"&limit=5","cpa","core",function(x){return "عميل-مورد / Partner: "+x.name})]).then(function(){if(my!==seq||!$("#pal"))return;cur=cur.concat(L);draw()})},250)};
  inp.onkeydown=function(e){if(e.key==="Escape")o.remove();else if(e.key==="ArrowDown"){sel=Math.min(sel+1,cur.length-1);draw();e.preventDefault()}else if(e.key==="ArrowUp"){sel=Math.max(sel-1,0);draw();e.preventDefault()}else if(e.key==="Enter")run(sel)};
  ul.onclick=function(e){var l=e.target.closest("li[data-i]");if(l)run(+l.dataset.i)};o.addEventListener("mousedown",function(e){if(e.target===o)o.remove()});draw();inp.focus()}
 document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();palette()}});
@@ -368,7 +375,7 @@ RENDER.inv=function(mn){
    [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. This is not an official invoice. Continue?"))return;var w=window.open("","_blank");if(!w)return;var o=opts();o.sample=true;w.document.open();w.document.write(I.render(b.dataset.p,null,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}});
    draw()})
  }
- if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127v";x.onload=go;document.body.appendChild(x)}
+ if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127w";x.onload=go;document.body.appendChild(x)}
 }
 /* tax and ETA e-invoice settings. No credentials are stored here: ETA secrets come only through vault links. */
 RENDER.tax=function(mn){
@@ -431,7 +438,7 @@ RENDER.sal=function(mn){
        var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:b.vat_mode==="on"||(b.vat_mode==="inherit"&&TX.vat_enabled),taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:co,base:base,sample:false};
        if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. Not an official invoice. Continue?"))return;
        var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render(tid,doc,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127v";x.onload=go;document.body.appendChild(x)}})}
+      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127w";x.onload=go;document.body.appendChild(x)}})}
    })}
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
@@ -553,7 +560,7 @@ RENDER.pos=function(mn){
      var items=cart.map(function(l){return{n:l.n,q:l.q,p:l.p,vat:"inherit"}}),dd={no:d.number,date:d.doc_date,type:"invoice",customer:{name:doc.customer_name,phone:""},items:items,discount:k.disc,notes:"",vatMode:"inherit"};
      var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:!!TX.vat_enabled,taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:CO,base:location.href.replace(/[^\/]*$/,""),sample:false};
      function pr(){var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render("t80",dd,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127v";x.onload=pr;document.body.appendChild(x)}}
+     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127w";x.onload=pr;document.body.appendChild(x)}}
      cart=[];btn.disabled=false;RENDER.pos($("#main"))}).catch(function(e){btn.disabled=false;er.textContent=/no_lines|forbidden|overpay/.test(e.message)?e.message:"تعذر الإتمام، راجع المبيعات والمدفوعات / Could not complete, check Sales and Payments: "+e.message})};
   grid();draw();
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
@@ -638,5 +645,25 @@ RENDER.ins=function(mn){
   [].forEach.call(mn.querySelectorAll("[data-w]"),function(b){b.onclick=function(){var c=CL[b.dataset.w];var t="السلام عليكم "+c.n+"\nتذكير ودي: المتبقي على حضرتك "+f(c.t)+" جنيه\nالفواتير: "+c.docs.join("، ")+"\nشكرا لتعاملكم مع UNO Technology.";var done=function(){status("تم النسخ ✓ / Copied ✓")};if(navigator.clipboard)navigator.clipboard.writeText(t).then(done).catch(function(){prompt("Copy:",t)});else prompt("Copy:",t)}});
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
+
+
+/* top bar: search button and notifications bell. Counts come from the same server data, filtered by the user's permissions. */
+(function(){
+ var rb=document.getElementById("rb");if(!rb||!rb.parentNode)return;
+ var sb=document.createElement("button");sb.type="button";sb.id="gsb";sb.setAttribute("aria-label","search");sb.innerHTML='<svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';sb.onclick=function(){palette()};
+ var bl=document.createElement("button");bl.type="button";bl.id="bell";bl.setAttribute("aria-label","notifications");bl.innerHTML='<svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1112 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 004 0"/></svg><span id="bcnt" style="display:none"></span>';
+ var st=document.createElement("style");st.textContent="#gsb,#bell{position:relative;background:transparent;border:1px solid var(--ln);border-radius:10px;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);padding:0;margin-inline-end:6px}#gsb .i,#bell .i{width:18px;height:18px}#bcnt{position:absolute;top:-5px;inset-inline-end:-5px;background:#dc2626;color:#fff;border-radius:9px;font-size:10px;min-width:16px;height:16px;line-height:16px;text-align:center;font-weight:700}";document.head.appendChild(st);
+ var anchor=document.getElementById("thm")||rb;anchor.parentNode.insertBefore(bl,anchor);anchor.parentNode.insertBefore(sb,bl);
+ var NOTE=[];
+ function load(){if(typeof ROLE==="undefined"||!ROLE)return setTimeout(load,1500);
+  var day=864e5,now=Date.now(),W=[];
+  function q(perm,path,fn){if(can(perm))W.push(api("GET",path).then(fn).catch(function(){}))}
+  q("orders","orders?select=id&status=eq.new&limit=100",function(r){if(r.length)NOTE.push({n:r.length,t:"طلبات متجر جديدة / New store orders",m:"ord"})});
+  q("orders","product_reviews?select=id&status=eq.pending&limit=100",function(r){if(r.length)NOTE.push({n:r.length,t:"تقييمات تنتظر المراجعة / Reviews awaiting approval",m:"rv"})});
+  q("core","core_sales_docs?select=id,total,doc_date,status,created_at&kind=eq.invoice&status=in.(draft,issued)&limit=1000",function(r){var ids=r.filter(function(d){return d.status==="issued"&&now-new Date(d.doc_date).getTime()>30*day}).map(function(d){return d.id});var dr=r.filter(function(d){return d.status==="draft"&&now-new Date(d.created_at).getTime()>3*day}).length;if(dr)NOTE.push({n:dr,t:"مسودات أقدم من 3 أيام / Drafts older than 3 days",m:"sal"});if(!ids.length)return;return api("GET","core_payments?select=doc_id,amount&limit=3000").then(function(p){var pd={};p.forEach(function(x){pd[x.doc_id]=(pd[x.doc_id]||0)+Number(x.amount)});var n=r.filter(function(d){return ids.indexOf(d.id)>-1&&Number(d.total)-(pd[d.id]||0)>0.001}).length;if(n)NOTE.push({n:n,t:"فواتير غير مسددة أقدم من 30 يوم / Unpaid invoices older than 30 days",m:"ins"})})});
+  Promise.all(W).then(function(){var tot=NOTE.reduce(function(a,x){return a+x.n},0),c=document.getElementById("bcnt");if(c){c.textContent=tot>99?"99+":tot;c.style.display=tot?"block":"none"}})}
+ bl.onclick=function(){openDlg('<h2>'+bi("التنبيهات","Notifications")+"</h2>"+(NOTE.length?'<ul style="list-style:none;padding:0">'+NOTE.map(function(x,i){return '<li style="padding:10px 0;border-bottom:1px solid var(--ln)"><button type="button" class="alt" data-n="'+i+'" style="width:100%;text-align:start"><b dir="ltr">'+x.n+"</b> · "+esc(x.t)+"</button></li>"}).join("")+"</ul>":'<p class="hint">'+bi("لا توجد تنبيهات","No notifications")+"</p>")+'<div class="tb"><button id="f-cx" type="button" class="alt">'+bi("إغلاق","Close")+"</button></div>");$("#f-cx").onclick=closeDlg;[].forEach.call($("#dbx").querySelectorAll("[data-n]"),function(b){b.onclick=function(){var x=NOTE[b.dataset.n];closeDlg();setMod(x.m,true)}})};
+ setTimeout(load,2500);
+})();
 
 })();
