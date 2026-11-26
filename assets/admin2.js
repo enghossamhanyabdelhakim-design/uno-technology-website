@@ -375,7 +375,7 @@ RENDER.inv=function(mn){
    [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. This is not an official invoice. Continue?"))return;var w=window.open("","_blank");if(!w)return;var o=opts();o.sample=true;w.document.open();w.document.write(I.render(b.dataset.p,null,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}});
    draw()})
  }
- if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128b";x.onload=go;document.body.appendChild(x)}
+ if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128c";x.onload=go;document.body.appendChild(x)}
 }
 /* tax and ETA e-invoice settings. No credentials are stored here: ETA secrets come only through vault links. */
 RENDER.tax=function(mn){
@@ -438,7 +438,7 @@ RENDER.sal=function(mn){
        var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:b.vat_mode==="on"||(b.vat_mode==="inherit"&&TX.vat_enabled),taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:co,base:base,sample:false};
        if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. Not an official invoice. Continue?"))return;
        var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render(tid,doc,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128b";x.onload=go;document.body.appendChild(x)}})}
+      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128c";x.onload=go;document.body.appendChild(x)}})}
    })}
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
@@ -560,7 +560,7 @@ RENDER.pos=function(mn){
      var items=cart.map(function(l){return{n:l.n,q:l.q,p:l.p,vat:"inherit"}}),dd={no:d.number,date:d.doc_date,type:"invoice",customer:{name:doc.customer_name,phone:""},items:items,discount:k.disc,notes:"",vatMode:"inherit"};
      var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:!!TX.vat_enabled,taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:CO,base:location.href.replace(/[^\/]*$/,""),sample:false};
      function pr(){var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render("t80",dd,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128b";x.onload=pr;document.body.appendChild(x)}}
+     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128c";x.onload=pr;document.body.appendChild(x)}}
      cart=[];btn.disabled=false;RENDER.pos($("#main"))}).catch(function(e){btn.disabled=false;er.textContent=/no_lines|forbidden|overpay/.test(e.message)?e.message:"تعذر الإتمام، راجع المبيعات والمدفوعات / Could not complete, check Sales and Payments: "+e.message})};
   function HL(){try{return JSON.parse(localStorage.getItem("uno_held")||"[]")}catch(e){return[]}}
   function hn(){var n=HL().length;$("#pos-hn").textContent=n?"("+n+")":""}
@@ -705,7 +705,7 @@ RENDER.ins=function(mn){
   D0(mn);
   if(!can("core"))return;
   var holder=document.createElement("div");holder.className="ov";holder.innerHTML='<div class="sk" style="height:140px"></div>';
-  var t=0;(function w(){var d=mn.querySelector(".kpis")||mn.querySelector(".dsh");if(!d){if(t++<80)setTimeout(w,100);return}if(d.parentNode.contains(holder))return;d.parentNode.insertBefore(holder,d)})();
+  var t=0;(function w(){var d=mn.querySelector(".kpis");if(!d){if(t++<80)setTimeout(w,100);return}if(d.parentNode.contains(holder))return;d.parentNode.insertBefore(holder,d)})();
   var from=new Date(Date.now()-30*864e5);
   Promise.all([api("GET","core_sales_docs?select=id,total,doc_date,status&kind=eq.invoice&status=in.(issued,paid)&order=doc_date.desc&limit=2000"),api("GET","core_payments?select=doc_id,amount&limit=5000")]).then(function(r){
    var docs=r[0],pay=r[1],today=ld(new Date()),yest=ld(new Date(Date.now()-864e5)),mo=today.slice(0,7),by={},days=[],i;
