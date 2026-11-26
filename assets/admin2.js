@@ -17,8 +17,8 @@ var I={
 };
 function ic(n){return '<svg class="i" viewBox="0 0 24 24">'+I[n]+'</svg>'}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
-var ROLES={owner:"المالك / Owner",admin:"مدير / Admin",store_manager:"مدير المتجر / Store manager",content_editor:"محرر المحتوى / Content editor",support:"الدعم / Support"};
-var PERM={owner:["users","log","content","store","orders","requests","core","chat"],admin:["log","content","store","orders","requests","core","chat"],store_manager:["store","orders"],content_editor:["content"],support:["orders","requests","chat"]};
+var ROLES={owner:"المالك / Owner",admin:"مدير / Admin",store_manager:"مدير المتجر / Store manager",content_editor:"محرر المحتوى / Content editor",support:"الدعم / Support",cashier:"كاشير / Cashier"};
+var PERM={cashier:["pos"],owner:["dashv","pos","users","log","content","store","orders","requests","core","chat"],admin:["dashv","pos","log","content","store","orders","requests","core","chat"],store_manager:["dashv","store","orders"],content_editor:["dashv","content"],support:["dashv","orders","requests","chat"]};
 var ROLE=null,USER=null,MOD="",PH=window.matchMedia("(max-width:900px)");
 function can(p){return !p||(PERM[ROLE]||[]).indexOf(p)>-1}
 function api(method,path,body,prefer){return CLOUD.token().then(function(t){var h={apikey:C.key,Authorization:"Bearer "+t,"Content-Type":"application/json"};if(prefer)h.Prefer=prefer;return fetch(C.url+"/rest/v1/"+path,{method:method,headers:h,body:body?JSON.stringify(body):undefined}).then(function(r){return r.text().then(function(x){var d=null;try{d=x?JSON.parse(x):null}catch(e){d=x}if(!r.ok)throw new Error((d&&(d.message||d.msg))||r.status);return d})})})}
@@ -38,7 +38,7 @@ function bi(ar,en){return esc(ar)+" / "+esc(en)}
 
 /* ---------- navigation ---------- */
 var MODS=[
- {id:"dash",g:"نظرة عامة / Overview",ic:"dash",l:"لوحة القيادة / Dashboard"},
+ {id:"dash",g:"نظرة عامة / Overview",p:"dashv",ic:"dash",l:"لوحة القيادة / Dashboard"},
  {id:"prod",g:"المتجر / Store",p:"store",ic:"box",l:"المنتجات / Products"},
  {id:"cat",g:"المتجر / Store",p:"store",ic:"tag",l:"التصنيفات / Categories"},
  {id:"ord",g:"المتجر / Store",p:"orders",ic:"cart",l:"الطلبات / Orders"},
@@ -56,7 +56,7 @@ var MODS=[
  {id:"cbr",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"الفروع والمخازن / Branches and warehouses"},
  {id:"cun",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"وحدات القياس / Units"},
  {id:"cpa",g:"النظام الداخلي / UNO Core",p:"core",ic:"users",l:"العملاء والموردون / Partners"},
- {id:"pos",g:"النظام الداخلي / UNO Core",p:"core",ic:"cart",l:"نقطة البيع / POS"},
+ {id:"pos",g:"النظام الداخلي / UNO Core",p:"pos",ic:"cart",l:"نقطة البيع / POS"},
  {id:"pur",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"المشتريات والموردين / Purchases and suppliers"},
  {id:"ins",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"التحليلات والمتابعة / Insights and follow-up"},
  {id:"sal",g:"النظام الداخلي / UNO Core",p:"core",ic:"cart",l:"المبيعات والفواتير / Sales and invoices"},
@@ -297,7 +297,7 @@ RENDER.log=function(mn){
 CLOUD.check().then(function(u){USER=u;return api("GET","admin_roles?user_id=eq."+u.id+"&select=role,active")}).then(function(r){
  var x=r&&r[0];if(!x||x.active===false){document.body.innerHTML='<div style="padding:40px;text-align:center;font-family:Cairo,sans-serif"><h2>لا توجد صلاحية / No access</h2><p>هذا الحساب غير مفعل كمستخدم لوحة تحكم. / This account is not enabled for the admin panel.</p><p><button onclick="CLOUD.logout();location.reload()">خروج / Logout</button></p></div>';return}
  ROLE=x.role;$("#rb").textContent=ROLES[ROLE]||ROLE;$("#who").textContent=USER.email||"";buildNav();
- var h=(location.hash||"").replace("#","");var first=MODS.filter(function(m){return m.id===h&&can(m.p)})[0]?h:"dash";
+ var h=(location.hash||"").replace("#","");var first=MODS.filter(function(m){return m.id===h&&can(m.p)})[0]?h:(ROLE==="cashier"?"pos":"dash");
  if(first==="dash"||first!=="content")setMod(first,true);else setMod("content",true);
 }).catch(function(e){status("تعذر تحميل الصلاحيات: "+e.message,1)});
 
@@ -360,7 +360,7 @@ RENDER.inv=function(mn){
    [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. This is not an official invoice. Continue?"))return;var w=window.open("","_blank");if(!w)return;var o=opts();o.sample=true;w.document.open();w.document.write(I.render(b.dataset.p,null,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}});
    draw()})
  }
- if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127t";x.onload=go;document.body.appendChild(x)}
+ if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127u";x.onload=go;document.body.appendChild(x)}
 }
 /* tax and ETA e-invoice settings. No credentials are stored here: ETA secrets come only through vault links. */
 RENDER.tax=function(mn){
@@ -423,7 +423,7 @@ RENDER.sal=function(mn){
        var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:b.vat_mode==="on"||(b.vat_mode==="inherit"&&TX.vat_enabled),taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:co,base:base,sample:false};
        if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. Not an official invoice. Continue?"))return;
        var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render(tid,doc,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127t";x.onload=go;document.body.appendChild(x)}})}
+      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127u";x.onload=go;document.body.appendChild(x)}})}
    })}
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
@@ -545,7 +545,7 @@ RENDER.pos=function(mn){
      var items=cart.map(function(l){return{n:l.n,q:l.q,p:l.p,vat:"inherit"}}),dd={no:d.number,date:d.doc_date,type:"invoice",customer:{name:doc.customer_name,phone:""},items:items,discount:k.disc,notes:"",vatMode:"inherit"};
      var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:!!TX.vat_enabled,taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:CO,base:location.href.replace(/[^\/]*$/,""),sample:false};
      function pr(){var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render("t80",dd,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127t";x.onload=pr;document.body.appendChild(x)}}
+     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127u";x.onload=pr;document.body.appendChild(x)}}
      cart=[];btn.disabled=false;RENDER.pos($("#main"))}).catch(function(e){btn.disabled=false;er.textContent=/no_lines|forbidden|overpay/.test(e.message)?e.message:"تعذر الإتمام، راجع المبيعات والمدفوعات / Could not complete, check Sales and Payments: "+e.message})};
   grid();draw();
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
