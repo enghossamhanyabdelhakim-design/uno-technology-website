@@ -69,6 +69,7 @@ function render(){
  $$(".chip").forEach(function(b){b.onclick=function(){f.cat=b.dataset.c;$$(".chip").forEach(function(x){x.classList.toggle("on",x===b)});list()}});
  $("#pg").onclick=function(e){var w=e.target.closest("[data-w]");if(w){e.stopPropagation();var id=w.dataset.w;if(wish[id])delete wish[id];else wish[id]=1;wsave();if(f.cat==="__w")list();else{w.classList.toggle("on",!!wish[id]);w.setAttribute("aria-pressed",wish[id]?"true":"false");w.querySelector("svg").setAttribute("fill",wish[id]?"currentColor":"none")}return}var a=e.target.closest("[data-a]");if(a){e.stopPropagation();add(a.dataset.a);a.textContent=h.lang==="en"?"Added ✓":"تمت الإضافة ✓";return}var c=e.target.closest(".pc");if(c)detail(c.dataset.id)};
  list();fab()}
+try{var lastL=h.lang;new MutationObserver(function(){if(h.lang===lastL||!prods.length)return;lastL=h.lang;var keep={cat:f.cat,q:f.q,sort:f.sort};render();f.cat=keep.cat;f.q=keep.q;f.sort=keep.sort;$("#q").value=keep.q;$("#so").value=keep.sort;$$(".chip").forEach(function(x){x.classList.toggle("on",x.dataset.c===keep.cat)});list()}).observe(document.documentElement,{attributes:true,attributeFilter:["lang"]})}catch(e){}
 root.innerHTML='<section class="st"><div class="wrap"><p class="sub">...</p></div></section>';
 load().catch(function(){root.innerHTML='<section class="st"><div class="wrap"><p class="sub">'+B(bi("تعذر تحميل المتجر. حاول تاني بعد شوية.","Could not load the store. Please try again shortly."))+"</p></div></section>"});
 })();
