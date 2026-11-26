@@ -57,6 +57,7 @@ var MODS=[
  {id:"cun",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"وحدات القياس / Units"},
  {id:"cpa",g:"النظام الداخلي / UNO Core",p:"core",ic:"users",l:"العملاء والموردون / Partners"},
  {id:"sal",g:"النظام الداخلي / UNO Core",p:"core",ic:"cart",l:"المبيعات والفواتير / Sales and invoices"},
+ {id:"pay",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"المدفوعات والمالية / Payments and finance"},
  {id:"inv",g:"النظام الداخلي / UNO Core",p:"core",ic:"kb",l:"تصميمات الفاتورة / Invoice designs"},
  {id:"tax",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"الضريبة والفاتورة الإلكترونية / Tax and e-invoice"},
  {id:"cin",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"المخزون / Inventory"}
@@ -356,7 +357,7 @@ RENDER.inv=function(mn){
    [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. This is not an official invoice. Continue?"))return;var w=window.open("","_blank");if(!w)return;var o=opts();o.sample=true;w.document.open();w.document.write(I.render(b.dataset.p,null,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}});
    draw()})
  }
- if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127n";x.onload=go;document.body.appendChild(x)}
+ if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127o";x.onload=go;document.body.appendChild(x)}
 }
 /* tax and ETA e-invoice settings. No credentials are stored here: ETA secrets come only through vault links. */
 RENDER.tax=function(mn){
@@ -419,7 +420,7 @@ RENDER.sal=function(mn){
        var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:b.vat_mode==="on"||(b.vat_mode==="inherit"&&TX.vat_enabled),taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:co,base:base,sample:false};
        if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. Not an official invoice. Continue?"))return;
        var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render(tid,doc,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127n";x.onload=go;document.body.appendChild(x)}})}
+      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127o";x.onload=go;document.body.appendChild(x)}})}
    })}
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
@@ -483,4 +484,33 @@ RENDER.bk=function(mn){
 var b=document.createElement("button");b.id="thm";b.type="button";b.setAttribute("aria-label","theme");function ic(){b.innerHTML=cur()==="dark"?'<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>':'<svg class="i" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/></svg>'}ic();
 b.onclick=function(){var v=cur()==="dark"?"light":"dark";try{localStorage.setItem(K,v)}catch(e){}apply(v);ic()};
 var rb=document.getElementById("rb");if(rb&&rb.parentNode)rb.parentNode.insertBefore(b,rb)})();
+/* finance: payments on invoices, expenses and a summary. Payment totals are enforced by the server. */
+RENDER.pay=function(mn){
+ var MT={cash:"نقدي / Cash",card:"بطاقة / Card",transfer:"تحويل / Transfer",wallet:"محفظة / Wallet",other:"أخرى / Other"},EC={rent:"إيجار / Rent",salary:"رواتب / Salaries",utilities:"مرافق / Utilities",transport:"نقل / Transport",marketing:"تسويق / Marketing",supplies:"مستلزمات / Supplies",other:"أخرى / Other"};
+ function mo(o){return Object.keys(o).map(function(k){return '<option value="'+k+'">'+o[k]+"</option>"}).join("")}
+ function f(n){return (Math.round((n||0)*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+ Promise.all([api("GET","core_sales_docs?select=id,number,customer_name,total,status,kind,doc_date&kind=eq.invoice&status=in.(issued,paid)&order=created_at.desc&limit=300"),api("GET","core_payments?select=*&order=created_at.desc&limit=500"),api("GET","core_expenses?select=*&order=spent_at.desc,created_at.desc&limit=300")]).then(function(r){
+  var D=r[0],P=r[1],E=r[2],paid={};P.forEach(function(p){paid[p.doc_id]=(paid[p.doc_id]||0)+Number(p.amount)});
+  var sales=0,coll=0,out=0,exp=0;D.forEach(function(d){sales+=Number(d.total||0);var pd=paid[d.id]||0;coll+=pd;out+=Math.max(0,Number(d.total||0)-pd)});E.forEach(function(e){exp+=Number(e.amount)});
+  function card(t,v,c){return '<div class="card" style="padding:14px;flex:1;min-width:150px"><div class="hint">'+t+'</div><div dir="ltr" style="font-size:22px;font-weight:700;color:'+(c||"inherit")+'">'+f(v)+"</div></div>"}
+  var open=D.filter(function(d){return Number(d.total||0)-(paid[d.id]||0)>0.001});
+  mn.innerHTML='<h2>'+bi("المدفوعات والمالية","Payments and finance")+'</h2><p class="hint" style="margin-bottom:12px">'+bi("سجّل دفعات الفواتير الصادرة (كاملة أو جزئية) والمصروفات. الحالة تتحول لمدفوعة تلقائيا من السيرفر. الأرقام بالجنيه المصري.","Record payments on issued invoices (full or partial) and expenses. Status turns to paid automatically on the server. Amounts in EGP.")+"</p>"
+   +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">'+card(bi("المبيعات المصدرة","Issued sales"),sales)+card(bi("المحصّل","Collected"),coll,"#16a34a")+card(bi("المتبقي على العملاء","Outstanding"),out,"#d97706")+card(bi("المصروفات","Expenses"),exp,"#dc2626")+card(bi("الصافي (محصّل - مصروفات)","Net (collected - expenses)"),coll-exp)+"</div>"
+   +'<h3>'+bi("فواتير بها متبقي","Invoices with a balance")+'</h3><div class="tw"><table><thead><tr><th>'+bi("الرقم","No.")+"</th><th>"+bi("العميل","Customer")+"</th><th>"+bi("الإجمالي","Total")+"</th><th>"+bi("المدفوع","Paid")+"</th><th>"+bi("المتبقي","Due")+'</th><th></th></tr></thead><tbody>'
+   +(open.length?open.map(function(d,i){var pd=paid[d.id]||0;return '<tr><td dir="ltr">'+esc(d.number)+"</td><td>"+esc(d.customer_name||"")+'</td><td dir="ltr">'+f(d.total)+'</td><td dir="ltr">'+f(pd)+'</td><td dir="ltr">'+f(d.total-pd)+'</td><td><button type="button" data-p="'+i+'">'+bi("تسجيل دفعة","Record payment")+"</button></td></tr>"}).join(""):'<tr><td colspan="6" class="hint">'+bi("لا توجد فواتير مستحقة","No invoices with a balance")+"</td></tr>")+"</tbody></table></div>"
+   +'<h3 style="margin-top:16px">'+bi("المصروفات","Expenses")+'</h3><div class="tb"><button id="ex-add" type="button">+ '+bi("مصروف","Expense")+'</button></div><div class="tw"><table><thead><tr><th>'+bi("التاريخ","Date")+"</th><th>"+bi("البند","Category")+"</th><th>"+bi("الوصف","Description")+"</th><th>"+bi("المبلغ","Amount")+'</th><th></th></tr></thead><tbody>'
+   +(E.length?E.map(function(e,i){return '<tr><td dir="ltr">'+esc(e.spent_at)+"</td><td>"+(EC[e.category]||esc(e.category))+"</td><td>"+esc(e.description)+'</td><td dir="ltr">'+f(e.amount)+'</td><td><button type="button" class="alt" data-x="'+i+'">'+bi("حذف","Delete")+"</button></td></tr>"}).join(""):'<tr><td colspan="5" class="hint">'+bi("لا مصروفات","No expenses")+"</td></tr>")+"</tbody></table></div>"
+   +'<h3 style="margin-top:16px">'+bi("آخر المدفوعات","Latest payments")+'</h3><div class="tw"><table><thead><tr><th>'+bi("التاريخ","Date")+"</th><th>"+bi("الفاتورة","Invoice")+"</th><th>"+bi("الطريقة","Method")+"</th><th>"+bi("المبلغ","Amount")+"</th></tr></thead><tbody>"
+   +(P.length?P.slice(0,30).map(function(p){var d=D.filter(function(x){return x.id===p.doc_id})[0];return '<tr><td dir="ltr">'+esc(p.paid_at)+'</td><td dir="ltr">'+esc(d?d.number:"")+"</td><td>"+(MT[p.method]||esc(p.method))+'</td><td dir="ltr">'+f(p.amount)+"</td></tr>"}).join(""):'<tr><td colspan="4" class="hint">'+bi("لا مدفوعات بعد","No payments yet")+"</td></tr>")+"</tbody></table></div>";
+  [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){var d=open[b.dataset.p],due=Math.round((d.total-(paid[d.id]||0))*100)/100;
+   openDlg('<h2>'+bi("دفعة على ","Payment on ")+esc(d.number)+'</h2><p class="hint">'+bi("المتبقي ","Due ")+f(due)+'</p><label class="f"><span>'+bi("المبلغ","Amount")+'</span><input type="number" id="py-a" min="0.01" step="any" value="'+due+'"></label><label class="f"><span>'+bi("الطريقة","Method")+'</span><select id="py-m">'+mo(MT)+'</select></label><label class="f"><span>'+bi("مرجع (اختياري)","Reference (optional)")+'</span><input type="text" id="py-r" maxlength="60"></label><p id="f-er" class="dirty"></p><div class="tb"><button id="py-s" type="button">'+bi("حفظ الدفعة","Save payment")+'</button><button id="f-cx" type="button" class="alt">'+bi("إغلاق","Close")+"</button></div>");
+   $("#f-cx").onclick=closeDlg;$("#py-s").onclick=function(){var a=parseFloat($("#py-a").value);if(!(a>0)){$("#f-er").textContent="مبلغ غير صحيح / Invalid amount";return}
+    api("POST","rpc/core_record_payment",{p_doc:d.id,p_amount:a,p_method:$("#py-m").value,p_ref:$("#py-r").value.trim()||null}).then(function(){closeDlg();status("تم تسجيل الدفعة ✓ / Payment saved ✓");RENDER.pay($("#main"))}).catch(function(e){$("#f-er").textContent=/overpay/.test(e.message)?"المبلغ أكبر من المتبقي / More than the amount due":e.message})}}});
+  $("#ex-add").onclick=function(){openDlg('<h2>'+bi("مصروف جديد","New expense")+'</h2><label class="f"><span>'+bi("البند","Category")+'</span><select id="ex-c">'+mo(EC)+'</select></label><label class="f"><span>'+bi("الوصف","Description")+'</span><input type="text" id="ex-d" maxlength="120"></label><div class="pair"><label class="f"><span>'+bi("المبلغ","Amount")+'</span><input type="number" id="ex-a" min="0.01" step="any"></label><label class="f"><span>'+bi("التاريخ","Date")+'</span><input type="date" id="ex-t" value="'+new Date().toISOString().slice(0,10)+'"></label></div><label class="f"><span>'+bi("الطريقة","Method")+'</span><select id="ex-m">'+mo(MT)+'</select></label><p id="f-er" class="dirty"></p><div class="tb"><button id="ex-s" type="button">'+bi("حفظ","Save")+'</button><button id="f-cx" type="button" class="alt">'+bi("إغلاق","Close")+"</button></div>");
+   $("#f-cx").onclick=closeDlg;$("#ex-s").onclick=function(){var a=parseFloat($("#ex-a").value),ds=$("#ex-d").value.trim();if(!ds||!(a>0)){$("#f-er").textContent="الوصف والمبلغ مطلوبين / Description and amount required";return}
+    api("POST","core_expenses",{category:$("#ex-c").value,description:ds,amount:a,spent_at:$("#ex-t").value,method:$("#ex-m").value},"return=minimal").then(function(){closeDlg();status("تم الحفظ ✓ / Saved ✓");RENDER.pay($("#main"))}).catch(function(e){$("#f-er").textContent=e.message})}};
+  [].forEach.call(mn.querySelectorAll("[data-x]"),function(b){b.onclick=function(){var e=E[b.dataset.x];if(!confirm("حذف المصروف؟ / Delete this expense?"))return;api("DELETE","core_expenses?id=eq."+e.id,null,"return=minimal").then(function(){RENDER.pay($("#main"))}).catch(function(x){alert(x.message)})}});
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
+
 })();
