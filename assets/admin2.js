@@ -375,7 +375,7 @@ RENDER.inv=function(mn){
    [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. This is not an official invoice. Continue?"))return;var w=window.open("","_blank");if(!w)return;var o=opts();o.sample=true;w.document.open();w.document.write(I.render(b.dataset.p,null,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}});
    draw()})
  }
- if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128a";x.onload=go;document.body.appendChild(x)}
+ if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128b";x.onload=go;document.body.appendChild(x)}
 }
 /* tax and ETA e-invoice settings. No credentials are stored here: ETA secrets come only through vault links. */
 RENDER.tax=function(mn){
@@ -438,7 +438,7 @@ RENDER.sal=function(mn){
        var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:b.vat_mode==="on"||(b.vat_mode==="inherit"&&TX.vat_enabled),taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:co,base:base,sample:false};
        if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. Not an official invoice. Continue?"))return;
        var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render(tid,doc,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128a";x.onload=go;document.body.appendChild(x)}})}
+      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128b";x.onload=go;document.body.appendChild(x)}})}
    })}
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
@@ -560,7 +560,7 @@ RENDER.pos=function(mn){
      var items=cart.map(function(l){return{n:l.n,q:l.q,p:l.p,vat:"inherit"}}),dd={no:d.number,date:d.doc_date,type:"invoice",customer:{name:doc.customer_name,phone:""},items:items,discount:k.disc,notes:"",vatMode:"inherit"};
      var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:!!TX.vat_enabled,taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:CO,base:location.href.replace(/[^\/]*$/,""),sample:false};
      function pr(){var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render("t80",dd,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128a";x.onload=pr;document.body.appendChild(x)}}
+     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128b";x.onload=pr;document.body.appendChild(x)}}
      cart=[];btn.disabled=false;RENDER.pos($("#main"))}).catch(function(e){btn.disabled=false;er.textContent=/no_lines|forbidden|overpay/.test(e.message)?e.message:"تعذر الإتمام، راجع المبيعات والمدفوعات / Could not complete, check Sales and Payments: "+e.message})};
   function HL(){try{return JSON.parse(localStorage.getItem("uno_held")||"[]")}catch(e){return[]}}
   function hn(){var n=HL().length;$("#pos-hn").textContent=n?"("+n+")":""}
@@ -677,6 +677,46 @@ RENDER.ins=function(mn){
    $("#sh-cl").onclick=function(){openDlg('<h2>'+bi("إغلاق الوردية","Close shift")+'</h2><p class="hint">'+bi("عدّ النقدية في الدرج وأدخل المبلغ. يحسب النظام المتوقع (الافتتاحي + المبيعات النقدية).","Count the drawer and enter the amount. The system computes the expected cash (opening + cash sales).")+'</p><label class="f"><span>'+bi("النقدية المعدودة (ج.م)","Counted cash (EGP)")+'</span><input type="number" id="sh-c" min="0" step="any"></label><label class="f"><span>'+bi("ملاحظة","Note")+'</span><input type="text" id="sh-n" maxlength="300"></label><p id="sh-er" class="dirty"></p><div class="tb"><button id="sh-ok" type="button">'+bi("إغلاق","Close")+'</button><button id="sh-x" type="button" class="alt">'+bi("إلغاء","Cancel")+"</button></div>");
     $("#sh-x").onclick=closeDlg;$("#sh-ok").onclick=function(){var v=parseFloat($("#sh-c").value);if(!(v>=0)){$("#sh-er").textContent=bi("أدخل المبلغ","Enter the amount");return}var b=this;b.disabled=true;api("POST","rpc/core_shift_close",{p_counted:v,p_note:$("#sh-n").value||null}).then(function(r){var d=Number(r.diff);openDlg('<h2>'+bi("تم إغلاق الوردية","Shift closed")+'</h2><table><tbody><tr><td>'+bi("المتوقع","Expected")+'</td><td dir="ltr">'+f(r.expected)+"</td></tr><tr><td>"+bi("المعدود","Counted")+'</td><td dir="ltr">'+f(r.counted)+"</td></tr><tr><td>"+bi("الفرق","Difference")+'</td><td dir="ltr" style="font-weight:700;color:'+(Math.abs(d)>0.001?"#dc2626":"#16a34a")+'">'+(d>0?"+":"")+f(d)+"</td></tr><tr><td>"+bi("المدفوعات","Payments")+'</td><td dir="ltr">'+f(r.sales)+" ("+r.count+")</td></tr></tbody></table>"+'<div class="tb"><button id="sh-d" type="button">OK</button></div>');$("#sh-d").onclick=function(){closeDlg();RENDER.pos(mn)}}).catch(function(e){b.disabled=false;$("#sh-er").textContent=e.message})}};
    var h=document.createElement("div");mn.appendChild(h);hist(h)})()}).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message||String(e))+"</p>"})};
+})();
+
+
+/* Design system pass and ERP overview block on the dashboard. All figures come from live core tables; nothing is invented. */
+(function(){
+ var st=document.createElement("style");st.textContent=[
+ ":root{--sh:0 1px 2px rgba(16,24,40,.05),0 4px 14px rgba(16,24,40,.06);--sh2:0 6px 24px rgba(246,90,0,.14)}",
+ ".card,.kpi{border-radius:16px;box-shadow:var(--sh);transition:transform .18s,box-shadow .18s}",
+ ".card:hover,.kpi:hover{transform:translateY(-2px);box-shadow:var(--sh2)}",
+ "button{transition:transform .12s,background .15s,box-shadow .15s}button:active:not(:disabled){transform:scale(.97)}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--o);outline-offset:2px}",
+ "th{text-transform:uppercase;letter-spacing:.03em;font-size:11px}tbody tr{transition:background .12s}tbody tr:hover{background:rgba(246,90,0,.05)}",
+ ".pill{border-radius:99px;font-size:12px;font-weight:700;padding:1px 10px;background:#E8F7EE;color:#15803d}",
+ ".ov{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:16px}",
+ ".ov .hr{grid-column:span 2;background:linear-gradient(135deg,#1c1410,#3a1e0d);color:#fff;border:0;padding:18px}.ov .hr span,.ov .hr em{color:#e9d8cc}.ov .hr b{color:#fff;font-size:32px}",
+ "@media(max-width:700px){.ov .hr{grid-column:span 1}}",
+ ".ov .dl{font-style:normal;font-weight:700;font-size:12px;border-radius:99px;padding:1px 8px;display:inline-block;margin-top:4px}.dl.up{background:#E8F7EE;color:#15803d}.dl.dn{background:#FDECEA;color:#b42318}.dl.fl{background:#eee;color:#555}",
+ ".emp{text-align:center;padding:26px 12px;color:var(--mut)}.emp svg{width:44px;height:44px;stroke:var(--o);fill:none;stroke-width:1.5;margin-bottom:8px}",
+ "html[data-theme=dark] .pill{background:#12301f;color:#6ee7a0}html[data-theme=dark] .dl.fl{background:#2a2f36;color:#aab}html[data-theme=dark] .card{box-shadow:none}"
+ ].join("\n");document.head.appendChild(st);
+ var D0=RENDER.dash;
+ function ld(d){var z=function(n){return(n<10?"0":"")+n};return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())}
+ function fm(n){return (Math.round((n||0)*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+ function dl(a,b){if(!b&&!a)return'<em class="dl fl">0%</em>';if(!b)return'<em class="dl up">+100%</em>';var p=(a-b)/b*100;return'<em class="dl '+(p>0.5?"up":p<-0.5?"dn":"fl")+'">'+(p>0?"▲ +":p<0?"▼ ":"")+(Math.round(p*10)/10)+"%</em>"}
+ function spark(v){var w=300,h=60,m=Math.max.apply(null,v.concat([1])),n=v.length,pts=v.map(function(y,i){return[(i/(n-1))*w,h-4-(y/m)*(h-12)]}),d=pts.map(function(p,i){return(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)}).join(" ");return'<svg viewBox="0 0 '+w+" "+h+'" preserveAspectRatio="none" style="width:100%;height:60px;margin-top:8px"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F65A00" stop-opacity=".5"/><stop offset="1" stop-color="#F65A00" stop-opacity="0"/></linearGradient></defs><path d="'+d+" L"+w+" "+h+" L0 "+h+' Z" fill="url(#sg)"/><path d="'+d+'" fill="none" stroke="#FF8A3D" stroke-width="2.5" stroke-linejoin="round"/></svg>'}
+ RENDER.dash=function(mn){
+  D0(mn);
+  if(!can("core"))return;
+  var holder=document.createElement("div");holder.className="ov";holder.innerHTML='<div class="sk" style="height:140px"></div>';
+  var t=0;(function w(){var d=mn.querySelector(".kpis")||mn.querySelector(".dsh");if(!d){if(t++<80)setTimeout(w,100);return}if(d.parentNode.contains(holder))return;d.parentNode.insertBefore(holder,d)})();
+  var from=new Date(Date.now()-30*864e5);
+  Promise.all([api("GET","core_sales_docs?select=id,total,doc_date,status&kind=eq.invoice&status=in.(issued,paid)&order=doc_date.desc&limit=2000"),api("GET","core_payments?select=doc_id,amount&limit=5000")]).then(function(r){
+   var docs=r[0],pay=r[1],today=ld(new Date()),yest=ld(new Date(Date.now()-864e5)),mo=today.slice(0,7),by={},days=[],i;
+   docs.forEach(function(x){by[x.doc_date]=(by[x.doc_date]||0)+Number(x.total)});
+   for(i=13;i>=0;i--)days.push(by[ld(new Date(Date.now()-i*864e5))]||0);
+   var td=by[today]||0,yd=by[yest]||0,ms=0,rec=0,pd={};pay.forEach(function(p){pd[p.doc_id]=(pd[p.doc_id]||0)+Number(p.amount)});
+   docs.forEach(function(x){if(x.doc_date.slice(0,7)===mo)ms+=Number(x.total);rec+=Math.max(0,Number(x.total)-(pd[x.id]||0))});
+   if(!docs.length){holder.innerHTML='<div class="card emp" style="grid-column:1/-1"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg><div><b style="font-size:16px;color:var(--ink)">'+bi("لا توجد مبيعات بعد","No sales yet")+'</b></div><div class="hint">'+bi("ستظهر هنا مؤشرات المبيعات والمستحقات بعد أول فاتورة.","Sales and receivables indicators appear here after the first invoice.")+"</div></div>";return}
+   holder.innerHTML='<div class="card hr"><span>'+bi("مبيعات اليوم","Today's sales")+"</span><b>"+fm(td)+' <small style="font-size:14px">EGP</small></b>'+dl(td,yd)+' <em style="font-size:12px;opacity:.8">'+bi("مقارنة بالأمس","vs yesterday")+"</em>"+spark(days)+'<div style="font-size:11px;opacity:.7">'+bi("آخر 14 يوم","Last 14 days")+"</div></div>"
+    +'<div class="card"><span>'+bi("مبيعات الشهر","Sales this month")+'</span><b dir="ltr">'+fm(ms)+"</b></div>"
+    +'<div class="card"><span>'+bi("مستحقات عند العملاء","Receivables")+'</span><b dir="ltr">'+fm(rec)+"</b></div>"}).catch(function(){holder.remove()})};
 })();
 
 /* top bar: search button and notifications bell. Counts come from the same server data, filtered by the user's permissions. */
