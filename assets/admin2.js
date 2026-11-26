@@ -57,6 +57,7 @@ var MODS=[
  {id:"cun",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"وحدات القياس / Units"},
  {id:"cpa",g:"النظام الداخلي / UNO Core",p:"core",ic:"users",l:"العملاء والموردون / Partners"},
  {id:"pos",g:"النظام الداخلي / UNO Core",p:"core",ic:"cart",l:"نقطة البيع / POS"},
+ {id:"pur",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"المشتريات والموردين / Purchases and suppliers"},
  {id:"sal",g:"النظام الداخلي / UNO Core",p:"core",ic:"cart",l:"المبيعات والفواتير / Sales and invoices"},
  {id:"pay",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"المدفوعات والمالية / Payments and finance"},
  {id:"inv",g:"النظام الداخلي / UNO Core",p:"core",ic:"kb",l:"تصميمات الفاتورة / Invoice designs"},
@@ -358,7 +359,7 @@ RENDER.inv=function(mn){
    [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. This is not an official invoice. Continue?"))return;var w=window.open("","_blank");if(!w)return;var o=opts();o.sample=true;w.document.open();w.document.write(I.render(b.dataset.p,null,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}});
    draw()})
  }
- if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127q";x.onload=go;document.body.appendChild(x)}
+ if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127r";x.onload=go;document.body.appendChild(x)}
 }
 /* tax and ETA e-invoice settings. No credentials are stored here: ETA secrets come only through vault links. */
 RENDER.tax=function(mn){
@@ -421,7 +422,7 @@ RENDER.sal=function(mn){
        var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:b.vat_mode==="on"||(b.vat_mode==="inherit"&&TX.vat_enabled),taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:co,base:base,sample:false};
        if(co.is_placeholder!==false&&!confirm("بيانات الشركة وهمية. الطباعة ليست فاتورة رسمية. متابعة؟ / Company data is placeholder. Not an official invoice. Continue?"))return;
        var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render(tid,doc,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127q";x.onload=go;document.body.appendChild(x)}})}
+      if(window.UNOINV)go();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127r";x.onload=go;document.body.appendChild(x)}})}
    })}
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
@@ -543,9 +544,52 @@ RENDER.pos=function(mn){
      var items=cart.map(function(l){return{n:l.n,q:l.q,p:l.p,vat:"inherit"}}),dd={no:d.number,date:d.doc_date,type:"invoice",customer:{name:doc.customer_name,phone:""},items:items,discount:k.disc,notes:"",vatMode:"inherit"};
      var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:!!TX.vat_enabled,taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:CO,base:location.href.replace(/[^\/]*$/,""),sample:false};
      function pr(){var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render("t80",dd,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127q";x.onload=pr;document.body.appendChild(x)}}
+     if(confirm("طباعة الإيصال؟ / Print the receipt?")){if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261127r";x.onload=pr;document.body.appendChild(x)}}
      cart=[];btn.disabled=false;RENDER.pos($("#main"))}).catch(function(e){btn.disabled=false;er.textContent=/no_lines|forbidden|overpay/.test(e.message)?e.message:"تعذر الإتمام، راجع المبيعات والمدفوعات / Could not complete, check Sales and Payments: "+e.message})};
   grid();draw();
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
+
+
+/* Purchases and suppliers: suppliers, purchase bills (draft then received into stock), supplier payments. */
+RENDER.pur=function(mn){
+ var MT={cash:"نقدي / Cash",card:"بطاقة / Card",transfer:"تحويل / Transfer",wallet:"محفظة / Wallet",other:"أخرى / Other"};
+ function mo(o){return Object.keys(o).map(function(k){return '<option value="'+k+'">'+o[k]+"</option>"}).join("")}
+ function f(n){return (Math.round((n||0)*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+ Promise.all([api("GET","core_suppliers?select=*&order=name.asc&limit=300"),api("GET","core_purchases?select=*&order=created_at.desc&limit=300"),api("GET","core_supplier_payments?select=purchase_id,amount&limit=2000"),api("GET","products?select=id,name_ar,name_en&order=name_en.asc&limit=500"),api("GET","core_branches?select=id,name_ar&kind=eq.warehouse&active=eq.true")]).then(function(r){
+  var S=r[0],P=r[1],Y=r[2],PR=r[3],W=r[4],paid={},sn={};Y.forEach(function(y){paid[y.purchase_id]=(paid[y.purchase_id]||0)+Number(y.amount)});S.forEach(function(s){sn[s.id]=s.name});
+  var owe={},tot=0,due=0;P.forEach(function(p){if(p.status==="received"){tot+=Number(p.total);var d=Number(p.total)-(paid[p.id]||0);due+=d;owe[p.supplier_id]=(owe[p.supplier_id]||0)+d}});
+  function card(t,v,c){return '<div class="card" style="padding:14px;flex:1;min-width:150px"><div class="hint">'+t+'</div><div dir="ltr" style="font-size:22px;font-weight:700;color:'+(c||"inherit")+'">'+f(v)+"</div></div>"}
+  var ST={draft:"مسودة / Draft",received:"مستلمة / Received",cancelled:"ملغاة / Cancelled"};
+  mn.innerHTML='<h2>'+bi("المشتريات والموردين","Purchases and suppliers")+'</h2><p class="hint" style="margin-bottom:12px">'+bi("أنشئ فاتورة شراء كمسودة، وعند الاستلام يضاف المخزون ويتحدد الرقم من السيرفر. سجّل دفعات الموردين (كاملة أو جزئية).","Create a purchase bill as a draft. On receiving, stock is added and the number is set by the server. Record supplier payments (full or partial).")+"</p>"
+   +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">'+card(bi("إجمالي المشتريات المستلمة","Received purchases"),tot)+card(bi("المتبقي للموردين","Owed to suppliers"),due,"#d97706")+card(bi("عدد الموردين","Suppliers"),S.length)+"</div>"
+   +'<div class="tb"><button id="pu-new" type="button">+ '+bi("فاتورة شراء","Purchase bill")+'</button><button id="su-new" type="button" class="alt">+ '+bi("مورد","Supplier")+"</button></div>"
+   +'<h3>'+bi("فواتير الشراء","Purchase bills")+'</h3><div class="tw"><table><thead><tr><th>'+bi("الرقم","No.")+"</th><th>"+bi("المورد","Supplier")+"</th><th>"+bi("التاريخ","Date")+"</th><th>"+bi("الحالة","Status")+"</th><th>"+bi("الإجمالي","Total")+"</th><th>"+bi("المتبقي","Due")+'</th><th></th></tr></thead><tbody>'
+   +(P.length?P.map(function(p,i){var d=p.status==="received"?Number(p.total)-(paid[p.id]||0):0;return '<tr><td dir="ltr">'+esc(p.number||"-")+"</td><td>"+esc(sn[p.supplier_id]||"")+'</td><td dir="ltr">'+esc(p.bill_date)+"</td><td>"+ST[p.status]+'</td><td dir="ltr">'+(p.status==="received"?f(p.total):"-")+'</td><td dir="ltr">'+(p.status==="received"?f(d):"-")+'</td><td>'+(p.status==="draft"?'<button type="button" data-r="'+i+'">'+bi("استلام","Receive")+'</button> <button type="button" class="alt" data-d="'+i+'">'+bi("حذف","Delete")+"</button>":(d>0.001?'<button type="button" data-y="'+i+'">'+bi("دفعة","Pay")+"</button>":""))+"</td></tr>"}).join(""):'<tr><td colspan="7" class="hint">'+bi("لا فواتير شراء","No purchase bills")+"</td></tr>")+"</tbody></table></div>"
+   +'<h3 style="margin-top:16px">'+bi("الموردون","Suppliers")+'</h3><div class="tw"><table><thead><tr><th>'+bi("الاسم","Name")+"</th><th>"+bi("الهاتف","Phone")+"</th><th>"+bi("الرقم الضريبي","Tax no.")+"</th><th>"+bi("مستحق له","We owe")+'</th><th></th></tr></thead><tbody>'
+   +(S.length?S.map(function(s,i){return "<tr><td>"+esc(s.name)+'</td><td dir="ltr">'+esc(s.phone||"")+'</td><td dir="ltr">'+esc(s.tax_no||"")+'</td><td dir="ltr">'+f(owe[s.id]||0)+'</td><td><button type="button" class="alt" data-s="'+i+'">'+bi("تعديل","Edit")+"</button></td></tr>"}).join(""):'<tr><td colspan="5" class="hint">'+bi("لا موردين بعد","No suppliers yet")+"</td></tr>")+"</tbody></table></div>";
+  function err(e){var m=e.message||"";$("#f-er").textContent=/overpay/.test(m)?"المبلغ أكبر من المتبقي / More than the amount due":m}
+  function supDlg(s){s=s||{};openDlg('<h2>'+bi(s.id?"تعديل مورد":"مورد جديد",s.id?"Edit supplier":"New supplier")+'</h2><label class="f"><span>'+bi("الاسم","Name")+'</span><input type="text" id="su-n" maxlength="120" value="'+esc(s.name||"")+'"></label><div class="pair"><label class="f"><span>'+bi("الهاتف","Phone")+'</span><input type="text" id="su-p" maxlength="30" value="'+esc(s.phone||"")+'"></label><label class="f"><span>'+bi("الرقم الضريبي","Tax no.")+'</span><input type="text" id="su-t" maxlength="30" value="'+esc(s.tax_no||"")+'"></label></div><label class="f"><span>'+bi("العنوان","Address")+'</span><input type="text" id="su-a" maxlength="200" value="'+esc(s.address||"")+'"></label><p id="f-er" class="dirty"></p><div class="tb"><button id="su-s" type="button">'+bi("حفظ","Save")+'</button><button id="f-cx" type="button" class="alt">'+bi("إغلاق","Close")+"</button></div>");
+   $("#f-cx").onclick=closeDlg;$("#su-s").onclick=function(){var n=$("#su-n").value.trim();if(!n){$("#f-er").textContent="الاسم مطلوب / Name required";return}
+    var b={name:n,phone:$("#su-p").value.trim()||null,tax_no:$("#su-t").value.trim()||null,address:$("#su-a").value.trim()||null};
+    (s.id?api("PATCH","core_suppliers?id=eq."+s.id,b,"return=minimal"):api("POST","core_suppliers",b,"return=minimal")).then(function(){closeDlg();status("تم الحفظ ✓ / Saved ✓");RENDER.pur($("#main"))}).catch(err)}}
+  $("#su-new").onclick=function(){supDlg()};
+  [].forEach.call(mn.querySelectorAll("[data-s]"),function(b){b.onclick=function(){supDlg(S[b.dataset.s])}});
+  $("#pu-new").onclick=function(){
+   if(!S.length){alert("أضف مورد أولا / Add a supplier first");return}
+   var L=[{}];
+   function draw(){var rows=L.map(function(l,i){return '<div class="pair" style="align-items:end"><label class="f"><span>'+bi("الصنف","Item")+'</span><select data-lp="'+i+'"><option value="">'+bi("نص حر","Free text")+"</option>"+PR.map(function(p){return '<option value="'+p.id+'"'+(l.p===p.id?" selected":"")+">"+esc(p.name_ar+" / "+p.name_en)+"</option>"}).join("")+'</select></label><label class="f"><span>'+bi("الكمية","Qty")+'</span><input type="number" min="0.01" step="any" data-lq="'+i+'" value="'+(l.q||"")+'"></label><label class="f"><span>'+bi("التكلفة","Cost")+'</span><input type="number" min="0" step="any" data-lc="'+i+'" value="'+(l.c||"")+'"></label></div>'}).join("");
+    $("#pu-l").innerHTML=rows;[].forEach.call($("#pu-l").querySelectorAll("[data-lp]"),function(e){e.onchange=function(){L[e.dataset.lp].p=e.value}});[].forEach.call($("#pu-l").querySelectorAll("[data-lq]"),function(e){e.oninput=function(){L[e.dataset.lq].q=parseFloat(e.value);tt()}});[].forEach.call($("#pu-l").querySelectorAll("[data-lc]"),function(e){e.oninput=function(){L[e.dataset.lc].c=parseFloat(e.value);tt()}});tt()}
+   function tt(){var t=0;L.forEach(function(l){t+=(l.q||0)*(l.c||0)});$("#pu-t").textContent=f(t)}
+   openDlg('<h2>'+bi("فاتورة شراء جديدة","New purchase bill")+'</h2><label class="f"><span>'+bi("المورد","Supplier")+'</span><select id="pu-s">'+S.map(function(s){return '<option value="'+s.id+'">'+esc(s.name)+"</option>"}).join("")+'</select></label><div class="pair"><label class="f"><span>'+bi("مخزن الاستلام","Receiving warehouse")+'</span><select id="pu-w"><option value="">'+bi("بدون إضافة مخزون","No stock added")+"</option>"+W.map(function(w){return '<option value="'+w.id+'">'+esc(w.name_ar)+"</option>"}).join("")+'</select></label><label class="f"><span>'+bi("التاريخ","Date")+'</span><input type="date" id="pu-d" value="'+new Date().toISOString().slice(0,10)+'"></label></div><div id="pu-l"></div><div class="tb"><button id="pu-al" type="button" class="alt">+ '+bi("سطر","Line")+'</button><b dir="ltr" id="pu-t" style="margin-inline-start:auto">0.00</b></div><p id="f-er" class="dirty"></p><div class="tb"><button id="pu-s2" type="button">'+bi("حفظ كمسودة","Save as draft")+'</button><button id="f-cx" type="button" class="alt">'+bi("إغلاق","Close")+"</button></div>");
+   draw();$("#f-cx").onclick=closeDlg;$("#pu-al").onclick=function(){L.push({});draw()};
+   $("#pu-s2").onclick=function(){var ok=L.filter(function(l){return l.q>0&&l.c>=0});if(!ok.length){$("#f-er").textContent="أضف سطرا بكمية وتكلفة / Add a line with qty and cost";return}
+    api("POST","core_purchases",{supplier_id:$("#pu-s").value,warehouse_id:$("#pu-w").value||null,bill_date:$("#pu-d").value},"return=representation").then(function(x){var id=x[0].id;return api("POST","core_purchase_lines",ok.map(function(l){var p=PR.filter(function(q){return q.id===l.p})[0];return {purchase_id:id,product_id:l.p||null,description:p?p.name_en:"Item",qty:l.q,cost:l.c||0}}),"return=minimal")}).then(function(){closeDlg();status("تم الحفظ ✓ / Saved ✓");RENDER.pur($("#main"))}).catch(err)}};
+  [].forEach.call(mn.querySelectorAll("[data-r]"),function(b){b.onclick=function(){var p=P[b.dataset.r];if(!confirm("استلام الفاتورة وإضافة المخزون؟ لا يمكن التراجع. / Receive this bill and add stock? Cannot be undone."))return;api("POST","rpc/core_receive_purchase",{p_id:p.id}).then(function(){status("تم الاستلام ✓ / Received ✓");RENDER.pur($("#main"))}).catch(function(e){alert(e.message)})}});
+  [].forEach.call(mn.querySelectorAll("[data-d]"),function(b){b.onclick=function(){var p=P[b.dataset.d];if(!confirm("حذف المسودة؟ / Delete this draft?"))return;api("DELETE","core_purchases?id=eq."+p.id,null,"return=minimal").then(function(){RENDER.pur($("#main"))}).catch(function(e){alert(e.message)})}});
+  [].forEach.call(mn.querySelectorAll("[data-y]"),function(b){b.onclick=function(){var p=P[b.dataset.y],d=Math.round((Number(p.total)-(paid[p.id]||0))*100)/100;
+   openDlg('<h2>'+bi("دفعة للمورد ","Supplier payment ")+esc(p.number)+'</h2><p class="hint">'+bi("المتبقي ","Due ")+f(d)+'</p><label class="f"><span>'+bi("المبلغ","Amount")+'</span><input type="number" id="py-a" min="0.01" step="any" value="'+d+'"></label><label class="f"><span>'+bi("الطريقة","Method")+'</span><select id="py-m">'+mo(MT)+'</select></label><label class="f"><span>'+bi("مرجع (اختياري)","Reference (optional)")+'</span><input type="text" id="py-r" maxlength="60"></label><p id="f-er" class="dirty"></p><div class="tb"><button id="py-s" type="button">'+bi("حفظ","Save")+'</button><button id="f-cx" type="button" class="alt">'+bi("إغلاق","Close")+"</button></div>");
+   $("#f-cx").onclick=closeDlg;$("#py-s").onclick=function(){var a=parseFloat($("#py-a").value);if(!(a>0)){$("#f-er").textContent="مبلغ غير صحيح / Invalid amount";return}api("POST","rpc/core_pay_purchase",{p_id:p.id,p_amount:a,p_method:$("#py-m").value,p_ref:$("#py-r").value.trim()||null}).then(function(){closeDlg();status("تم ✓ / Saved ✓");RENDER.pur($("#main"))}).catch(err)}}});
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
 
