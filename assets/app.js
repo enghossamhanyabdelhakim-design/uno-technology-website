@@ -116,6 +116,7 @@ function home(){
   o+='<section id="how"><div class="wrap"><h2>'+B(x.how.t||x.how)+'</h2><p class="sub">'+B(HW.d)+'</p><ol class="steps">'+HW.steps.map(function(st,i){return '<li class="rv"><b class="n">'+(i+1)+'</b><h3>'+B(st.t)+'</h3><p>'+B(st.d)+'</p></li>'}).join("")+'</ol></div></section>';
   o+='<section class="alt-bg" id="faq"><div class="wrap"><h2>'+B(x.faq.t||x.faq)+'</h2><div class="faq">'+(C.faq||[]).map(function(f){return '<details class="rv"><summary>'+B(f.q)+'</summary><p>'+B(f.a)+'</p></details>'}).join("")+'</div></div></section>';
   var F=C.form||{};
+  o+='<section id="ptn" class="ptn" hidden></section>';
   o+='<section id="request"><div class="wrap"><h2>'+B(x.request.t||x.request)+'</h2><form id="rq" class="rq" novalidate><label>'+B(F.name)+'<input name="name" required maxlength="80" autocomplete="name"></label><label>'+B(F.phone)+'<input name="phone" required maxlength="30" inputmode="tel" dir="ltr" autocomplete="tel"></label><label>'+B(F.service)+'<select name="service">'+C.services.map(function(sv){return '<option value="'+U(sv.t.en)+'">'+B(sv.t)+'</option>'}).join("")+'<option value="Other">'+B(F.other)+'</option></select></label><label>'+B(F.msg)+'<textarea name="msg" rows="4" maxlength="800"></textarea></label><div class="btns"><button class="btn" type="submit">'+B(F.send)+'</button><a class="btn alt" id="rq-wa" target="_blank" rel="noopener" href="#">'+B(F.wa)+'</a></div><p id="rq-st" class="rq-st" role="status"></p></form></div></section>';
   o+='<section id="contact" class="alt-bg"><div class="wrap"><div class="cta"><h2>'+B(x.contact.t)+'</h2><p style="margin-top:14px">'+B(x.contact.d)+'</p><div class="cinfo">'+contactItems()+'</div><div class="soccs">'+socials("soc")+'</div></div></div></section>';
   $("#app").innerHTML=o;
@@ -363,9 +364,10 @@ function brain(text){
 var chatOpen=false,chatInit=false;
 function chatUI(){
   var ch=C.chatbot;
-  document.body.insertAdjacentHTML("beforeend",'<button id="chat-fab" type="button" aria-label="Uno chat"><img src="'+U(ch.avatar)+'" alt="Uno"><span class="dot"></span><em class="lbl">'+B({ar:"محتاج مساعدة؟",en:"Need help?"})+'</em></button><div id="chat" role="dialog" aria-label="Uno assistant" hidden><div class="ch-h"><img src="'+U(ch.avatar)+'" alt=""><div><b>'+B(ch.name)+'</b><small>'+B(ch.status)+'</small></div><button type="button" id="ch-call" aria-label="Voice call"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg></button><button type="button" id="ch-x" aria-label="Close">\u2715</button></div><div class="ch-b" id="ch-b" aria-live="polite"></div><div class="ch-q" id="ch-q"></div><button type="button" class="ch-sup" id="ch-sup">'+B({ar:"تكلم مع فريق الدعم مباشرة",en:"Talk to support directly"})+'</button><form class="ch-f" id="ch-f"><input id="ch-i" type="text" autocomplete="off" placeholder="'+U(L(ch.placeholder))+'"><button type="submit" aria-label="Send"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 20l18-8L3 4v6l11 2-11 2z"/></svg></button></form></div>');
+  document.body.insertAdjacentHTML("beforeend",'<button id="chat-fab" type="button" aria-label="Uno chat"><img src="'+U(ch.avatar)+'" alt="Uno"><span class="dot"></span><em class="lbl">'+B({ar:"محتاج مساعدة؟",en:"Need help?"})+'</em></button><div id="chat" role="dialog" aria-label="Uno assistant" hidden><div class="ch-h"><img src="'+U(ch.avatar)+'" alt=""><div><b>'+B(ch.name)+'</b><small>'+B(ch.status)+'</small></div><button type="button" id="ch-call" aria-label="Voice call"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg></button><button type="button" id="ch-x" aria-label="Close">\u2715</button></div><div class="ch-b" id="ch-b" role="log" aria-live="polite"></div><div class="ch-q" id="ch-q"></div><button type="button" class="ch-sup" id="ch-sup">'+B({ar:"تكلم مع فريق الدعم مباشرة",en:"Talk to support directly"})+'</button><button type="button" class="ch-back" id="ch-back">'+B({ar:"الرجوع لمساعد أونو",en:"Back to Uno assistant"})+'</button><form class="ch-f" id="ch-f"><input id="ch-i" type="text" autocomplete="off" placeholder="'+U(L(ch.placeholder))+'"><button type="submit" aria-label="Send" id="ch-s" disabled><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 20l18-8L3 4v6l11 2-11 2z"/></svg></button></form></div>');
   $("#chat-fab").onclick=function(){openChat()}; $("#ch-x").onclick=function(){closeChat()};$("#ch-call").onclick=function(){vcStart()};
-  $("#ch-f").onsubmit=function(e){e.preventDefault();var i=$("#ch-i"),v=i.value.trim();if(!v)return;i.value="";user(v);if(SUP.on){supSend(v)}else ask(v)};$("#ch-sup").onclick=function(){supStart()};
+  $("#ch-f").onsubmit=function(e){e.preventDefault();var i=$("#ch-i"),v=i.value.trim();if(!v)return;i.value="";$("#ch-s").disabled=true;user(v);if(SUP.on){supSend(v)}else ask(v)};$("#ch-sup").onclick=function(){supStart()};$("#ch-back").onclick=function(){supOff()};
+  $("#ch-i").oninput=function(){$("#ch-s").disabled=!this.value.trim()};document.addEventListener("keydown",function(e){if(e.key==="Escape"&&chatOpen&&!document.body.classList.contains("vc-open"))closeChat()});
 }
 var HIST=[];
 function kbAsk(v,cfg){
@@ -373,10 +375,29 @@ function kbAsk(v,cfg){
   var ctl=window.AbortController?new AbortController():null,t=setTimeout(function(){ctl&&ctl.abort()},4000);
   return fetch(cfg.url+"/rest/v1/rpc/kb_search",{method:"POST",signal:ctl?ctl.signal:undefined,headers:{"Content-Type":"application/json",apikey:cfg.key,Authorization:"Bearer "+cfg.key},body:JSON.stringify({q:v,lim:3})}).then(function(r){return r.ok?r.json():[]}).then(function(a){clearTimeout(t);var x=a&&a[0];if(!x||x.score<0.3)return null;var ans=h.lang==="ar"?(x.answer_ar||x.answer_en):(x.answer_en||x.answer_ar);return ans||null}).catch(function(){clearTimeout(t);return null})
 }
+
+var PC=null;
+function prodLoad(){var c=window.UNO_CFG;if(PC)return PC;if(!c||!window.fetch)return Promise.resolve([]);
+ PC=fetch(c.url+"/rest/v1/products?select=id,name_ar,name_en,price,old_price,stock,is_demo,brand&active=eq.true&limit=500",{headers:{apikey:c.key,Authorization:"Bearer "+c.key}}).then(function(r){return r.ok?r.json():[]}).then(function(a){return Array.isArray(a)?a:[]}).catch(function(){PC=null;return[]});return PC}
+function prodAsk(v){
+ var n=norm(v);if(!/(متوفر|موجود|متاح|سعر|بكام|كام|عندكم|عندك|price|cost|how much|available|in stock|stock|do you have|have you)/.test(n))return Promise.resolve(null);
+ return prodLoad().then(function(ps){if(!ps.length)return null;
+  var stop=/^(هل|ايه|اي|في|فى|عندكم|عندك|متوفر|موجود|متاح|سعر|سعره|بكام|كام|ده|دي|the|a|an|is|are|what|how|much|price|of|do|you|have|available|in|stock|your|for|can|i|get)$/;
+  var tk=n.split(" ").filter(function(w){return (w.length>1||/[0-9\u0660-\u0669]/.test(w))&&!stop.test(w)});if(!tk.length)return null;
+  var sc=ps.map(function(p){var hay=norm((p.name_ar||"")+" "+(p.name_en||"")+" "+(p.brand||""));var s=0;tk.forEach(function(w){if(hay.indexOf(w)>-1)s++});return{p:p,s:s}}).filter(function(x){return x.s>0}).sort(function(a,b){return b.s-a.s});
+  if(!sc.length||sc[0].s<Math.min(tk.length,1))return null;
+  var top=sc.filter(function(x){return x.s===sc[0].s}).slice(0,3),en=h.lang==="en";
+  function money(x){return Number(x).toLocaleString(en?"en-US":"ar-EG")+" "+(en?"EGP":"ج.م")}
+  var lines=top.map(function(x){var p=x.p,nm=en?(p.name_en||p.name_ar):(p.name_ar||p.name_en);
+   var st=p.stock>0?(en?"available":"متوفر"):(en?"out of stock":"غير متوفر حاليا");
+   var d=p.is_demo?(en?" (demo item, for store testing only, not a real product)":" (منتج تجريبي لاختبار المتجر فقط، مش منتج حقيقي)"):"";
+   return "<b>"+esc(nm)+"</b>"+d+"<br>"+(en?"Price: ":"السعر: ")+money(p.price)+(p.old_price?" ("+(en?"was ":"كان ")+money(p.old_price)+")":"")+" - "+st});
+  return {a:lines.join("<hr>"),link:true}})
+}
 function ask(v){
   var cfg=window.UNO_CFG;
   msg("b typing","\u2026");var tp0=$("#ch-b").lastChild;
-  return kbAsk(v,cfg).then(function(a){tp0.remove();if(a){HIST.push({r:"u",t:v},{r:"b",t:a});msg("b",esc(a).replace(/\n/g,"<br>"));return}ask2(v)});
+  return prodAsk(v).then(function(pr){if(pr){tp0.remove();HIST.push({r:"u",t:v},{r:"b",t:pr.a.replace(/<[^>]*>/g," ")});msg("b",pr.a+'<div class="lk"><a href="store.html">'+(h.lang==="en"?"Open the store":"افتح المتجر")+"</a></div>");return null}return kbAsk(v,cfg)}).then(function(a){if(a===null&&!tp0.parentNode)return;tp0.remove();if(a){HIST.push({r:"u",t:v},{r:"b",t:a});msg("b",esc(a).replace(/\n/g,"<br>"));return}ask2(v)});
 }
 function ask2(v){
   var cfg=window.UNO_CFG;msg("b typing","\u2026");var tp=$("#ch-b").lastChild,done=false;
@@ -388,7 +409,11 @@ function ask2(v){
     if(j&&j.a){done=true;tp.remove();HIST.push({r:"u",t:v},{r:"b",t:j.a});msg("b",esc(j.a).replace(/\n/g,"<br>"))}else local()
   }).catch(function(){clearTimeout(to);local()})
 }
-function msg(cls,html){var b=$("#ch-b");b.insertAdjacentHTML("beforeend",'<div class="m '+cls+'">'+html+'</div>');b.scrollTop=b.scrollHeight}
+function hm(){try{return new Date().toLocaleTimeString(h.lang==="en"?"en-GB":"ar-EG",{hour:"2-digit",minute:"2-digit"})}catch(e){return ""}}
+function msg(cls,html){var b=$("#ch-b"),ty=/typing/.test(cls),sy=/\bsys\b/.test(cls),bot=/(^|\s)b(\s|$)/.test(cls),ag=/\bag\b/.test(cls),w="",tm="";
+ if(ty)html='<span class="dots"><i></i><i></i><i></i></span>';
+ else if(!sy){if(bot)w='<span class="who">'+B(ag?{ar:"فريق الدعم",en:"Support team"}:{ar:"مساعد أونو",en:"Uno assistant"})+'</span>';tm='<time>'+hm()+'</time>'}
+ b.insertAdjacentHTML("beforeend",'<div class="m '+cls+'">'+w+html+tm+'</div>');b.scrollTo?b.scrollTo({top:b.scrollHeight,behavior:"smooth"}):(b.scrollTop=b.scrollHeight)}
 function user(t){msg("u",esc(t))}
 function bot(r){
   var html=B(r.a,false);
@@ -397,8 +422,8 @@ function bot(r){
   if(r.links&&r.links.length)html+='<div class="lk">'+r.links.map(function(l){return '<a href="'+U(l.u)+'">'+B(l.t)+'</a>'}).join("")+'</div>';
   msg("b",html);
 }
-function quick(){$("#ch-q").innerHTML=C.chatbot.quick.map(function(q,i){return '<button type="button" data-i="'+i+'">'+B(q.t)+'</button>'}).join("");
-  $$("#ch-q button").forEach(function(b){b.onclick=function(){var q=C.chatbot.quick[+b.dataset.i];user(L(q.t));setTimeout(function(){bot(brain(q.q))},300)}})}
+function quick(){$("#ch-q").innerHTML='<button type="button" class="hum" id="q-hum">'+B({ar:"كلّم حد من الفريق",en:"Talk to a person"})+'</button>'+C.chatbot.quick.map(function(q,i){return '<button type="button" data-i="'+i+'">'+B(q.t)+'</button>'}).join("");$("#q-hum").onclick=function(){user(L({ar:"عايز أكلم حد من الفريق",en:"I want to talk to a person"}));setTimeout(supStart,250)};
+  $$("#ch-q button[data-i]").forEach(function(b){b.onclick=function(){var q=C.chatbot.quick[+b.dataset.i];user(L(q.t));setTimeout(function(){bot(brain(q.q))},300)}})}
 
 /* Live human support (visitor side): RPCs guarded by a per-visitor token */
 var SUP={on:false,id:null,tok:null,last:0,t:null,seen:{}};
@@ -414,12 +439,13 @@ function supForm(){
   msg("b",B({ar:"تمام، هوصلك بفريق الدعم. اكتب اسمك (ورقم موبايلك لو حابب) وابدأ المحادثة.",en:"Sure, I will connect you with the support team. Enter your name (and a phone number if you like) to start."})+'<form class="ch-sf"><input name="n" maxlength="60" required autocomplete="name" placeholder="'+B({ar:"الاسم",en:"Name"})+'"><input name="p" maxlength="30" type="tel" autocomplete="tel" placeholder="'+B({ar:"الموبايل (اختياري)",en:"Phone (optional)"})+'"><button type="submit">'+B({ar:"ابدأ المحادثة",en:"Start chat"})+'</button></form>');
   var f=$("#ch-b").lastChild.querySelector("form");
   f.onsubmit=function(e){e.preventDefault();var n=f.n.value.trim();if(!n)return;f.querySelector("button").disabled=true;
-    supRpc("support_open",{p_name:n,p_phone:f.p.value.trim()}).then(function(r){SUP.id=r.id;SUP.tok=r.token;SUP.last=0;try{localStorage.setItem("uno_sup",JSON.stringify({id:r.id,tok:r.token}))}catch(e){}f.remove();supOn();msg("b",B({ar:"اتفتحت المحادثة. اكتب رسالتك وهيرد عليك حد من الفريق هنا.",en:"Chat opened. Type your message and a team member will reply here."}))}).catch(function(){f.querySelector("button").disabled=false;msg("b",B({ar:"مش قادرين نفتح المحادثة دلوقتي. جرّب تاني أو كلمنا واتساب.",en:"We could not open the chat right now. Try again or reach us on WhatsApp."}))})}
+    supRpc("support_open",{p_name:n,p_phone:f.p.value.trim()}).then(function(r){SUP.id=r.id;SUP.tok=r.token;SUP.last=0;try{localStorage.setItem("uno_sup",JSON.stringify({id:r.id,tok:r.token}))}catch(e){}f.closest(".m").remove();supOn();msg("sys wait",'<span class="pulse"></span>'+B({ar:"في انتظار حد من فريق الدعم. اكتب رسالتك ولما حد يرد هيظهر هنا.",en:"Waiting for a support team member. Type your message and the reply will show here."}))}).catch(function(){f.querySelector("button").disabled=false;msg("b",B({ar:"مش قادرين نفتح المحادثة دلوقتي. جرّب تاني أو كلمنا واتساب.",en:"We could not open the chat right now. Try again or reach us on WhatsApp."}))})}
 }
-function supOn(resumed){SUP.on=true;var c=$("#chat");c.classList.add("human");var sm=c.querySelector(".ch-h small");if(sm){sm.dataset.o=sm.innerHTML;sm.textContent=L({ar:"دعم مباشر",en:"Live support"})}$("#ch-i").placeholder=L({ar:"اكتب رسالتك للدعم",en:"Message support"});if(resumed)msg("b",B({ar:"كملنا محادثتك مع الدعم.",en:"Resumed your chat with support."}));clearInterval(SUP.t);SUP.t=setInterval(supPoll,3000)}
-function supShow(m){if(SUP.seen[m.id])return;SUP.seen[m.id]=1;SUP.last=Math.max(SUP.last,m.id);if(m.sender==="agent")msg("b ag",esc(m.body).replace(/\n/g,"<br>"));else msg("u",esc(m.body))}
-function supPoll(){if(!SUP.on||!SUP.id)return;supRpc("support_read",{p_id:SUP.id,p_token:SUP.tok,p_after:SUP.last}).then(function(r){r.msgs.forEach(function(m){if(m.sender==="agent")supShow(m);else{SUP.seen[m.id]=1;SUP.last=Math.max(SUP.last,m.id)}});if(r.status==="closed"){clearInterval(SUP.t);SUP.on=false;$("#chat").classList.remove("human");supForget();msg("b",B({ar:"الدعم قفل المحادثة. تقدر تبدأ واحدة جديدة من الزرار تحت.",en:"Support closed this chat. You can start a new one with the button below."}))}}).catch(function(){})}
-function supSend(v){supRpc("support_send",{p_id:SUP.id,p_token:SUP.tok,p_body:v}).then(function(){supPoll()}).catch(function(e){msg("b",B({ar:"الرسالة متبعتتش. جرّب تاني.",en:"Message not sent. Try again."}))})}
+function supOn(resumed){SUP.on=true;var c=$("#chat");c.classList.add("human");var sm=c.querySelector(".ch-h small");if(sm){sm.dataset.o=sm.innerHTML;sm.textContent=L({ar:"دعم مباشر",en:"Live support"})}$("#ch-i").placeholder=L({ar:"اكتب رسالتك للدعم",en:"Message support"});msg("sys",B(resumed?{ar:"كملنا محادثتك مع فريق الدعم",en:"Resumed your chat with the support team"}:{ar:"دلوقتي بتكلم فريق الدعم (أشخاص حقيقيين)",en:"You are now chatting with the support team (real people)"}));clearInterval(SUP.t);SUP.t=setInterval(supPoll,3000)}
+function supShow(m){if(SUP.seen[m.id])return;SUP.seen[m.id]=1;if(m.sender==="agent"){var w=$("#ch-b .m.wait");if(w)w.remove()}SUP.last=Math.max(SUP.last,m.id);if(m.sender==="agent")msg("b ag",esc(m.body).replace(/\n/g,"<br>"));else msg("u",esc(m.body))}
+function supOff(){clearInterval(SUP.t);SUP.on=false;$("#chat").classList.remove("human");var sm=$("#chat .ch-h small");if(sm&&sm.dataset.o)sm.innerHTML=sm.dataset.o;$("#ch-i").placeholder=L(C.chatbot.placeholder);msg("sys",B({ar:"رجعت لمساعد أونو الآلي. محادثة الدعم محفوظة وتقدر تكملها من 'كلّم حد من الفريق'.",en:"Back with the Uno assistant (automated). Your support chat is saved; resume it with 'Talk to a person'."}))}
+function supPoll(){if(!SUP.on||!SUP.id)return;supRpc("support_read",{p_id:SUP.id,p_token:SUP.tok,p_after:SUP.last}).then(function(r){r.msgs.forEach(function(m){if(m.sender==="agent")supShow(m);else{SUP.seen[m.id]=1;SUP.last=Math.max(SUP.last,m.id)}});if(r.status==="closed"){clearInterval(SUP.t);SUP.on=false;$("#chat").classList.remove("human");supForget();msg("sys",B({ar:"الدعم قفل المحادثة. تقدر تبدأ واحدة جديدة من الزرار تحت.",en:"Support closed this chat. You can start a new one with the button below."}))}}).catch(function(){})}
+function supSend(v){var mb=$("#ch-b").lastChild;supRpc("support_send",{p_id:SUP.id,p_token:SUP.tok,p_body:v}).then(function(){if(mb&&mb.classList&&mb.classList.contains("u"))mb.classList.add("sent");supPoll()}).catch(function(e){msg("b",B({ar:"الرسالة متبعتتش. جرّب تاني.",en:"Message not sent. Try again."}))})}
 function openChat(greetOnly,topic){
   if(!$("#chat"))return; $("#chat").hidden=false; chatOpen=true; document.body.classList.add("chat-open"); vvFit(); $("#chat-fab").classList.add("hid");
   if(!chatInit){chatInit=true;bot({a:C.chatbot.greeting,links:[]});quick();}
@@ -434,7 +460,16 @@ window.UNO_openChat=openChat;
 /* ---------- common behaviours ---------- */
 var io=window.IntersectionObserver?new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.classList.add("in");io.unobserve(x.target)}})},{threshold:.08}):null;
 function reveal(){$$(".rv:not(.in)").forEach(function(x){io?io.observe(x):x.classList.add("in")})}
-function wire(){
+
+function ptnLoad(){var el=$("#ptn"),c=window.UNO_CFG;if(!el||!c||!window.fetch)return;
+ fetch(c.url+"/rest/v1/partners?select=kind,name_ar,name_en,logo,url&active=eq.true&order=sort.asc,created_at.asc&limit=100",{headers:{apikey:c.key,Authorization:"Bearer "+c.key}}).then(function(r){return r.ok?r.json():[]}).then(function(a){
+  if(!Array.isArray(a)||!a.length)return;var en=h.lang==="en";
+  function blk(kind,t){var l=a.filter(function(x){return x.kind===kind&&x.logo});if(!l.length)return"";
+   var it=l.map(function(x){var n=en?(x.name_en||x.name_ar):(x.name_ar||x.name_en),im='<img src="'+U(x.logo)+'" alt="'+esc(n||"")+'" loading="lazy">';return '<li class="pl">'+(x.url?'<a href="'+U(x.url)+'" target="_blank" rel="noopener" aria-label="'+esc(n||"")+'">'+im+'</a>':im)+(n?'<small>'+esc(n)+'</small>':'')+'</li>'}).join("");
+   var mq=l.length>=5;return '<div class="pblk"><h2>'+t+'</h2><div class="pmq'+(mq?' on':'')+'"><ul class="ptrack">'+it+(mq?it:'')+'</ul></div></div>'}
+  var o=blk("brand",en?"Brands we work with":"البراندات اللي بنشتغل بيها")+blk("partner",en?"Our success partners":"شركاء النجاح");
+  if(!o)return;el.innerHTML='<div class="wrap">'+o+'</div>';el.hidden=false}).catch(function(){})}
+function wire(){ptnLoad();
   var T0=$("#theme");
   T0.onclick=function(){setTheme(h.dataset.theme==="dark"?"light":"dark")};
   $("#lang").onclick=function(){setLang(h.lang==="ar"?"en":"ar");if(projOpen)projRoute();$("#ch-i")&&($("#ch-i").placeholder=L(C.chatbot.placeholder))};
@@ -445,12 +480,12 @@ function wire(){
 }
 
 function store(){
-  window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src="assets/store.js?v=20261127i";document.body.appendChild(sc);
+  window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src="assets/store.js?v=20261127j";document.body.appendChild(sc);
   document.title=(h.lang==="en"?"Store | ":"المتجر | ")+((C.site&&C.site.name&&(C.site.name.en))||"Uno");
 }
 
 function account(){
-  window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src="assets/account.js?v=20261127i";document.body.appendChild(sc);
+  window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src="assets/account.js?v=20261127j";document.body.appendChild(sc);
 }
 
 function privacy(){
@@ -739,7 +774,7 @@ window.UNO_voice=vcStart;
 function boot(){
   shell(); setLang(q||sl||C.site.defaultLang||"ar");
   if(PAGE==="home")home(); else if(PAGE==="blog")blog(); else if(PAGE==="tools")tools(); else if(PAGE==="store")store(); else if(PAGE==="account")account(); else if(PAGE==="privacy")privacy();
-  if(PAGE==="home"||PAGE==="blog"||PAGE==="tools"||PAGE==="store"){var ad=document.createElement("script");ad.src="assets/ads.js?v=20261127i";document.body.appendChild(ad)}
+  if(PAGE==="home"||PAGE==="blog"||PAGE==="tools"||PAGE==="store"){var ad=document.createElement("script");ad.src="assets/ads.js?v=20261127j";document.body.appendChild(ad)}
   chatUI(); wire(); (function(){var b=$("#mb-chat");if(b)b.onclick=function(){openChat()}})();
   setTheme(st||"light");
   reveal();

@@ -44,6 +44,7 @@ var MODS=[
  {id:"ord",g:"المتجر / Store",p:"orders",ic:"cart",l:"الطلبات / Orders"},
  {id:"rv",g:"المتجر / Store",p:"orders",ic:"star",l:"التقييمات / Reviews"},
  {id:"content",g:"المحتوى / Content",p:"content",ic:"edit",l:"محتوى الموقع / Site content"},
+ {id:"ptn",g:"المحتوى / Content",p:"content",ic:"star",l:"البراندات والشركاء / Brands & partners"},
  {id:"ads",g:"المحتوى / Content",p:"content",ic:"ads",l:"الإعلانات / Ads"},
  {id:"kb",g:"المحتوى / Content",p:"content",ic:"kb",l:"المعرفة / Knowledge"},
  {id:"sup",g:"العملاء / Customers",p:"chat",ic:"inbox",l:"الدعم المباشر / Live support"},
@@ -116,6 +117,31 @@ RENDER.dash=function(mn){
  });
 };
 function tbl(heads,rows,raw){return '<div class="tw"><table><thead><tr>'+heads.map(function(x){return "<th>"+x+"</th>"}).join("")+"</tr></thead><tbody>"+rows.map(function(r){return "<tr"+(r._a?' data-i="'+r._a+'"':"")+">"+r.map(function(c){return "<td>"+c+"</td>"}).join("")+"</tr>"}).join("")+"</tbody></table></div>"}
+
+
+/* brands and partners */
+function upPng(file,done){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var m=600,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);c.toBlob(function(b){CLOUD.upload(b,(file.name||"logo").replace(/\.[a-z0-9]+$/i,"")+".png").then(done).catch(function(e){status("فشل رفع الشعار / Upload failed: "+e.message,1)})},"image/png")};im.onerror=function(){status("ملف غير مدعوم / Unsupported file",1)};im.src=r.result};r.readAsDataURL(file)}
+RENDER.ptn=function(mn){
+ api("GET","partners?select=*&order=kind.asc,sort.asc,created_at.asc").then(function(rows){
+  var K={brand:"براند / Brand",partner:"شريك / Partner"};
+  mn.innerHTML='<h2>'+bi("البراندات والشركاء","Brands & partners")+'</h2><p class="hint">'+bi("الشعارات بتظهر في الصفحة الرئيسية بعد ما تضيف أول شعار. الأسماء والشعارات لازم تكون حقيقية.","Logos show on the home page once you add the first one. Use only real names and logos.")+'</p><div class="tb"><button id="add" type="button">+ '+bi("إضافة","Add")+"</button></div>"+(rows.length?tbl(["",bi("الاسم","Name"),bi("النوع","Type"),bi("الترتيب","Sort"),bi("الحالة","Status"),""],rows.map(function(x,i){return [x.logo?'<img class="thumb" src="'+esc(x.logo)+'" alt="">':"",esc(x.name_ar||"")+" / "+esc(x.name_en||""),K[x.kind]||x.kind,x.sort,x.active?pill("ظاهر / Visible","g"):pill("مخفي / Hidden"),'<button class="sec sm" data-e="'+i+'" type="button">'+bi("تعديل","Edit")+"</button>"]})):empty("مفيش شعارات لسه","No logos yet"));
+  $("#add").onclick=function(){ptnForm({})};
+  [].forEach.call(mn.querySelectorAll("[data-e]"),function(b){b.onclick=function(){ptnForm(rows[b.dataset.e])}});
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
+function ptnForm(c){
+ openDlg('<h2>'+(c.id?bi("تعديل","Edit"):bi("إضافة براند أو شريك","Add brand or partner"))+'</h2><label class="f"><span>'+bi("النوع","Type")+'</span><select id="f-k"><option value="brand">براند بنشتغل بيه / Brand</option><option value="partner">شريك نجاح / Partner</option></select></label><div class="pair"><label class="f"><span>الاسم بالعربي</span><input type="text" id="f-ar"></label><label class="f"><span>English name</span><input type="text" id="f-en" dir="ltr"></label></div><label class="f"><span>'+bi("رابط الموقع (اختياري)","Website (optional)")+'</span><input type="url" id="f-u" dir="ltr" placeholder="https://"></label><div class="pair"><label class="f"><span>'+bi("الترتيب","Sort")+'</span><input type="number" id="f-so"></label><label class="f"><span>'+bi("الحالة","Status")+'</span><select id="f-ac"><option value="1">ظاهر / Visible</option><option value="0">مخفي / Hidden</option></select></label></div><label class="f"><span>'+bi("الشعار (PNG شفاف مفضل)","Logo (transparent PNG preferred)")+'</span><input type="file" id="f-up" accept="image/*"></label><img id="f-im" alt="" style="max-height:70px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:6px;display:none"><div class="er" id="f-er"></div><div class="tb"><button id="f-sv" type="button">'+bi("حفظ","Save")+'</button><button id="f-cx" class="sec" type="button">'+bi("إلغاء","Cancel")+"</button></div>");
+ var lg=c.logo||"";function show(){var i=$("#f-im");if(lg){i.src=lg;i.style.display="block"}}
+ $("#f-k").value=c.kind||"brand";$("#f-ar").value=c.name_ar||"";$("#f-en").value=c.name_en||"";$("#f-u").value=c.url||"";$("#f-so").value=c.sort||0;$("#f-ac").value=c.active===false?"0":"1";show();
+ $("#f-up").onchange=function(){var f=this.files[0];if(f)upPng(f,function(u){lg=u;show()})};
+ $("#f-cx").onclick=closeDlg;
+ $("#f-sv").onclick=function(){var d={kind:$("#f-k").value,name_ar:$("#f-ar").value.trim()||null,name_en:$("#f-en").value.trim()||null,url:$("#f-u").value.trim()||null,sort:parseInt($("#f-so").value||"0",10)||0,active:$("#f-ac").value==="1",logo:lg||null};
+  if(!d.logo){$("#f-er").textContent="الشعار مطلوب / Logo is required";return}
+  if(!d.name_ar&&!d.name_en){$("#f-er").textContent="الاسم مطلوب / A name is required";return}
+  if(d.url&&!/^https?:\/\//i.test(d.url)){$("#f-er").textContent="الرابط لازم يبدأ بـ https:// / URL must start with https://";return}
+  api(c.id?"PATCH":"POST","partners"+(c.id?"?id=eq."+c.id:""),d,"return=minimal").then(function(){closeDlg();status("تم الحفظ ✓ / Saved ✓");RENDER.ptn($("#main"))}).catch(function(e){$("#f-er").textContent=e.message})};
+ if(c.id){var dv=document.createElement("button");dv.type="button";dv.className="dg";dv.textContent="حذف / Delete";dv.onclick=function(){if(confirm("حذف نهائي؟ / Delete permanently?"))api("DELETE","partners?id=eq."+c.id,null,"return=minimal").then(function(){closeDlg();RENDER.ptn($("#main"))}).catch(function(e){$("#f-er").textContent=e.message})};$("#f-cx").parentNode.appendChild(dv)}
+}
 
 /* categories */
 RENDER.cat=function(mn){
