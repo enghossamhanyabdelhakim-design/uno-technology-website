@@ -44,9 +44,17 @@ var MODS=[
  {id:"cat",g:"المتجر / Store",p:"store",ic:"tag",l:"التصنيفات / Categories"},
  {id:"ord",g:"المتجر / Store",p:"orders",ic:"cart",l:"الطلبات / Orders"},
  {id:"rv",g:"المتجر / Store",p:"orders",ic:"star",l:"التقييمات / Reviews"},
+ {id:"vari",g:"المتجر / Store",p:"store",ic:"box",l:"خيارات المنتجات / Variants"},
+ {id:"attr",g:"المتجر / Store",p:"store",ic:"tag",l:"مواصفات المنتجات / Attributes"},
+ {id:"ship",g:"المتجر / Store",p:"store",ic:"cart",l:"أسعار الشحن / Shipping rates"},
+ {id:"pay",g:"المتجر / Store",p:"store",ic:"tag",l:"طرق الدفع / Payment methods"},
+ {id:"cpn",g:"المتجر / Store",p:"store",ic:"tag",l:"كوبونات الخصم / Coupons"},
+ {id:"pol",g:"المتجر / Store",p:"store",ic:"kb",l:"سياسات المتجر / Policies"},
+ {id:"ret",g:"المتجر / Store",p:"orders",ic:"inbox",l:"طلبات الاسترجاع / Returns"},
  {id:"content",g:"المحتوى / Content",p:"content",ic:"edit",l:"محتوى الموقع / Site content"},
  {id:"ptn",g:"المحتوى / Content",p:"content",ic:"star",l:"البراندات والشركاء / Brands & partners"},
  {id:"ads",g:"المحتوى / Content",p:"content",ic:"ads",l:"الإعلانات / Ads"},
+ {id:"ads2",g:"المحتوى / Content",p:"content",ic:"ads",l:"أماكن الإعلانات / Ad slots"},
  {id:"kb",g:"المحتوى / Content",p:"content",ic:"kb",l:"المعرفة / Knowledge"},
  {id:"sup",g:"العملاء / Customers",p:"chat",ic:"inbox",l:"الدعم المباشر / Live support"},
  {id:"req",g:"العملاء / Customers",p:"requests",ic:"inbox",l:"الطلبات والمحادثات / Requests and chats"},
@@ -68,7 +76,7 @@ var MODS=[
  {id:"cin",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"المخزون / Inventory"}
 ];
 var GR={ov:"نظرة عامة / Overview",sl:"المبيعات / Sales",pu:"المشتريات / Purchases",iv:"المخزون / Inventory",ac:"الحسابات / Accounting",cr:"العملاء / CRM",rp:"التقارير / Reports",st:"المتجر الإلكتروني / Online store",wb:"الموقع / Website",se:"الإعدادات / Settings"};
-var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",prod:"st",cat:"st",ord:"st",rv:"st",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cco:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
+var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",pay:"st",cpn:"st",pol:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cco:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
 MODS.forEach(function(m,i){m.gk=GM[m.id]||"se";m.g=GR[m.gk];m.o=i});
 MODS.sort(function(a,b){return GO.indexOf(a.gk)-GO.indexOf(b.gk)||a.o-b.o});
 var GOPEN={};try{GOPEN=JSON.parse(localStorage.getItem("uno_gopen")||"{}")}catch(e){}
@@ -240,6 +248,66 @@ RENDER.ads=function(mn){
    api("PATCH","ads_config?id=eq.1",{data:{publisher:pub,house:$("#a-house").checked,slots:slots,ads_txt:$("#a-txt").value},updated_at:new Date().toISOString()},"return=minimal").then(function(){$("#a-er").textContent="";status("تم ✓ / Saved ✓")}).catch(function(e){$("#a-er").textContent=e.message})};
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
+
+/* store admin screens (0108/0109): generic table editor */
+function CRUD(mn,c){
+ var refs={};
+ function loadRefs(){return Promise.all((c.fields||[]).filter(function(f){return f.t==="ref"}).map(function(f){return api("GET",f.ref+"?select=id,name_ar,name_en&order=name_ar.asc&limit=500").then(function(r){refs[f.k]=r})}))}
+ function inp(f,v,row){
+  var a=' data-k="'+f.k+'" ';
+  if(f.t==="ro")return '<span>'+esc(v==null?"":v)+"</span>";
+  if(f.t==="bool")return '<input type="checkbox"'+a+(v?" checked":"")+">";
+  if(f.t==="num")return '<input type="number" step="any" style="width:90px"'+a+'value="'+esc(v==null?"":v)+'">';
+  if(f.t==="area")return '<textarea rows="4" style="min-width:240px;width:100%"'+a+">"+esc(v||"")+"</textarea>";
+  if(f.t==="sel")return '<select'+a+">"+f.o.map(function(o){return '<option value="'+o[0]+'"'+(String(v)===o[0]?" selected":"")+">"+esc(o[1])+"</option>"}).join("")+"</select>";
+  if(f.t==="ref")return '<select'+a+">"+(refs[f.k]||[]).map(function(o){return '<option value="'+o.id+'"'+(v===o.id?" selected":"")+">"+esc(o.name_ar)+"</option>"}).join("")+"</select>";
+  if(f.t==="json")return '<input type="text" dir="ltr" style="min-width:140px"'+a+'value="'+esc(v==null?"{}":JSON.stringify(v))+'">';
+  if(f.t==="img")return '<div style="display:flex;gap:6px;align-items:center;min-width:170px">'+(v?'<img src="'+esc(/^https?:/.test(v)?v:"../"+v)+'" alt="" style="height:34px;max-width:90px;object-fit:contain;border-radius:4px">':"")+'<input type="text" dir="ltr" style="width:130px"'+a+'value="'+esc(v||"")+'"><label class="btn alt" style="padding:4px 8px;cursor:pointer">'+bi("رفع","Upload")+'<input type="file" accept="image/*" hidden data-up="'+f.k+'"></label></div>';
+  return '<input type="text" style="min-width:110px"'+a+'value="'+esc(v==null?"":v)+'"'+(f.dir?' dir="ltr"':"")+">";
+ }
+ function read(scope,fields){var o={};fields.forEach(function(f){if(f.t==="ro")return;var e=scope.querySelector('[data-k="'+f.k+'"]');if(!e)return;var v;
+  if(f.t==="bool")v=e.checked;else if(f.t==="num"){v=e.value===""?null:Number(e.value)}else if(f.t==="json"){try{v=JSON.parse(e.value||"{}")}catch(x){throw new Error(f.k+": JSON")}}else{v=e.value.trim();if(v===""&&!f.req)v=null}
+  o[f.k]=v});return o}
+ function wireUp(scope){[].forEach.call(scope.querySelectorAll("input[data-up]"),function(fi){fi.onchange=function(){var f=this.files[0];if(!f)return;var k=this.dataset.up;status("جاري الرفع... / Uploading...");upload(f,function(u){var t=scope.querySelector('[data-k="'+k+'"]');if(t)t.value=u;status("تم الرفع، اضغط حفظ / Uploaded, press Save")})}})}
+ function draw(){
+  api("GET",c.table+"?select=*&order="+c.order+"&limit=500").then(function(rows){
+   var fs=c.fields,heads=fs.map(function(f){return bi(f.l[0],f.l[1])}).concat([""]);
+   var body=rows.map(function(r){var cells=fs.map(function(f){return inp(f,r[f.k],r)});cells.push('<button class="btn" data-sv="'+esc(r[c.pk])+'">'+bi("حفظ","Save")+"</button>"+(c.del?' <button class="btn alt" data-dl="'+esc(r[c.pk])+'">'+bi("حذف","Delete")+"</button>":""));cells._a=esc(r[c.pk]);return cells});
+   mn.innerHTML='<h2>'+bi(c.l[0],c.l[1])+'</h2><p class="hint">'+bi(c.h[0],c.h[1])+"</p>"+(c.add?'<p><button class="btn" id="cr-add">'+bi("إضافة","Add")+"</button></p>":"")+(rows.length?tbl(heads,body):'<p class="sub">'+bi("لا يوجد بيانات بعد.","Nothing here yet.")+"</p>")+'<p class="dirty" id="cr-er"></p>';
+   wireUp(mn);
+   [].forEach.call(mn.querySelectorAll("[data-sv]"),function(b){b.onclick=function(){var tr=b.closest("tr");var o;try{o=read(tr,fs)}catch(e){$("#cr-er").textContent=e.message;return}
+    api("PATCH",c.table+"?"+c.pk+"=eq."+encodeURIComponent(b.dataset.sv),o,"return=minimal").then(function(){status("تم ✓ / Saved ✓");$("#cr-er").textContent="";draw()}).catch(function(e){$("#cr-er").textContent=e.message})}});
+   [].forEach.call(mn.querySelectorAll("[data-dl]"),function(b){b.onclick=function(){if(!confirm("حذف؟ / Delete?"))return;api("DELETE",c.table+"?"+c.pk+"=eq."+encodeURIComponent(b.dataset.dl)).then(function(){status("تم ✓ / Done ✓");draw()}).catch(function(e){$("#cr-er").textContent=e.message})}});
+   var ad=$("#cr-add");if(ad)ad.onclick=function(){
+    var af=(c.addf||c.fields).filter(function(f){return f.t!=="ro"});
+    openDlg('<h2>'+bi("إضافة","Add")+" · "+bi(c.l[0],c.l[1])+'</h2><div id="cr-f">'+af.map(function(f){return '<label class="f"><span>'+bi(f.l[0],f.l[1])+"</span>"+inp(f,f.d==null?(f.t==="bool"?true:""):f.d,{})+"</label>"}).join("")+'</div><p class="dirty" id="cr-fe"></p><div class="row"><button class="btn" id="cr-ok">'+bi("حفظ","Save")+'</button> <button class="btn alt" id="cr-cx">'+bi("إلغاء","Cancel")+"</button></div>");
+    wireUp($("#cr-f"));$("#cr-cx").onclick=closeDlg;
+    $("#cr-ok").onclick=function(){var o;try{o=read($("#cr-f"),af)}catch(e){$("#cr-fe").textContent=e.message;return}
+     api("POST",c.table,o,"return=minimal").then(function(){closeDlg();status("تم ✓ / Saved ✓");draw()}).catch(function(e){$("#cr-fe").textContent=e.message})}};
+  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+ }
+ loadRefs().then(draw);
+}
+var YN=[["all","الكل / All"],["ar","عربي / AR"],["en","English"]];
+var SLOTS=["home_top","home_mid","store_grid","store_sidebar","article_inline","footer_strip","mobile_sticky"].map(function(s){return [s,s]});
+RENDER.ads2=function(mn){CRUD(mn,{table:"ad_slots",pk:"id",order:"slot.asc,sort.asc",add:1,del:1,l:["أماكن الإعلانات","Ad slots"],h:["صور البانرات في أماكن ثابتة بالموقع. ارفع الصورة أو حط رابطها، واللغة تحدد مين يشوفها. الإعلانات التجارية (AdSense) بتفضل من شاشة الإعلانات.","Banners in fixed places on the site. Upload an image or paste its path; language decides who sees it. AdSense stays in the Ads screen."],
+ fields:[{k:"slot",l:["المكان","Slot"],t:"sel",o:SLOTS},{k:"lang",l:["اللغة","Lang"],t:"sel",o:YN},{k:"image",l:["الصورة","Image"],t:"img"},{k:"image_mobile",l:["صورة الموبايل","Mobile image"],t:"img"},{k:"link",l:["الرابط","Link"],t:"text",dir:1},{k:"alt_ar",l:["وصف عربي","Alt AR"]},{k:"alt_en",l:["وصف إنجليزي","Alt EN"]},{k:"sort",l:["الترتيب","Order"],t:"num"},{k:"active",l:["مفعل","On"],t:"bool"},{k:"starts_at",l:["يبدأ","Starts"],dir:1},{k:"ends_at",l:["ينتهي","Ends"],dir:1}]})};
+RENDER.ship=function(mn){CRUD(mn,{table:"ship_rates",pk:"code",order:"sort.asc",l:["أسعار الشحن","Shipping rates"],h:["سعر الشحن لكل محافظة. المحافظة بتفضل غير متاحة للطلب لحد ما تكتب السعر وتفعلها. علّم تقديري لو السعر مش نهائي.","Price per governorate. A governorate stays unavailable for orders until you set a price and turn it on. Tick Estimate if the price is not final."],
+ fields:[{k:"name_ar",l:["المحافظة","Governorate"],t:"ro"},{k:"price",l:["السعر","Price"],t:"num"},{k:"days_min",l:["أقل أيام","Min days"],t:"num"},{k:"days_max",l:["أكثر أيام","Max days"],t:"num"},{k:"cod",l:["دفع عند الاستلام","COD"],t:"bool"},{k:"active",l:["متاح","On"],t:"bool"},{k:"is_placeholder",l:["تقديري","Estimate"],t:"bool"}]})};
+RENDER.pay=function(mn){CRUD(mn,{table:"payment_methods",pk:"code",order:"sort.asc",l:["طرق الدفع","Payment methods"],h:["الدفع عند الاستلام هو الوحيد المدعوم في الطلبات حاليًا. باقي الطرق تتفعل لما تتوصل بمزود دفع.","Cash on delivery is the only method orders support right now. Others are enabled once a payment provider is connected."],
+ fields:[{k:"code",l:["الكود","Code"],t:"ro"},{k:"name_ar",l:["الاسم عربي","Name AR"]},{k:"name_en",l:["الاسم إنجليزي","Name EN"]},{k:"active",l:["مفعل","On"],t:"bool"},{k:"is_placeholder",l:["تقديري","Placeholder"],t:"bool"},{k:"note_ar",l:["ملاحظة عربي","Note AR"]},{k:"note_en",l:["ملاحظة إنجليزي","Note EN"]},{k:"sort",l:["الترتيب","Order"],t:"num"}]})};
+RENDER.cpn=function(mn){CRUD(mn,{table:"coupons",pk:"code",order:"created_at.desc",add:1,del:1,l:["كوبونات الخصم","Coupons"],h:["كود الخصم بيتحسب في السيرفر عند الطلب. الكود حروف إنجليزي كبيرة.","Coupon codes are checked on the server at order time. Codes are uppercase."],
+ fields:[{k:"code",l:["الكود","Code"],t:"ro",dir:1},{k:"kind",l:["النوع","Kind"],t:"sel",o:[["percent","نسبة % / Percent"],["fixed","مبلغ / Fixed"]]},{k:"val",l:["القيمة","Value"],t:"num"},{k:"min_subtotal",l:["حد أدنى","Min subtotal"],t:"num"},{k:"max_uses",l:["أقصى استخدام","Max uses"],t:"num"},{k:"used",l:["مستخدم","Used"],t:"ro"},{k:"starts_at",l:["يبدأ","Starts"],dir:1},{k:"ends_at",l:["ينتهي","Ends"],dir:1},{k:"active",l:["مفعل","On"],t:"bool"}],
+ addf:[{k:"code",l:["الكود","Code"],req:1,dir:1},{k:"kind",l:["النوع","Kind"],t:"sel",o:[["percent","نسبة % / Percent"],["fixed","مبلغ / Fixed"]]},{k:"val",l:["القيمة","Value"],t:"num"},{k:"min_subtotal",l:["حد أدنى","Min subtotal"],t:"num",d:0},{k:"max_uses",l:["أقصى استخدام","Max uses"],t:"num"},{k:"active",l:["مفعل","On"],t:"bool"}]})};
+RENDER.pol=function(mn){CRUD(mn,{table:"store_policies",pk:"k",order:"k.asc",l:["سياسات المتجر","Store policies"],h:["النصوص دي بتظهر في صفحة المنتج وصفحة السياسات. لحد ما تكتب النص الحقيقي بيظهر نص مؤقت. شيل علامة مؤقت بعد الكتابة.","These texts appear on product pages and the policies page. Until you write the real text a placeholder shows. Untick Placeholder once done."],
+ fields:[{k:"k",l:["النوع","Type"],t:"ro"},{k:"title_ar",l:["العنوان عربي","Title AR"]},{k:"title_en",l:["العنوان إنجليزي","Title EN"]},{k:"body_ar",l:["النص عربي","Text AR"],t:"area"},{k:"body_en",l:["النص إنجليزي","Text EN"],t:"area"},{k:"is_placeholder",l:["مؤقت","Placeholder"],t:"bool"}]})};
+RENDER.ret=function(mn){CRUD(mn,{table:"return_requests",pk:"id",order:"created_at.desc",l:["طلبات الاسترجاع","Return requests"],h:["الطلبات اللي العميل بعتها من صفحة الاسترجاع. غيّر الحالة بعد المتابعة.","Requests customers sent from the returns page. Update the status as you follow up."],
+ fields:[{k:"number",l:["#","#"],t:"ro"},{k:"order_number",l:["الطلب","Order"],t:"ro"},{k:"phone",l:["الموبايل","Phone"],t:"ro"},{k:"reason",l:["السبب","Reason"],t:"ro"},{k:"notes",l:["ملاحظات","Notes"],t:"ro"},{k:"status",l:["الحالة","Status"],t:"sel",o:[["new","جديد / New"],["approved","موافق / Approved"],["received","تم الاستلام / Received"],["refunded","تم الرد / Refunded"],["rejected","مرفوض / Rejected"]]},{k:"created_at",l:["التاريخ","Date"],t:"ro"}]})};
+RENDER.vari=function(mn){CRUD(mn,{table:"product_variants",pk:"id",order:"created_at.desc",add:1,del:1,l:["خيارات المنتجات","Product variants"],h:["كل خيار (مثلًا الذاكرة أو اللون) له سعر ومخزون خاص. المنتج من غير خيارات بيتباع كمنتج واحد. الخيارات بصيغة JSON مثل {\"color\":\"Black\"}.","Each variant (for example memory or colour) has its own price and stock. A product with no variants sells as one item. Options are JSON like {\"color\":\"Black\"}."],
+ fields:[{k:"product_id",l:["المنتج","Product"],t:"ref",ref:"products"},{k:"label_ar",l:["الاسم عربي","Label AR"],req:1},{k:"label_en",l:["الاسم إنجليزي","Label EN"],req:1},{k:"sku",l:["SKU","SKU"],dir:1},{k:"options",l:["الخيارات","Options"],t:"json"},{k:"price",l:["السعر","Price"],t:"num"},{k:"old_price",l:["السعر القديم","Old price"],t:"num"},{k:"stock",l:["المخزون","Stock"],t:"num"},{k:"weight_g",l:["الوزن جم","Weight g"],t:"num"},{k:"image",l:["الصورة","Image"],t:"img"},{k:"sort",l:["الترتيب","Order"],t:"num"},{k:"active",l:["مفعل","On"],t:"bool"}],
+ addf:[{k:"product_id",l:["المنتج","Product"],t:"ref",ref:"products"},{k:"label_ar",l:["الاسم عربي","Label AR"],req:1},{k:"label_en",l:["الاسم إنجليزي","Label EN"],req:1},{k:"sku",l:["SKU","SKU"],dir:1},{k:"options",l:["الخيارات","Options"],t:"json"},{k:"price",l:["السعر","Price"],t:"num"},{k:"stock",l:["المخزون","Stock"],t:"num",d:0},{k:"weight_g",l:["الوزن جم","Weight g"],t:"num"},{k:"active",l:["مفعل","On"],t:"bool"}]})};
+RENDER.attr=function(mn){CRUD(mn,{table:"product_attrs",pk:"id",order:"product_id.asc,sort.asc",add:1,del:1,l:["مواصفات المنتجات","Product attributes"],h:["المواصفات بتظهر في صفحة المنتج وبتستخدم كفلاتر في البحث والمقارنة. الكود (مثل ram) لازم يكون نفسه لكل المنتجات.","Attributes show on the product page and power search filters and compare. Keep the key (for example ram) identical across products."],
+ fields:[{k:"product_id",l:["المنتج","Product"],t:"ref",ref:"products"},{k:"k",l:["الكود","Key"],dir:1,req:1},{k:"name_ar",l:["الاسم عربي","Name AR"],req:1},{k:"name_en",l:["الاسم إنجليزي","Name EN"],req:1},{k:"value_ar",l:["القيمة عربي","Value AR"],req:1},{k:"value_en",l:["القيمة إنجليزي","Value EN"],req:1},{k:"sort",l:["الترتيب","Order"],t:"num"}]})};
 
 /* knowledge review */
 var KST=[["draft","مسودة / Draft","o"],["approved","معتمد / Approved","g"],["needs_owner","محتاج رد المالك / Needs owner","o"],["rejected","مرفوض / Rejected","r"]];
