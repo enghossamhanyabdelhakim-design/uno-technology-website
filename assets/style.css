@@ -731,3 +731,12 @@ html[dir=rtl]:not([data-theme=dark]) body[data-page=store] .sthero,html[dir=rtl]
 #vc.has-bot .vc-orb{margin:3vh 0 18px}#vc.has-bot h2{margin:0 0 4px;font-size:18px}
 #vc.has-bot .vc-orb{width:min(290px,76vw);height:min(290px,40vh);margin:2vh 0 10px}#vc.has-bot .vc-robot{filter:drop-shadow(0 16px 24px rgba(0,0,0,.5))}
 #vc .um img{width:480px!important;height:480px!important;max-width:none!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;animation:none!important;transform:none!important;object-fit:fill!important;z-index:auto!important}#vc .um svg{max-width:none!important}
+
+/* Button fill token (Hossam approved, designer 2 option B): white text on #C74600 is 4.88:1.
+   Light mode only. #F65A00 stays for logo, icons, borders and large headings. Dark mode unchanged. */
+html:not([data-theme=dark]){--btn-bg:#C74600;--btn-bg2:#E05200}
+html:not([data-theme=dark]) .btn,html:not([data-theme=dark]) .cta,html:not([data-theme=dark]) .chip.on,html:not([data-theme=dark]) .chip:hover,html:not([data-theme=dark]) #top-btn,html:not([data-theme=dark]) .ch-h,html:not([data-theme=dark]) .m.u,html:not([data-theme=dark]) .ch-f button,html:not([data-theme=dark]) .ch-sf button,html:not([data-theme=dark]) .hcta,html:not([data-theme=dark]) .oc .ob,html:not([data-theme=dark]) .sth-k,html:not([data-theme=dark]) .pvn,html:not([data-theme=dark]) .steps .n,html:not([data-theme=dark]) #chat .ch-q button:hover,html:not([data-theme=dark]) #chat .m .lk a:hover{background:var(--btn-bg)}
+html:not([data-theme=dark]) .cta .btn{background:#fff;color:var(--btn-bg)}
+html:not([data-theme=dark]) .ban,html:not([data-theme=dark]) .ban.b2{background:linear-gradient(120deg,var(--btn-bg),var(--btn-bg2))}
+html:not([data-theme=dark]) .hs-s,html:not([data-theme=dark]) .fcta,html:not([data-theme=dark]) #chat .m.u,html:not([data-theme=dark]) .us-btn.pri,html:not([data-theme=dark]) .us-card .act .us-btn.pri,html:not([data-theme=dark]) .uo-btn--primary,html:not([data-theme=dark]) .uo-step__num,html:not([data-theme=dark]) .u-btn.primary{background:linear-gradient(135deg,var(--btn-bg),var(--btn-bg2))}
+html:not([data-theme=dark]) .btn{box-shadow:0 8px 20px rgba(199,70,0,.28)}
