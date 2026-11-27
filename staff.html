@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'"><script>if(window.top!==window.self){document.documentElement.style.display="none"}</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#F65A00">
+<html lang="ar" dir="rtl"><head><meta name="referrer" content="strict-origin-when-cross-origin"><meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'"><script>if(window.top!==window.self){document.documentElement.style.display="none"}</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#F65A00">
 <title>Uno Support | دعم أونو</title><link rel="icon" href="assets/logo-tu.png">
 <style>
 .wxq{display:flex;gap:14px;padding:2px 4px 10px;color:var(--mut);font-size:13px}.wxq b{color:#ff7a1a;font-size:15px}
@@ -152,7 +152,7 @@ function isDk(){return document.documentElement.classList.contains("dk")}
 var COL=["#F65A00","#2563EB","#16A34A","#9333EA","#DB2777","#0891B2","#CA8A04","#475569"];
 function av(n,cls,photo,dot){n=String(n||"?").trim();var h=0;for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))%997;var c=COL[h%COL.length];var ini=(n[0]||"?").toUpperCase();return '<span class="av '+(cls||"")+'" style="background:'+(photo?"url("+esc(photo)+")":"linear-gradient(135deg,"+c+","+c+"cc)")+';background-size:cover">'+(photo?"":esc(ini))+(dot?'<i class="dot"></i>':"")+"</span>"}
 function ago(d){if(!d)return"";var x=new Date(d),n=new Date(),df=(n-x)/1000;if(df<60)return P.lang==="ar"?"الآن":"now";if(x.toDateString()===n.toDateString())return x.toLocaleTimeString(P.lang==="ar"?"ar-EG":"en-GB",{hour:"2-digit",minute:"2-digit"});return x.toLocaleDateString(P.lang==="ar"?"ar-EG":"en-GB",{day:"numeric",month:"short"})}
-function tm(d){return d?new Date(d).toLocaleTimeString(P.lang==="ar"?"ar-EG":"en-GB",{hour:"2-digit",minute:"2-digit"}):""}
+function en2(){return P.lang==="en"}function tm(d){return d?new Date(d).toLocaleTimeString(P.lang==="ar"?"ar-EG":"en-GB",{hour:"2-digit",minute:"2-digit"}):""}
 function scr(h){var a=$("app");a.innerHTML='<div class="scr">'+h+"</div>";return a.firstChild}
 function save(){localStorage.setItem("uno_staff",JSON.stringify(S))}
 function tok(){if(!S)return Promise.reject(new Error("login"));if(S.exp>Date.now()/1000+60)return Promise.resolve(S.access_token);
