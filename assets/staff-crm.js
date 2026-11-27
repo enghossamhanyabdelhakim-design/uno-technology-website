@@ -52,6 +52,33 @@
 
   function money(n) { return Number(n || 0).toLocaleString(S.lang() === 'en' ? 'en-US' : 'ar-EG-u-nu-latn'); }
   var QS = { draft: ['مسودة', 'Draft'], sent: ['مرسل', 'Sent'], accepted: ['مقبول', 'Accepted'], rejected: ['مرفوض', 'Rejected'] };
+
+  /* Quote document: A4 overlay, printed or saved as PDF through the device print dialog. No server change, no company tax or phone numbers printed until confirmed. */
+  function quotePdf(q, l) {
+    var ar = S.lang() !== 'en', old = document.getElementById('qpdf'); if (old) old.remove();
+    if (!document.getElementById('qpdf-css')) { var st = document.createElement('style'); st.id = 'qpdf-css'; st.textContent =
+      '#qpdf{position:fixed;inset:0;z-index:999;background:#e9e6e1;overflow:auto;padding:12px}#qpdf .qbar{display:flex;gap:8px;justify-content:center;margin-bottom:12px;position:sticky;top:0}#qpdf .qbar .btn{width:auto;flex:0 0 auto;min-width:130px}' +
+      '#qpdf .qpg{background:#fff;color:#191A1E;max-width:794px;margin:0 auto;padding:36px 32px;border-radius:6px;box-shadow:0 6px 24px rgba(0,0,0,.12);font-size:14px;line-height:1.6}' +
+      '#qpdf h1{margin:0;font-size:22px}#qpdf .qh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:3px solid #F65A00;padding-bottom:12px;margin-bottom:16px}' +
+      '#qpdf .qm{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;margin-bottom:16px}#qpdf .qm small{color:#5D6168;display:block;font-size:11px}' +
+      '#qpdf table{width:100%;border-collapse:collapse;margin-top:8px}#qpdf th{background:#F5F3F0;text-align:start;padding:8px;font-size:12px;border-bottom:1px solid #ECE8E1}#qpdf td{padding:8px;border-bottom:1px solid #ECE8E1;font-variant-numeric:tabular-nums}' +
+      '#qpdf .qt{margin-top:14px;display:flex;justify-content:flex-end;font-size:18px;font-weight:800}#qpdf .qn{margin-top:18px;color:#5D6168;font-size:12px}' +
+      '@media print{body>*:not(#qpdf){display:none!important}#qpdf{position:static;background:#fff;padding:0;overflow:visible}#qpdf .qbar{display:none}#qpdf .qpg{box-shadow:none;border-radius:0;max-width:none;padding:0}@page{size:A4;margin:14mm}}';
+      document.head.appendChild(st); }
+    var d = new Date(q.at || Date.now()), ds = d.toLocaleDateString(ar ? 'ar-EG-u-nu-latn' : 'en-GB'), vu = q.valid_until ? new Date(q.valid_until).toLocaleDateString(ar ? 'ar-EG-u-nu-latn' : 'en-GB') : '';
+    var rows = q.lines.map(function (x, i) { return '<tr><td>' + (i + 1) + '</td><td>' + esc(x.name) + '</td><td>' + money(x.qty) + '</td><td>' + money(x.price) + '</td><td>' + money(x.qty * x.price) + '</td></tr>'; }).join('');
+    var el = document.createElement('div'); el.id = 'qpdf'; el.setAttribute('dir', ar ? 'rtl' : 'ltr');
+    el.innerHTML = '<div class="qbar"><button class="btn" id="qpp">' + T(['طباعة / حفظ PDF', 'Print / Save PDF']) + '</button><button class="btn alt" id="qpc">' + T(['إغلاق', 'Close']) + '</button></div>' +
+      '<div class="qpg"><div class="qh"><div><h1>' + T(['عرض سعر', 'Quotation']) + ' #' + esc(q.no) + '</h1><div>' + T(['أونو للخدمات التكنولوجية', 'Uno Technology']) + '</div></div><div style="text-align:end"><b>' + T(QS[q.status]) + '</b></div></div>' +
+      '<div class="qm"><div><small>' + T(['العميل', 'Customer']) + '</small>' + esc(l.name || '') + '</div><div><small>' + T(['التاريخ', 'Date']) + '</small>' + ds + '</div>' +
+      (l.phone ? '<div><small>' + T(['الهاتف', 'Phone']) + '</small><span dir="ltr">' + esc(l.phone) + '</span></div>' : '<div></div>') + (vu ? '<div><small>' + T(['ساري حتى', 'Valid until']) + '</small>' + vu + '</div>' : '<div></div>') + '</div>' +
+      '<table><thead><tr><th>#</th><th>' + T(['البند', 'Item']) + '</th><th>' + T(['الكمية', 'Qty']) + '</th><th>' + T(['السعر', 'Price']) + '</th><th>' + T(['الإجمالي', 'Total']) + '</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      '<div class="qt">' + T(['الإجمالي', 'Total']) + ': ' + money(q.total) + ' ' + T(['ج.م', 'EGP']) + '</div>' +
+      (q.note ? '<div class="qn">' + esc(q.note) + '</div>' : '') + '<div class="qn">' + T(['الأسعار بالجنيه المصري. هذا عرض سعر وليس فاتورة.', 'Prices in Egyptian pounds. This is a quotation, not an invoice.']) + '</div></div>';
+    document.body.appendChild(el);
+    document.getElementById('qpc').onclick = function () { el.remove(); };
+    document.getElementById('qpp').onclick = function () { try { window.print(); } catch (e) { alert(T(['الطباعة غير متاحة على هذا الجهاز', 'Printing is not available on this device'])); } };
+  }
   function quotes(id, l, ed) {
     var box = document.getElementById('qp'); if (!box) return;
     var lines = [];
@@ -59,6 +86,7 @@
       var h = '<div class="panel"><h3>' + T(['العميل وعروض الأسعار', 'Customer & quotes']) + '</h3>';
       h += l.partner_id ? '<div class="hist">' + T(['مرتبط بسجل عميل', 'Linked to a customer record']) + '</div>' : (ed ? '<div class="acts"><button class="btn alt" id="cv">' + T(['تحويل إلى عميل', 'Convert to customer']) + '</button></div>' : '');
       h += qs.map(function (q) { return '<div class="hist" style="margin-top:8px"><b>#' + q.no + '</b> · ' + T(QS[q.status]) + ' · ' + money(q.total) + ' ' + T(['ج.م', 'EGP']) + '<br>' + q.lines.map(function (x) { return esc(x.name) + ' × ' + x.qty; }).join(' · ') +
+        '<div class="acts"><button class="btn alt" data-pdf="' + q.id + '">' + T(['PDF / طباعة', 'PDF / Print']) + '</button></div>' +
         (ed && q.status === 'draft' ? '<div class="acts"><button class="btn alt" data-q="' + q.id + '|sent">' + T(['تم الإرسال', 'Mark sent']) + '</button></div>' : '') +
         (ed && q.status === 'sent' ? '<div class="acts"><button class="btn" data-q="' + q.id + '|accepted">' + T(['مقبول', 'Accepted']) + '</button><button class="btn alt bd" data-q="' + q.id + '|rejected">' + T(['مرفوض', 'Rejected']) + '</button></div>' : '') + '</div>'; }).join('');
       if (ed && l.stage !== 'won' && l.stage !== 'lost') h += '<h3 style="margin-top:12px">' + T(['عرض سعر جديد', 'New quote']) + '</h3><div id="ql"></div><input id="qn" placeholder="' + T(['البند', 'Item']) + '"><div class="row2"><input id="qq" type="number" min="1" value="1" inputmode="decimal"><input id="qp2" type="number" min="0" placeholder="' + T(['السعر', 'Price']) + '" inputmode="decimal"><button class="sm" id="qa">+</button></div><div class="msg" id="qe" hidden></div><div class="acts"><button class="btn" id="qs" disabled>' + T(['حفظ كمسودة', 'Save draft']) + '</button></div>';
@@ -66,6 +94,7 @@
       var er = function (x) { var m = document.getElementById('qe'); if (m) { m.hidden = false; m.textContent = errmsg(x); } else alert(errmsg(x)); };
       var cv = document.getElementById('cv'); if (cv) cv.onclick = function () { cv.disabled = true; rpc('crm_convert_customer', { p_id: id }).then(function () { detail(id); }).catch(function (x) { cv.disabled = false; er(x); }); };
       [].forEach.call(box.querySelectorAll('[data-q]'), function (b) { b.onclick = function () { var a = b.getAttribute('data-q').split('|'); b.disabled = true; rpc('crm_quote_status', { p_id: a[0], p_status: a[1] }).then(function () { detail(id); }).catch(function (x) { b.disabled = false; er(x); }); }; });
+      [].forEach.call(box.querySelectorAll('[data-pdf]'), function (b) { b.onclick = function () { var q = qs.filter(function (z) { return z.id === b.getAttribute('data-pdf'); })[0]; if (q) quotePdf(q, l); }; });
       var qa = document.getElementById('qa'); if (!qa) return;
       var draw = function () { document.getElementById('ql').innerHTML = lines.map(function (x) { return '<div class="hist">' + esc(x.name) + ' × ' + x.qty + ' = ' + money(x.qty * x.price) + '</div>'; }).join(''); document.getElementById('qs').disabled = !lines.length; };
       qa.onclick = function () { var n = val('qn'), q = Number(val('qq')), p = Number(val('qp2')); if (!n || !(q > 0) || !(p >= 0) || val('qp2') === '') return er(T(['أكمل البند والكمية والسعر', 'Complete item, quantity and price'])); lines.push({ name: n, qty: q, price: p }); document.getElementById('qn').value = ''; document.getElementById('qp2').value = ''; draw(); };
