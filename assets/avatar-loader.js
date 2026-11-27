@@ -21,7 +21,7 @@
       var last = null;
       document.addEventListener('uno:cart', function (e) {
         var n = e && e.detail ? e.detail.count : null;
-        if (last !== null && n !== null && n > last) { try { a.gesture('thumbsup'); a.say(lang === 'ar' ? p.quip('addToCart') : 'Added to your cart.'); } catch (x) {} }
+        if (last !== null && n !== null && n > last) { try { a.gesture('thumbsup'); if (!isStore) a.say(lang === 'ar' ? p.quip('addToCart') : 'Added to your cart.'); } catch (x) {} }
         if (n !== null) last = n;
       });
     }).catch(function () {});
