@@ -82,10 +82,12 @@
   }
   function login(msg) {
     applyTheme();
-    app.innerHTML = '<div class="wrap">' + shellTop() + '<form class="login" id="f"><h1>' + T(['تسجيل الدخول', 'Sign in']) + '</h1><p>' + T(['كل فرد بحسابه الخاص وصلاحياته.', 'Each person signs in with their own account.']) + '</p>' +
+    var side = '<aside class="lside"><h2>' + T(['كل شغلك في مكان واحد.', 'All your work in one place.']) + '</h2><p>' + T(['شغلانات الصيانة، الكاشير، العملاء، المخزون والحضور في نظام واحد، على الموبايل والكمبيوتر.', 'Jobs, POS, customers, stock and attendance in one system, on phone and desktop.']) + '</p><div class="pts"><span><i>✓</i>' + T(['صلاحيات لكل دور في الفريق', 'Permissions for every role']) + '</span><span><i>✓</i>' + T(['كل فرد بحسابه الخاص', 'Everyone signs in with their own account']) + '</span></div></aside>';
+    app.innerHTML = '<div class="lsplit"><div class="lmain"><div class="lbar"><button class="ib" id="lg" aria-label="Language"><b style="font-size:13px">' + (LANG === 'en' ? 'ع' : 'EN') + '</b></button></div><form class="login u-rise" id="f"><div class="lhead"><img src="assets/logo-tu.png" alt=""><h1>' + T(['تسجيل الدخول', 'Sign in']) + '</h1><p>' + T(['كل فرد بحسابه الخاص وصلاحياته.', 'Each person signs in with their own account.']) + '</p></div>' +
       '<label for="em">' + T(['البريد الإلكتروني', 'Email']) + '</label><input id="em" type="email" autocomplete="username" inputmode="email" required dir="ltr">' +
-      '<label for="pw">' + T(['كلمة المرور', 'Password']) + '</label><input id="pw" type="password" autocomplete="current-password" required dir="ltr">' +
-      '<div class="err" id="er">' + esc(msg || '') + '</div><button class="btn" type="submit">' + T(['دخول', 'Sign in']) + '</button></form><p class="note">' + T(['لو نسيت كلمة المرور، اطلب من المالك إعادة ضبطها.', 'If you forgot your password, ask the owner to reset it.']) + '</p></div>';
+      '<label for="pw">' + T(['كلمة المرور', 'Password']) + '</label><div class="pwrap"><input id="pw" type="password" autocomplete="current-password" required dir="ltr"><button type="button" class="eye" id="eye" aria-label="Show password"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button></div>' +
+      '<div class="err" id="er">' + esc(msg || '') + '</div><button class="btn" type="submit">' + T(['دخول', 'Sign in']) + '</button></form><p class="note">' + T(['لو نسيت كلمة المرور، اطلب من المالك إعادة ضبطها.', 'If you forgot your password, ask the owner to reset it.']) + '</p></div>' + side + '</div>';
+    var eye = document.getElementById('eye'); if (eye) eye.onclick = function () { var f = document.getElementById('pw'); f.type = f.type === 'password' ? 'text' : 'password'; };
     wire();
     document.getElementById('f').onsubmit = function (e) {
       e.preventDefault(); var b = this.querySelector('button'); b.disabled = true; document.getElementById('er').textContent = '';
