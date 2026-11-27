@@ -19,6 +19,7 @@ function fill(s,host,mode){if(!host||document.querySelector(".uslot-"+s)||pend[s
 function when(sel,cb){var t=0,iv=setInterval(function(){var a=document.querySelector(sel);if(a||++t>40){clearInterval(iv);if(a)cb(a)}},250)}
 function run(){
  [].forEach.call(document.querySelectorAll("[data-uno-slot]"),function(h){fill(h.dataset.unoSlot,h,"in")});
+ if(P==="home"||P==="blog")when("[data-uno-slot]",function(){[].forEach.call(document.querySelectorAll("[data-uno-slot]"),function(h){fill(h.dataset.unoSlot,h,"in")})});
  if(P==="home")when("#services",function(a){fill("home_mid",a,"after")});
  when(".ft",function(a){fill("footer_strip",a,"before")});
  var sx=0;try{sx=sessionStorage.getItem("uno_sticky_x")}catch(e){}
