@@ -261,8 +261,7 @@
       '<header class="uo-head">' +
         '<div class="uo-head__in">' +
           '<a class="uo-brand" href="' + U.escapeHtml(U.config.storeHome) + '">' +
-            '<span class="uo-brand__mark" aria-hidden="true"></span>' +
-            '<span class="uo-brand__text">أونو<em>Uno</em></span>' +
+            '<img src="assets/logo-uno-technology.png" alt="Uno Technology" style="height:34px;width:auto;display:block">' +
           '</a>' +
           '<div class="uo-head__meta">' +
             '<a class="uo-head__support" href="tel:' + U.escapeHtml(U.config.hotline) + '">' +
