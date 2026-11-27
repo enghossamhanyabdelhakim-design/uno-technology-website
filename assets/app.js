@@ -382,7 +382,7 @@ function prodLoad(){var c=window.UNO_CFG;if(PC)return PC;if(!c||!window.fetch)re
  PC=fetch(c.url+"/rest/v1/products?select=id,name_ar,name_en,price,old_price,stock,is_demo,brand&active=eq.true&limit=500",{headers:{apikey:c.key,Authorization:"Bearer "+c.key}}).then(function(r){return r.ok?r.json():[]}).then(function(a){return Array.isArray(a)?a:[]}).catch(function(){PC=null;return[]});return PC}
 function prodAsk(v){
  var n=norm(v);if(!/(متوفر|موجود|متاح|سعر|بكام|كام|عندكم|عندك|price|cost|how much|available|in stock|stock|do you have|have you)/.test(n))return Promise.resolve(null);
- return prodLoad().then(function(ps){if(!ps.length)return null;
+ return prodLoad().then(function(ps){ps=(ps||[]).filter(function(p){return !p.is_demo&&Number(p.price)>0});if(!ps.length)return null;
   var stop=/^(هل|ايه|اي|في|فى|عندكم|عندك|متوفر|موجود|متاح|سعر|سعره|بكام|كام|ده|دي|the|a|an|is|are|what|how|much|price|of|do|you|have|available|in|stock|your|for|can|i|get)$/;
   var tk=n.split(" ").filter(function(w){return (w.length>1||/[0-9\u0660-\u0669]/.test(w))&&!stop.test(w)});if(!tk.length)return null;
   var sc=ps.map(function(p){var hay=norm((p.name_ar||"")+" "+(p.name_en||"")+" "+(p.brand||""));var s=0;tk.forEach(function(w){if(hay.indexOf(w)>-1)s++});return{p:p,s:s}}).filter(function(x){return x.s>0}).sort(function(a,b){return b.s-a.s});
