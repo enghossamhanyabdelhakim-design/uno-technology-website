@@ -580,7 +580,7 @@ var VC={mode:"cloud",on:false,mute:false,t0:0,tick:null,rec:null,turns:0,busy:fa
 var VMAX=180,VTURNS=15,VDAY=30;function vcOwner(){try{if(/[?&]owner(=|&|$)/.test(location.search))localStorage.setItem("uno_owner","1");if(localStorage.getItem("uno_owner")==="1")return true;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*auth-token$/.test(k)||k==="uno_sess")return true}}catch(e){}return false}
 function vcSR(){return window.SpeechRecognition||window.webkitSpeechRecognition||null}
 function vcT(ar,en){return h.lang==="ar"?ar:en}
-function vcCap(who,t){var c=$("#vc-cap");if(!c)return;c.innerHTML='<small>'+esc(who)+'</small><p>'+esc(t)+'</p>'}
+function vcCap(who,t){var c=$("#vc-cap");if(!c)return;if(who==="Uno"){try{window.UNO_vcRobot&&UNO_vcRobot.say(t)}catch(e){}}c.innerHTML='<small>'+esc(who)+'</small><p>'+esc(t)+'</p>'}
 function vcState(k){var o=$("#vc");if(!o)return;o.setAttribute("data-s",k);try{window.UNO_vcRobot&&window.UNO_vcRobot.state&&window.UNO_vcRobot.state(k)}catch(e){}var m={listen:vcT("بسمعك...","Listening..."),think:vcT("بفكر...","Thinking..."),speak:vcT("بتكلم...","Speaking..."),connect:vcT("بتوصل...","Connecting..."),idle:vcT("المايك مكتوم","Mic muted"),text:vcT("اكتب سؤالك","Type your question")};$("#vc-st").textContent=m[k]||""}
 function vcVoice(){var vs=window.speechSynthesis?speechSynthesis.getVoices():[],l=h.lang==="ar"?"ar":"en";return vs.filter(function(v){return v.lang&&v.lang.toLowerCase().indexOf(l)===0})[0]||null}
 function vcSpeak(text,done){
@@ -789,14 +789,15 @@ function vlStart(done){
 /* ---- bot voice call robot face: lazy-loads robot-face.js/css, wired through vcState (state) and vaLevel (audio level) ---- */
 window.UNO_vcRobot=(function(){
   var bot=null,st="think",hold=0,mv=null,tv=null,ld=null,MAP={listen:"listening",think:"thinking",speak:"speaking",connect:"thinking",idle:"idle",text:"idle"};
-  function load(){if(ld)return ld;ld=new Promise(function(ok,no){var l=document.createElement("link");l.rel="stylesheet";l.href="assets/robot-mascot.css?v=20261128x";document.head.appendChild(l);var j=document.createElement("script");j.src="assets/robot-mascot.js?v=20261128x";j.onload=ok;j.onerror=no;document.head.appendChild(j)});return ld}
+  function load(){if(ld)return ld;ld=new Promise(function(ok,no){if(window.UnoBot)return ok();var j=document.createElement("script");j.src="assets/uno-bot.js?v=20261128g";j.onload=ok;j.onerror=no;document.head.appendChild(j)});return ld}
   function apply(k){if(!bot)return;var n=MAP[k]||"idle";if(st==="speak"&&k==="listen"){bot.setState("happy");clearTimeout(hold);hold=setTimeout(function(){if(bot&&st==="listen")bot.setState("listening")},1100);return}clearTimeout(hold);bot.setState(n);if(n!=="speaking")bot.setMouthLevel(0)}
   return{
-    mount:function(el){if(!el||!window.UNO_ROBOT_ON)return;load().then(function(){if(!window.Robot||!document.body.contains(el))return;var vc=$("#vc");bot=window.Robot.mount(el,{state:MAP[st]||"thinking",theme:"dark",look:true});vc&&vc.classList.add("has-robot");
+    mount:function(el){if(!el)return;load().then(function(){if(!window.UnoBot||!document.body.contains(el))return;var vc=$("#vc");bot=window.UnoBot.mount(el,{state:MAP[st]||"thinking"});bot.setState(MAP[st]||"thinking");vc&&vc.classList.add("has-robot","has-bot");
       mv=function(e){var t=e.touches&&e.touches[0]||e;bot&&bot.lookAt(t.clientX,t.clientY)};tv=function(){bot&&bot.lookCenter()};
       document.addEventListener("pointermove",mv,{passive:true});document.addEventListener("touchmove",mv,{passive:true});document.addEventListener("pointerleave",tv)}).catch(function(){})},
     state:function(k){apply(k);st=k},
     level:function(v){if(bot&&st==="speak")bot.setMouthLevel(v)},
+    say:function(t){try{bot&&bot.say(t)}catch(e){}},
     destroy:function(){clearTimeout(hold);if(mv){document.removeEventListener("pointermove",mv);document.removeEventListener("touchmove",mv);document.removeEventListener("pointerleave",tv);mv=null}try{bot&&bot.destroy()}catch(e){}bot=null;st="think"}
   }
 })();
