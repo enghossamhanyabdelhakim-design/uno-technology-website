@@ -9,8 +9,8 @@
   function can(p) { var c = S.ctx; return c.role === 'owner' || (c.perms || []).indexOf(p) >= 0; }
   function errmsg(e) { var m = String(e && e.message || e); return navigator.onLine ? m.replace(/^.*?:\s*/, '') : T(['لا يوجد اتصال', 'No connection']); }
   function val(i) { return document.getElementById(i).value.trim(); }
-  function tm(x) { return x ? new Date(x).toLocaleTimeString(S.lang() === 'en' ? 'en-GB' : 'ar-EG', { hour: '2-digit', minute: '2-digit' }) : '—'; }
-  function dy(x) { return new Date(x + 'T00:00:00').toLocaleDateString(S.lang() === 'en' ? 'en-GB' : 'ar-EG', { day: 'numeric', month: 'short' }); }
+  function tm(x) { return x ? new Date(x).toLocaleTimeString(S.lang() === 'en' ? 'en-GB' : 'ar-EG-u-nu-latn', { hour: '2-digit', minute: '2-digit' }) : '—'; }
+  function dy(x) { return new Date(x + 'T00:00:00').toLocaleDateString(S.lang() === 'en' ? 'en-GB' : 'ar-EG-u-nu-latn', { day: 'numeric', month: 'short' }); }
   function today() { var d = new Date(Date.now() + 2 * 3600e3); return d.toISOString().slice(0, 10); }
   function hr() {
     S.applyTheme();

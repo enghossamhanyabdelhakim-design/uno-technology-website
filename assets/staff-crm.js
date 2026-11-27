@@ -9,7 +9,7 @@
   function can(p) { var c = S.ctx; return c.role === 'owner' || (c.perms || []).indexOf(p) >= 0; }
   function errmsg(e) { var m = String(e && e.message || e); return navigator.onLine ? m.replace(/^.*?:\s*/, '') : T(['لا يوجد اتصال', 'No connection']); }
   function val(i) { return document.getElementById(i).value.trim(); }
-  function dy(x) { return new Date(x + 'T00:00:00').toLocaleDateString(S.lang() === 'en' ? 'en-GB' : 'ar-EG', { day: 'numeric', month: 'short' }); }
+  function dy(x) { return new Date(x + 'T00:00:00').toLocaleDateString(S.lang() === 'en' ? 'en-GB' : 'ar-EG-u-nu-latn', { day: 'numeric', month: 'short' }); }
   function today() { return new Date(Date.now() + 2 * 3600e3).toISOString().slice(0, 10); }
   function digits(p) { return String(p || '').replace(/\D/g, '').replace(/^0/, '20'); }
   function page(inner, root) {
@@ -50,7 +50,7 @@
     };
   }
 
-  function money(n) { return Number(n || 0).toLocaleString(S.lang() === 'en' ? 'en-US' : 'ar-EG'); }
+  function money(n) { return Number(n || 0).toLocaleString(S.lang() === 'en' ? 'en-US' : 'ar-EG-u-nu-latn'); }
   var QS = { draft: ['مسودة', 'Draft'], sent: ['مرسل', 'Sent'], accepted: ['مقبول', 'Accepted'], rejected: ['مرفوض', 'Rejected'] };
   function quotes(id, l, ed) {
     var box = document.getElementById('qp'); if (!box) return;
@@ -83,7 +83,7 @@
         (ed && !closed ? '<div class="acts"><button class="btn alt" id="eb">' + T(['تعديل البيانات', 'Edit details']) + '</button></div>' : '') + '</div>';
       if (ed && !closed) h += '<div class="panel"><h3>' + T(['تسجيل متابعة', 'Log follow-up']) + '</h3><select id="nk">' + ['call', 'visit', 'whatsapp', 'note'].map(function (k) { return '<option value="' + k + '">' + T(NK[k]) + '</option>'; }).join('') + '</select><label>' + T(['ماذا حدث؟', 'What happened?']) + '</label><textarea id="nb" rows="2"></textarea><label>' + T(['المتابعة القادمة', 'Next follow-up']) + '</label><input id="nn" type="date"><div class="msg" id="ne" hidden></div><div class="acts"><button class="btn" id="na">' + T(['حفظ', 'Save']) + '</button></div></div>' +
         '<div class="panel"><h3>' + T(['المرحلة', 'Stage']) + '</h3><label>' + T(['ملاحظة (إجبارية عند الخسارة)', 'Note (required if lost)']) + '</label><input id="sn"><div class="acts">' + ['contacted', 'quoted', 'won', 'lost'].filter(function (s) { return s !== l.stage; }).map(function (s) { return '<button class="btn ' + (s === 'won' ? '' : 'alt') + (s === 'lost' ? ' bd' : '') + '" data-s="' + s + '">' + T(STG[s]) + '</button>'; }).join('') + '</div></div>';
-      h += '<div class="panel"><h3>' + T(['السجل', 'History']) + '</h3>' + (l.notes.length ? l.notes.map(function (n) { return '<div class="hist"><b>' + T(NK[n.kind]) + '</b> · ' + esc(n.body) + ' · ' + new Date(n.at).toLocaleDateString(S.lang() === 'en' ? 'en-GB' : 'ar-EG') + '</div>'; }).join('') : '<div class="hist">—</div>') + '</div>';
+      h += '<div class="panel"><h3>' + T(['السجل', 'History']) + '</h3>' + (l.notes.length ? l.notes.map(function (n) { return '<div class="hist"><b>' + T(NK[n.kind]) + '</b> · ' + esc(n.body) + ' · ' + new Date(n.at).toLocaleDateString(S.lang() === 'en' ? 'en-GB' : 'ar-EG-u-nu-latn') + '</div>'; }).join('') : '<div class="hist">—</div>') + '</div>';
       h = h.replace('<div class="panel"><h3>' + T(['السجل', 'History']) + '</h3>', '<div id="qp"></div><div class="panel"><h3>' + T(['السجل', 'History']) + '</h3>');
       document.querySelector('.wrap .empty').outerHTML = h; quotes(id, l, ed);
       var eb = document.getElementById('eb'); if (eb) eb.onclick = function () { form(l); };

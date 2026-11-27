@@ -4,7 +4,7 @@
   var S = window.UNO_SA; if (!S) return;
   var T = S.T, esc = S.esc;
   function errmsg(e) { var m = String(e && e.message || e); return navigator.onLine ? m.replace(/^.*?:\s*/, '') : T(['لا يوجد اتصال', 'No connection']); }
-  function n(v) { return Number(v || 0).toLocaleString(S.lang() === 'en' ? 'en-US' : 'ar-EG'); }
+  function n(v) { return Number(v || 0).toLocaleString(S.lang() === 'en' ? 'en-US' : 'ar-EG-u-nu-latn'); }
   function card(title, href, rows, warn) {
     return '<a class="panel ovc' + (warn ? ' ovw' : '') + '" href="' + href + '"><h3>' + title + '</h3><div class="ovg">' + rows.map(function (r) { return '<div><b' + (r[2] ? ' style="color:var(--bad)"' : '') + '>' + n(r[1]) + '</b><small>' + r[0] + '</small></div>'; }).join('') + '</div></a>';
   }

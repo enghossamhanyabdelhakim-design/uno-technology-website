@@ -107,7 +107,7 @@
       if (j.status === 'approved' && can('jobs.approve')) a += b('closed', 'إغلاق المهمة', 'Close job');
       if (!ended && can('jobs.assign')) a += b('cancelled', 'إلغاء المهمة', 'Cancel job', 'alt bd');
       if (a) h += '<div class="panel"><label>' + T(['ملاحظة (اختياري)', 'Note (optional)']) + '</label><textarea id="nt" rows="2"></textarea><div class="msg" id="je" hidden></div><div class="acts">' + a + '</div></div>';
-      h += '<div class="panel"><h3>' + T(['السجل', 'History']) + '</h3>' + j.history.map(function (x) { return '<div class="hist">' + T(ST[x.to_status] || ['', '']) + (x.note ? ' · ' + esc(x.note) : '') + ' · ' + new Date(x.at).toLocaleString(S.lang() === 'en' ? 'en-GB' : 'ar-EG') + '</div>'; }).join('') + '</div>';
+      h += '<div class="panel"><h3>' + T(['السجل', 'History']) + '</h3>' + j.history.map(function (x) { return '<div class="hist">' + T(ST[x.to_status] || ['', '']) + (x.note ? ' · ' + esc(x.note) : '') + ' · ' + new Date(x.at).toLocaleString(S.lang() === 'en' ? 'en-GB' : 'ar-EG-u-nu-latn') + '</div>'; }).join('') + '</div>';
       document.querySelector('.wrap .empty').outerHTML = h; photos(id, ended);
       var show = function (x) { var m = document.getElementById('je'); if (m) { m.hidden = false; m.textContent = errmsg(x); } else alert(errmsg(x)); };
       [].forEach.call(document.querySelectorAll('[data-c]'), function (c) { c.onchange = function () { rpc('job_check', { p_item: c.getAttribute('data-c'), p_done: c.checked }).then(function () { c.parentNode.classList.toggle('d', c.checked); }).catch(function (x) { c.checked = !c.checked; show(x); }); }; });
