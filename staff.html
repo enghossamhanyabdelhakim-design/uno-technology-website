@@ -63,24 +63,6 @@ html.dk .nav{box-shadow:0 10px 34px rgba(0,0,0,.5)}
 .nav button{flex:1;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11.5px;font-weight:600;color:var(--mut);position:relative}.nav button.on{background:rgba(246,90,0,.12);color:var(--o)}
 .nav .bd{position:absolute;top:4px;inset-inline-start:calc(50% + 4px);margin:0;min-width:18px;height:18px;font-size:11px}
 
-function sheet(inner){var d=document.createElement("div");d.innerHTML='<div class="shd"></div><div class="shs">'+inner+"</div>";document.body.appendChild(d);d.querySelector(".shd").onclick=function(){d.remove()};return d}
-function fmtD(d){return d?new Date(d).toLocaleString(P.lang==="ar"?"ar-EG":"en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):""}
-var TAGS=[["vip","VIP"],["debt",P.lang==="ar"?"مديونية":"Debt"],["followup",P.lang==="ar"?"متابعة":"Follow-up"],["warranty",P.lang==="ar"?"ضمان":"Warranty"]];
-function c360(c){var ph=(c.phone||"").trim();var d=sheet('<div class="shh">'+av(c.name,"",c.photo)+'<div class="t"><b>'+esc(c.name)+'</b><small dir="ltr">'+esc(ph)+'</small></div></div><div class="shb" id="c3b"><div class="sk"></div><div class="sk"></div></div>');
- var B=d.querySelector("#c3b");
- if(!ph){B.innerHTML='<div class="emp"><b>'+t("nophone")+"</b></div>";return}
- (DEMO?Promise.resolve({scopes:["c_orders","c_chats","c_requests","c_notes"],orders:[{number:"1042",status:"delivered",total:1450,created_at:new Date().toISOString()}],chats:[{status:"closed",created_at:new Date(Date.now()-864e5*3).toISOString()}],requests:[],notes:[{id:1,note:"Prefers WhatsApp",tag:"vip",created_name:"Hossam",created_at:new Date().toISOString()}],customer:{email:"sample@example.com"}}):api("POST","rpc/customer_360",{p_phone:ph})).then(function(r){
-  var sc=r.scopes||[],h="";
-  if(r.customer&&r.customer.email)h+='<div class="sec"><div class="li"><div><small>Email</small><span dir="ltr">'+esc(r.customer.email)+"</span></div></div></div>";
-  function list(k,title,rows,fn){if(sc.indexOf(k)<0)return;h+='<div class="sec"><h4>'+title+" ("+rows.length+')</h4>'+(rows.length?rows.map(fn).join(""):'<div class="li"><small>-</small></div>')+"</div>"}
-  list("c_orders",t("orders"),r.orders||[],function(o){return '<div class="li"><div><b>#'+esc(o.number||o.id)+(o.is_test?" (test)":"")+"</b><small>"+fmtD(o.created_at)+'</small></div><span class="pill o">'+esc(o.status)+'</span><b>'+Number(o.total||0).toLocaleString()+"</b></div>"});
-  list("c_chats",t("chatsH"),r.chats||[],function(o){return '<div class="li"><div><small>'+fmtD(o.created_at)+(o.assigned_name?" · "+esc(o.assigned_name):"")+'</small></div><span class="pill '+(o.status==="open"?"g":"x")+'">'+esc(o.status)+"</span></div>"});
-  list("c_requests",t("reqs"),r.requests||[],function(o){return '<div class="li"><div><b>'+esc(o.service||"")+"</b><small>"+fmtD(o.created_at)+"</small><p>"+esc(o.message||"")+"</p></div></div>"});
-  if(sc.indexOf("c_notes")>=0){h+='<div class="sec"><h4>'+t("notes")+'</h4><div class="nf"><textarea id="nt" rows="2" maxlength="1000" placeholder="'+t("addnote")+'"></textarea><div class="tgs">'+TAGS.map(function(g){return '<button type="button" class="chip" data-g="'+g[0]+'">'+g[1]+"</button>"}).join("")+'</div><input type="datetime-local" id="fu"><button class="cta" id="nsv" style="height:46px;margin-top:0">'+t("save")+'</button></div></div><div class="sec" id="nl">'+(r.notes||[]).map(function(n){return '<div class="li"><div><p>'+esc(n.note)+"</p><small>"+esc(n.created_name||"")+" · "+fmtD(n.created_at)+(n.follow_up_at?" · ⏰ "+fmtD(n.follow_up_at):"")+'</small></div>'+(n.tag?'<span class="pill o">'+esc(n.tag)+"</span>":"")+"</div>"}).join("")+"</div>"}
-  B.innerHTML=h||'<div class="emp"><b>'+t("noscope")+"</b></div>";
-  var tg=null;[].forEach.call(B.querySelectorAll(".tgs .chip"),function(b){b.onclick=function(){hap(8);tg=tg===b.dataset.g?null:b.dataset.g;[].forEach.call(B.querySelectorAll(".tgs .chip"),function(x){x.classList.toggle("on",x.dataset.g===tg)})}});
-  var sv=B.querySelector("#nsv");if(sv)sv.onclick=function(){var n=B.querySelector("#nt").value.trim();if(!n)return;hap();var fu=B.querySelector("#fu").value;if(DEMO){toast(t("saved"));return d.remove()}api("POST","rpc/customer_note_add",{p_phone:ph,p_note:n,p_tag:tg,p_follow:fu?new Date(fu).toISOString():null}).then(function(){toast(t("saved"));d.remove();c360(c)}).catch(function(e){toast(e.message)})}
- }).catch(function(e){B.innerHTML='<div class="emp"><b>'+t("err")+"</b>"+esc(e.message)+"</div>"})}
 /* chat */
 .ch{padding:calc(10px + env(safe-area-inset-top)) 12px 10px;display:flex;align-items:center;gap:10px;background:var(--cd);box-shadow:0 2px 14px rgba(23,32,42,.06);z-index:3}
 .ch .t{flex:1;min-width:0}.ch b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ch small{color:var(--mut);font-size:12.5px;display:flex;gap:6px;align-items:center}
@@ -117,6 +99,24 @@ function sp(){localStorage.setItem("uno_sprefs",JSON.stringify(P))}
 var D={ar:{hello:"أهلاً",inbox:"المحادثات",mine:"محادثاتي",me:"حسابي",all:"الكل",un:"غير مستلمة",mi:"معي",op:"مفتوحة",cl:"مقفولة",open:"مفتوحة",closed:"مقفولة",unas:"غير مستلمة",with:"مع ",nothing:"لا توجد محادثات",nothingS:"لما عميل يكتب لك من الموقع أو التطبيق هتلاقي رسالته هنا.",search:"ابحث بالاسم أو الرقم",newm:"رسالة جديدة",unread:"غير مقروءة",today:"اليوم",take:"استلام",rel:"تحويل",close:"إقفال",reopen:"إعادة فتح",type:"اكتب ردك...",welcome:"أهلاً بعودتك",loginT:"تسجيل دخول الموظف",loginS:"ادخل بحساب الدعم الخاص بك",email:"البريد الإلكتروني",pass:"كلمة السر",signin:"دخول",bad:"بيانات الدخول غير صحيحة",noperm:"هذا الحساب ليس له صلاحية الدعم",yourname:"اسمك اللي هيظهر للعميل",yournameS:"العميل هيشوف اسمك وصورتك في المحادثة",save:"حفظ",lang:"English",theme:"الوضع الداكن",snd:"صوت التنبيه",out:"تسجيل الخروج",tag:"دعم أونو للخدمات التكنولوجية",total:"الإجمالي",qr:["أهلاً بحضرتك في أونو، إزاي أقدر أساعدك؟","ممكن توضح المشكلة أكتر؟","ممكن تبعت صورة للمشكلة؟","لحظات وأرجع لحضرتك","شكراً لتواصلك مع أونو"],err:"حصل خطأ",saved:"تم الحفظ",incall:"مكالمة واردة...",connecting:"جاري التوصيل...",connected:"متصل",cfail:"انقطع الاتصال",taken:"حد تاني رد على المكالمة",nophone:"العميل لم يسجل رقم موبايل",orders:"الطلبات",chatsH:"المحادثات السابقة",reqs:"طلبات الخدمة",notes:"ملاحظات ومتابعات",addnote:"اكتب ملاحظة عن العميل...",noscope:"صلاحياتك لا تسمح بعرض بيانات العميل"},
 en:{hello:"Hi",inbox:"Inbox",mine:"Mine",me:"Profile",all:"All",un:"Unassigned",mi:"Mine",op:"Open",cl:"Closed",open:"Open",closed:"Closed",unas:"Unassigned",with:"With ",nothing:"No conversations",nothingS:"When a customer writes from the website or app, it shows up here.",search:"Search name or number",newm:"New message",unread:"Unread",today:"Today",take:"Take",rel:"Release",close:"Close",reopen:"Reopen",type:"Type your reply...",welcome:"Welcome back",loginT:"Staff sign in",loginS:"Use your support account",email:"Email",pass:"Password",signin:"Sign in",bad:"Wrong login details",noperm:"This account has no support access",yourname:"Your name shown to customers",yournameS:"Customers see your name and photo in the chat",save:"Save",lang:"العربية",theme:"Dark mode",snd:"Alert sound",out:"Sign out",tag:"Uno Technology Services Support",total:"Total",qr:["Welcome to Uno, how can I help?","Can you describe the problem a bit more?","Can you send a screenshot?","One moment, I'll check and come back","Thanks for contacting Uno"],err:"Something went wrong",saved:"Saved",incall:"Incoming call...",connecting:"Connecting...",connected:"Connected",cfail:"Connection lost",taken:"Someone else answered",nophone:"This customer left no phone number",orders:"Orders",chatsH:"Past chats",reqs:"Service requests",notes:"Notes and follow-ups",addnote:"Write a note about this customer...",noscope:"Your role cannot view customer data"}};
 function t(k){return D[P.lang][k]}
+function sheet(inner){var d=document.createElement("div");d.innerHTML='<div class="shd"></div><div class="shs">'+inner+"</div>";document.body.appendChild(d);d.querySelector(".shd").onclick=function(){d.remove()};return d}
+function fmtD(d){return d?new Date(d).toLocaleString(P.lang==="ar"?"ar-EG":"en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):""}
+var TAGS=[["vip","VIP"],["debt",P.lang==="ar"?"مديونية":"Debt"],["followup",P.lang==="ar"?"متابعة":"Follow-up"],["warranty",P.lang==="ar"?"ضمان":"Warranty"]];
+function c360(c){var ph=(c.phone||"").trim();var d=sheet('<div class="shh">'+av(c.name,"",c.photo)+'<div class="t"><b>'+esc(c.name)+'</b><small dir="ltr">'+esc(ph)+'</small></div></div><div class="shb" id="c3b"><div class="sk"></div><div class="sk"></div></div>');
+ var B=d.querySelector("#c3b");
+ if(!ph){B.innerHTML='<div class="emp"><b>'+t("nophone")+"</b></div>";return}
+ (DEMO?Promise.resolve({scopes:["c_orders","c_chats","c_requests","c_notes"],orders:[{number:"1042",status:"delivered",total:1450,created_at:new Date().toISOString()}],chats:[{status:"closed",created_at:new Date(Date.now()-864e5*3).toISOString()}],requests:[],notes:[{id:1,note:"Prefers WhatsApp",tag:"vip",created_name:"Hossam",created_at:new Date().toISOString()}],customer:{email:"sample@example.com"}}):api("POST","rpc/customer_360",{p_phone:ph})).then(function(r){
+  var sc=r.scopes||[],h="";
+  if(r.customer&&r.customer.email)h+='<div class="sec"><div class="li"><div><small>Email</small><span dir="ltr">'+esc(r.customer.email)+"</span></div></div></div>";
+  function list(k,title,rows,fn){if(sc.indexOf(k)<0)return;h+='<div class="sec"><h4>'+title+" ("+rows.length+')</h4>'+(rows.length?rows.map(fn).join(""):'<div class="li"><small>-</small></div>')+"</div>"}
+  list("c_orders",t("orders"),r.orders||[],function(o){return '<div class="li"><div><b>#'+esc(o.number||o.id)+(o.is_test?" (test)":"")+"</b><small>"+fmtD(o.created_at)+'</small></div><span class="pill o">'+esc(o.status)+'</span><b>'+Number(o.total||0).toLocaleString()+"</b></div>"});
+  list("c_chats",t("chatsH"),r.chats||[],function(o){return '<div class="li"><div><small>'+fmtD(o.created_at)+(o.assigned_name?" · "+esc(o.assigned_name):"")+'</small></div><span class="pill '+(o.status==="open"?"g":"x")+'">'+esc(o.status)+"</span></div>"});
+  list("c_requests",t("reqs"),r.requests||[],function(o){return '<div class="li"><div><b>'+esc(o.service||"")+"</b><small>"+fmtD(o.created_at)+"</small><p>"+esc(o.message||"")+"</p></div></div>"});
+  if(sc.indexOf("c_notes")>=0){h+='<div class="sec"><h4>'+t("notes")+'</h4><div class="nf"><textarea id="nt" rows="2" maxlength="1000" placeholder="'+t("addnote")+'"></textarea><div class="tgs">'+TAGS.map(function(g){return '<button type="button" class="chip" data-g="'+g[0]+'">'+g[1]+"</button>"}).join("")+'</div><input type="datetime-local" id="fu"><button class="cta" id="nsv" style="height:46px;margin-top:0">'+t("save")+'</button></div></div><div class="sec" id="nl">'+(r.notes||[]).map(function(n){return '<div class="li"><div><p>'+esc(n.note)+"</p><small>"+esc(n.created_name||"")+" · "+fmtD(n.created_at)+(n.follow_up_at?" · ⏰ "+fmtD(n.follow_up_at):"")+'</small></div>'+(n.tag?'<span class="pill o">'+esc(n.tag)+"</span>":"")+"</div>"}).join("")+"</div>"}
+  B.innerHTML=h||'<div class="emp"><b>'+t("noscope")+"</b></div>";
+  var tg=null;[].forEach.call(B.querySelectorAll(".tgs .chip"),function(b){b.onclick=function(){hap(8);tg=tg===b.dataset.g?null:b.dataset.g;[].forEach.call(B.querySelectorAll(".tgs .chip"),function(x){x.classList.toggle("on",x.dataset.g===tg)})}});
+  var sv=B.querySelector("#nsv");if(sv)sv.onclick=function(){var n=B.querySelector("#nt").value.trim();if(!n)return;hap();var fu=B.querySelector("#fu").value;if(DEMO){toast(t("saved"));return d.remove()}api("POST","rpc/customer_note_add",{p_phone:ph,p_note:n,p_tag:tg,p_follow:fu?new Date(fu).toISOString():null}).then(function(){toast(t("saved"));d.remove();c360(c)}).catch(function(e){toast(e.message)})}
+ }).catch(function(e){B.innerHTML='<div class="emp"><b>'+t("err")+"</b>"+esc(e.message)+"</div>"})}
 var IC={inbox:'<svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>',mine:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/><path d="m16 8 2 2 3-3"/></svg>',me:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',mail:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>',lock:'<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',eye:'<svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',back:'<svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>',send:'<svg viewBox="0 0 24 24"><path d="M21 3 3 10l7 3 3 7z"/><path d="m10 13 4-4"/></svg>',moon:'<svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>',bell:'<svg viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/></svg>',globe:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>',out:'<svg viewBox="0 0 24 24"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15 8l4 4-4 4M19 12H9"/></svg>',cam:'<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',phone:'<svg viewBox="0 0 24 24" style="width:28px;height:28px"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>',phoneX:'<svg viewBox="0 0 24 24" style="width:28px;height:28px"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/><path d="M16 3l5 5M21 3l-5 5"/></svg>',mic:'<svg viewBox="0 0 24 24" style="width:26px;height:26px"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>',empty:'<svg viewBox="0 0 96 96"><rect x="12" y="20" width="56" height="40" rx="12"/><path d="M28 60v12l14-12"/><rect x="44" y="38" width="40" height="30" rx="10"/><path d="M56 52h16M56 58h9"/></svg>'};
 function $(i){return document.getElementById(i)}function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function hap(n){try{if(navigator.vibrate)navigator.vibrate(n||12)}catch(e){}if(window.UnoApp&&UnoApp.haptic)try{UnoApp.haptic()}catch(e){}}
@@ -136,7 +136,7 @@ function api(m,p,b,pf){return tok().then(function(k){var h={apikey:C.key,Authori
 var DC=[{id:"d1",name:"محمد أحمد",phone:"+20 100 000 0001",status:"open",unread_agent:2,assigned_name:null,last_at:new Date(Date.now()-120000).toISOString(),last_body:"السلام عليكم، الطابعة مش بتطبع"},{id:"d2",name:"Sara Ali",phone:"+20 100 000 0002",status:"open",unread_agent:0,assigned_name:"Hossam",assigned_to:"me",last_at:new Date(Date.now()-3600000).toISOString(),last_body:"Thanks, the router works now"},{id:"d3",name:"شركة النور",phone:"+20 100 000 0003",status:"closed",unread_agent:0,assigned_name:"Hossam",last_at:new Date(Date.now()-86400000).toISOString(),last_body:"تم تركيب الكاميرات"}];
 var DM={d1:[{id:1,sender:"visitor",body:"السلام عليكم",created_at:new Date(Date.now()-300000).toISOString()},{id:2,sender:"visitor",body:"الطابعة مش بتطبع، ظاهر خطأ في الشاشة",created_at:new Date(Date.now()-120000).toISOString()}],d2:[{id:1,sender:"visitor",body:"My router keeps disconnecting",created_at:new Date(Date.now()-7200000).toISOString()},{id:2,sender:"agent",sender_name:"Hossam",body:"Try restarting it and check the cable",created_at:new Date(Date.now()-7000000).toISOString()},{id:3,sender:"visitor",body:"Thanks, the router works now",created_at:new Date(Date.now()-3600000).toISOString()}],d3:[{id:1,sender:"agent",sender_name:"Hossam",body:"تم تركيب الكاميرات",created_at:new Date(Date.now()-86400000).toISOString()}]};
 /* splash */
-function splashOut(){setTimeout(function(){$("sp").classList.add("hide")},first&&!/nosplash/.test(location.search)?2000:0);first=false}
+function splashOut(){setTimeout(function(){$("sp").classList.add("hide")},first&&!/nosplash/.test(location.search)?3600:0);first=false}
 /* login */
 function login(){$("spt").textContent=t("tag");applyP();
  var s=scr('<div class="hero"><img src="assets/logo-tu.png" alt=""><h2>Uno Support</h2><p>'+t("tag")+'</p></div><div class="sheet"><h3>'+t("loginT")+'</h3><p class="sub">'+t("loginS")+'</p><label class="fld">'+IC.mail+'<input id="e" type="email" placeholder="'+t("email")+'" autocomplete="username" dir="ltr"></label><label class="fld">'+IC.lock+'<input id="p" type="password" placeholder="'+t("pass")+'" autocomplete="current-password" dir="ltr"><button type="button" id="ey" style="color:var(--mut)">'+IC.eye+'</button></label><p class="er" id="er"></p><button class="cta" id="go">'+t("signin")+'</button><button class="lnk" id="lg">'+t("lang")+"</button></div>");
@@ -213,6 +213,127 @@ function incoming(c,ch){CUR={id:c.id,chat:c.chat_id};ringStart();
    document.getElementById("cmu").onclick=function(){var tr=st.getAudioTracks()[0];if(tr){tr.enabled=!tr.enabled;this.classList.toggle("off",!tr.enabled)}};
    return pc.setRemoteDescription(JSON.parse(c.offer)).then(function(){return pc.createAnswer()}).then(function(a){return pc.setLocalDescription(a)}).then(function(){return new Promise(function(res){if(pc.iceGatheringState==="complete")return res();var d=false;function f(){if(!d){d=true;res()}}pc.onicegatheringstatechange=function(){if(pc.iceGatheringState==="complete")f()};setTimeout(f,4000)})}).then(function(){return api("POST","rpc/call_answer",{p_call:c.id,p_answer:JSON.stringify(pc.localDescription)})}).then(function(ok){if(!ok){toast(t("taken"));callClose()}else{CUR.t=setInterval(function(){api("GET","support_calls?id=eq."+c.id+"&select=status").then(function(r){if(CUR&&r&&r[0]&&r[0].status==="ended")callClose()})},2000)}})
   }).catch(function(e){toast(e.message||t("err"));api("POST","rpc/call_end_s",{p_call:c.id}).catch(function(){});callClose()})}}
+/* ---- UNO sci-fi layer ---- */
+(function(){
+var st=document.createElement("style");st.textContent=`
+html.dk{--bg:#0B0C0F;--cd:rgba(255,255,255,.055);--chip:rgba(255,255,255,.07);--bub:rgba(255,255,255,.07);--ln:rgba(255,255,255,.10);--ink:#F3F4F6;--mut:#9AA3AF;--sh:0 0 0 1px rgba(255,255,255,.07),0 8px 30px rgba(0,0,0,.45)}
+html.dk body{background:radial-gradient(90% 55% at 85% -5%,rgba(246,90,0,.20),transparent 60%),radial-gradient(70% 50% at 0 100%,rgba(255,138,61,.10),transparent 60%),#0B0C0F}
+html.dk body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:38px 38px;-webkit-mask-image:radial-gradient(70% 60% at 50% 20%,#000,transparent);mask-image:radial-gradient(70% 60% at 50% 20%,#000,transparent)}
+html.dk .scr{background:transparent}
+html.dk .th,html.dk .st,html.dk .ib,html.dk .sr,html.dk .fld,html.dk .nav,html.dk .shs,html.dk .cm .in{-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);border:1px solid rgba(255,255,255,.09)}
+html.dk .th{transition:transform .2s,border-color .25s,box-shadow .25s}
+html.dk .th.un{border-color:rgba(246,90,0,.55);box-shadow:0 0 0 1px rgba(246,90,0,.25),0 0 24px rgba(246,90,0,.18)}
+html.dk .th:active{transform:scale(.985)}
+html.dk .nav{background:rgba(18,19,24,.72);box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 0 1px rgba(246,90,0,.12)}
+html.dk .nav button.on{color:#FF8A3D;text-shadow:0 0 14px rgba(246,90,0,.8)}
+html.dk .nav button.on svg{filter:drop-shadow(0 0 6px rgba(246,90,0,.9))}
+html.dk .chip.on{background:linear-gradient(135deg,#FF7A1F,#F65A00);color:#fff;box-shadow:0 0 18px rgba(246,90,0,.5)}
+html.dk .st b{background:linear-gradient(90deg,#fff,#FFB27A);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none}
+html.dk .bd{box-shadow:0 0 14px rgba(246,90,0,.8)}
+html.dk .shs{background:rgba(16,17,21,.86);border-top:1px solid rgba(246,90,0,.5);box-shadow:0 -10px 50px rgba(246,90,0,.18)}
+html.dk .bb.a{box-shadow:0 0 22px rgba(246,90,0,.28)}
+html.dk .top .t b{letter-spacing:.2px}
+.sfp{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.4px;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);margin-top:4px;cursor:pointer}
+.sfp i{width:8px;height:8px;border-radius:50%;background:#22C55E;box-shadow:0 0 10px #22C55E;animation:pls 1.8s infinite}
+.sfp.busy i{background:#F65A00;box-shadow:0 0 10px #F65A00}.sfp.away i{background:#EAB308;box-shadow:0 0 10px #EAB308}
+@keyframes pls{50%{opacity:.35}}
+.sfk{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(246,90,0,.9),rgba(255,138,61,.75));color:#fff;box-shadow:0 0 22px rgba(246,90,0,.55);flex:none}
+.sfk svg{width:20px;height:20px}
+.pal{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;padding:calc(70px + env(safe-area-inset-top)) 14px 14px;background:rgba(5,6,8,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:fi .2s both}
+.pal .bx{width:100%;max-width:520px;border-radius:22px;background:rgba(20,21,27,.92);border:1px solid rgba(246,90,0,.45);box-shadow:0 0 50px rgba(246,90,0,.25),0 30px 80px rgba(0,0,0,.6);overflow:hidden;animation:pz .28s cubic-bezier(.2,1.2,.3,1) both}
+@keyframes pz{from{transform:translateY(-14px) scale(.96);opacity:0}}
+.pal .in{display:flex;gap:10px;align-items:center;padding:0 16px;height:58px;border-bottom:1px solid rgba(255,255,255,.08);color:#FF8A3D}
+.pal input{flex:1;background:none;border:0;outline:0;color:#fff;font:inherit;font-size:16px}
+.pal .ls{max-height:56vh;overflow:auto;padding:8px}
+.pal .it{display:flex;gap:12px;align-items:center;width:100%;text-align:start;padding:11px 12px;border-radius:14px;color:#E5E7EB}
+.pal .it small{margin-inline-start:auto;color:#8D98A5;font-size:11px;letter-spacing:.5px}
+.pal .it.on,.pal .it:active{background:rgba(246,90,0,.16)}
+.pal .it svg{width:18px;height:18px;color:#FF8A3D}
+.pal h6{margin:8px 12px 4px;font-size:11px;letter-spacing:1px;color:#8D98A5;font-weight:700}
+.sai h4{font-size:12px;letter-spacing:1px;color:#FF8A3D;margin:14px 0 6px}
+.sai .kv{display:flex;gap:8px;flex-wrap:wrap}.sai .kv span{padding:5px 11px;border-radius:99px;background:rgba(246,90,0,.14);border:1px solid rgba(246,90,0,.35);font-size:12.5px;font-weight:600}
+.sai .sg{display:block;width:100%;text-align:start;margin:6px 0;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);font-size:14px;line-height:1.5}
+.sai .sg:active{border-color:#F65A00}
+.sai p.n{color:var(--mut);font-size:12px;margin-top:12px}
+.sai .sm{font-size:13.5px;line-height:1.6;color:var(--ink)}
+/* cinematic splash */
+#sp{background:#07080A!important;overflow:hidden}#sp canvas{position:absolute;inset:0;width:100%;height:100%}
+#sp .sfl{position:relative;display:flex;flex-direction:column;align-items:center;z-index:2}
+#sp .orb{position:relative;width:176px;height:176px;border-radius:50%;display:grid;place-items:center;animation:orbIn 1.2s cubic-bezier(.2,1.1,.3,1) both}
+@keyframes orbIn{from{transform:scale(.3) rotate(-120deg);opacity:0;filter:blur(14px)}to{transform:none;opacity:1;filter:none}}
+#sp .orb img{width:140px;height:140px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px rgba(246,90,0,.9),0 0 60px rgba(246,90,0,.75),0 0 140px rgba(246,90,0,.35)}
+#sp .orb i{position:absolute;inset:-14px;border-radius:50%;border:1.5px solid rgba(246,90,0,.55);border-top-color:transparent;border-bottom-color:transparent;animation:spn 3.2s linear infinite}
+#sp .orb i:nth-child(2){inset:-30px;border-color:rgba(255,138,61,.4) transparent;animation-duration:5s;animation-direction:reverse}
+#sp .orb i:nth-child(3){inset:-48px;border:1px dashed rgba(255,255,255,.18);animation-duration:9s}
+@keyframes spn{to{transform:rotate(360deg)}}
+#sp .orb u{position:absolute;left:8px;right:8px;height:3px;top:20px;background:linear-gradient(90deg,transparent,#FFB27A,transparent);box-shadow:0 0 18px #F65A00;animation:scn 1.9s .6s ease-in-out 2 both;opacity:0}
+@keyframes scn{0%{top:14px;opacity:0}15%{opacity:1}85%{opacity:1}100%{top:150px;opacity:0}}
+#sp h1{margin-top:58px;font-size:30px;font-weight:800;letter-spacing:6px;animation:fu .9s .5s both}#sp h1 em{font-style:normal;color:#FF8A3D;text-shadow:0 0 22px rgba(246,90,0,.9)}
+#sp .boot{margin-top:18px;min-height:64px;font:12px/1.9 ui-monospace,Menlo,Consolas,monospace;color:#7DD3A8;direction:ltr;text-align:left;opacity:.9}
+#sp .boot div{animation:fu .3s both}
+#sp .bar{width:200px;margin-top:10px}
+`;document.head.appendChild(st);
+/* dark by default once */
+if(!localStorage.getItem("uno_sf1")){localStorage.setItem("uno_sf1","1");P.theme="dark";sp()}
+applyP();
+/* splash content */
+var sp0=document.getElementById("sp");
+if(sp0){var lg=sp0.querySelector(".lg");if(lg)lg.outerHTML='<div class="sfl"><div class="orb"><i></i><i></i><i></i><img src="assets/mascot-badge.jpg" alt=""><u></u></div></div>';
+ var h=sp0.querySelector("h1"),pp=document.getElementById("spt"),br=sp0.querySelector(".bar"),w=sp0.querySelector(".sfl");
+ h.innerHTML='UNO <em>SUPPORT</em>';w.appendChild(h);w.appendChild(pp);var bt=document.createElement("div");bt.className="boot";w.appendChild(bt);w.appendChild(br);
+ var cv=document.createElement("canvas");cv.id="spc";sp0.insertBefore(cv,sp0.firstChild);
+ ["> SECURE CHANNEL ........ OK","> PRESENCE ............... ONLINE","> SMART ASSIST ........... READY"].forEach(function(l,i){setTimeout(function(){var d=document.createElement("div");d.textContent=l;bt.appendChild(d)},900+i*520)});
+ try{var c=cv.getContext("2d"),W,H,pts=[],n=46;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight}rs();for(var i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.5,vy:(Math.random()-.5)*.5});
+  (function fr(){if(sp0.classList.contains("hide"))return;c.clearRect(0,0,W,H);pts.forEach(function(p,i){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;c.fillStyle="rgba(255,138,61,.8)";c.beginPath();c.arc(p.x,p.y,1.6,0,6.3);c.fill();for(var j=i+1;j<n;j++){var q=pts[j],d=Math.hypot(p.x-q.x,p.y-q.y);if(d<110){c.strokeStyle="rgba(246,90,0,"+(.28*(1-d/110))+")";c.beginPath();c.moveTo(p.x,p.y);c.lineTo(q.x,q.y);c.stroke()}}});requestAnimationFrame(fr)})()}catch(e){}}
+/* presence */
+function stt(){return P.status||"on"}
+var SL={on:["AVAILABLE","متاح"],busy:["BUSY","مشغول"],away:["AWAY","بعيد"]};
+function pill(){return '<span class="sfp '+stt()+'" id="sfp"><i></i>'+SL[stt()][P.lang==="en"?0:1]+'</span>'}
+function setSt(k){P.status=k;sp();var e=document.getElementById("sfp");if(e){e.outerHTML=pill();bindPill()}}
+function bindPill(){var e=document.getElementById("sfp");if(e)e.onclick=function(ev){ev.stopPropagation();hap();palette("status")}}
+/* palette */
+var ICN='<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+function palette(pre){if(document.getElementById("pal"))return;var en=P.lang==="en";
+ var A=[["g",en?"NAVIGATE":"تنقل"],
+ [en?"Open inbox":"فتح المحادثات",function(){tab="inbox";filt="all";home()},"inbox"],
+ [en?"My chats":"محادثاتي",function(){tab="mine";home()},"mine"],
+ [en?"Unassigned chats":"محادثات غير مستلمة",function(){tab="inbox";filt="un";home()},"un"],
+ [en?"My profile":"حسابي",function(){tab="me";home()},"me"],
+ ["g",en?"STATUS":"الحالة"],
+ [en?"Set status: Available":"الحالة: متاح",function(){setSt("on")},"status"],
+ [en?"Set status: Busy":"الحالة: مشغول",function(){setSt("busy")},"status"],
+ [en?"Set status: Away":"الحالة: بعيد",function(){setSt("away")},"status"],
+ ["g",en?"SYSTEM":"النظام"],
+ [en?"Toggle dark / light":"تبديل الداكن / الفاتح",function(){var dk=document.documentElement.classList.contains("dk");P.theme=dk?"light":"dark";sp();applyP()},"theme"],
+ [en?"Switch language (AR / EN)":"تغيير اللغة (عربي / English)",function(){P.lang=P.lang==="en"?"ar":"en";sp();applyP();home()},"lang"],
+ [en?"Toggle sound":"تشغيل / إيقاف الصوت",function(){P.sound=!P.sound;sp();toast(P.sound?"ON":"OFF")},"sound"]];
+ var o=document.createElement("div");o.id="pal";o.className="pal";o.innerHTML='<div class="bx"><div class="in">'+IC.search+'<input id="pq" placeholder="'+(en?"Type a command or customer...":"اكتب أمرًا أو اسم عميل...")+'" autocomplete="off"></div><div class="ls" id="pls"></div></div>';document.body.appendChild(o);
+ var pq=document.getElementById("pq"),ls=document.getElementById("pls"),cur2=[];
+ function close(){o.remove()}o.onclick=function(e){if(e.target===o)close()};
+ function draw(){var v=pq.value.trim().toLowerCase(),h="",k=0;cur2=[];var grp="";
+  var rows=[];if(v){(list||[]).filter(function(c){return(c.name||"").toLowerCase().indexOf(v)>-1||(c.phone||"").indexOf(v)>-1}).slice(0,5).forEach(function(c){rows.push(["c",(c.name||"?")+" · "+(c.phone||""),function(){cur=c;lastId=0;chat()},"chat"])})}
+  A.forEach(function(a){if(a[0]==="g"){grp=a[1];return}if(pre==="status"&&!v&&a[3]!=="status")return;if(!v||a[0].toLowerCase().indexOf(v)>-1)rows.push([grp,a[0],a[1],a[2]])});
+  var last="";rows.forEach(function(r){var isC=r[0]==="c";var lab=isC?r[1]:r[1],fn=isC?r[2]:r[2],tg=isC?(en?"CHAT":"محادثة"):r[0];var g=isC?(en?"CUSTOMERS":"العملاء"):r[0];if(g!==last){h+="<h6>"+g+"</h6>";last=g}cur2.push(fn);h+='<button class="it'+(k===0?" on":"")+'" data-i="'+k+'">'+ICN+"<span>"+esc(lab)+"</span></button>";k++});
+  ls.innerHTML=h||'<div class="emp" style="padding:24px">'+(en?"No match":"لا نتائج")+"</div>";
+  [].forEach.call(ls.querySelectorAll(".it"),function(b){b.onclick=function(){hap();var f=cur2[+b.dataset.i];close();if(f)f()}})}
+ pq.oninput=draw;pq.onkeydown=function(e){if(e.key==="Escape")close();if(e.key==="Enter"){var f=cur2[0];if(f){close();f()}}};draw();setTimeout(function(){pq.focus()},60)}
+document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();if(document.getElementById("app").querySelector(".nav,.ch"))palette()}});
+/* wrap home */
+var _home=home;home=function(){_home();var t0=document.querySelector(".top");if(t0&&!t0.querySelector(".sfk")){var tt=t0.querySelector(".t");if(tt&&tab!=="me"){tt.insertAdjacentHTML("beforeend",pill());bindPill()}
+ var b=document.createElement("button");b.className="sfk";b.setAttribute("aria-label","Command palette");b.innerHTML='<svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>';b.onclick=function(){hap();palette()};t0.insertBefore(b,t0.querySelector(".av"))}};
+/* smart panel in chat */
+var KW=[["price",/سعر|بكام|كام|تكلف|price|cost|how much/i,"السعر","Pricing"],["repair",/صيان|عطل|بايظ|مش شغال|مشكل|repair|broken|not working|issue/i,"صيانة / عطل","Repair / fault"],["order",/طلب|اوردر|أوردر|شحن|توصيل|order|delivery|shipping/i,"طلب / توصيل","Order / delivery"],["invoice",/فاتور|دفع|invoice|payment|receipt/i,"فاتورة / دفع","Invoice / payment"],["call",/اتصل|مكالم|call|phone me/i,"طلب مكالمة","Call request"]];
+var SG={price:[["تمام، ممكن تقولّي اسم المنتج أو الخدمة بالظبط عشان أراجع لك السعر الحالي؟","Sure, which product or service exactly? I will check the current price for you."]],repair:[["آسفين على المشكلة. ممكن توصف لي اللي بيحصل ونوع الجهاز، ولو تقدر ابعت صورة؟","Sorry about the trouble. Can you describe what happens and the device model, and send a photo if possible?"]],order:[["ممكن رقم الطلب أو رقم الموبايل المسجل عشان أتابع الطلب لك؟","Could you share the order number or your registered phone so I can check the order?"]],invoice:[["ممكن رقم الفاتورة أو الاسم اللي اتسجلت به؟","Could you share the invoice number or the name it was issued under?"]],call:[["تمام، تحب نكلمك دلوقتي؟ أو اضغط زر الاتصال في الشات.","Sure, would you like us to call you now? Or tap the call button in the chat."]],gen:[["أهلاً بحضرتك في أونو، إزاي أقدر أساعدك؟","Welcome to Uno, how can I help you?"],["ثواني وأراجع لك الموضوع.","Give me a moment to check this for you."],["تحب أي مساعدة تانية؟","Anything else I can help with?"]]};
+function panel(){var en=P.lang==="en",m=document.getElementById("m");if(!m)return;var V=[].map.call(m.querySelectorAll(".bb.v"),function(b){var x=b.cloneNode(true);var tm=x.querySelector("time");if(tm)tm.remove();return x.textContent.trim()}).filter(Boolean),all=V.join(" ");
+ var ar=(all.match(/[\u0600-\u06FF]/g)||[]).length,la=(all.match(/[A-Za-z]/g)||[]).length,lang=!all?"-":ar>=la?(en?"Arabic":"عربي"):"English";
+ var tg=KW.filter(function(k){return k[1].test(all)});var tot=m.querySelectorAll(".bb").length,ag=m.querySelectorAll(".bb.a").length;
+ var sug=[];tg.forEach(function(k){(SG[k[0]]||[]).forEach(function(s){sug.push(s)})});if(!sug.length)sug=SG.gen;
+ var h='<div class="sai shb"><div class="shh"><b>'+(en?"Smart assist":"المساعد الذكي")+'</b></div><h4>'+(en?"LANGUAGE":"اللغة")+'</h4><div class="kv"><span>'+lang+"</span></div><h4>"+(en?"TOPICS":"المواضيع")+'</h4><div class="kv">'+(tg.length?tg.map(function(k){return"<span>"+(en?k[3]:k[2])+"</span>"}).join(""):"<span>"+(en?"General":"عام")+"</span>")+"</div><h4>"+(en?"SUMMARY":"ملخص")+'</h4><div class="sm">'+(en?(tot+" messages, "+ag+" from staff. First: "):(tot+" رسالة، منها "+ag+" من الموظفين. الأولى: "))+esc((V[0]||"-").slice(0,120))+(V.length>1?(en?". Latest: ":". الأحدث: ")+esc(V[V.length-1].slice(0,120)):"")+"</div><h4>"+(en?"SUGGESTED REPLIES":"ردود مقترحة")+"</h4>"+sug.map(function(s,i){return '<button class="sg" data-i="'+i+'">'+esc(s[en?1:0])+"</button>"}).join("")+'<p class="n">'+(en?"Rule-based, runs on this phone. The full AI model comes with the Uno Assistant.":"مبني على قواعد وبيشتغل على التليفون. نموذج الذكاء الكامل هييجي مع مساعد أونو.")+"</p></div>";
+ var d=sheet(h);[].forEach.call(d.querySelectorAll(".sg"),function(b){b.onclick=function(){hap();var tx=document.getElementById("tx");if(tx){tx.value=sug[+b.dataset.i][en?1:0];tx.oninput&&tx.oninput();tx.focus()}d.remove()}})}
+var _chat=chat;chat=function(){_chat();var ch=document.querySelector(".ch");if(ch&&!ch.querySelector(".sfk")){var b=document.createElement("button");b.className="sfk";b.setAttribute("aria-label","Smart assist");b.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>';b.onclick=function(){hap();panel()};ch.appendChild(b)}};
+if(DEMO&&/pal=1/.test(location.search))setTimeout(function(){palette()},1300);if(DEMO&&/c360=1/.test(location.search))setTimeout(function(){c360(cur)},3000);if(DEMO&&/sai=1/.test(location.search))setTimeout(function(){panel()},3000);
+})();
+
 applyP();
 try{S=JSON.parse(localStorage.getItem("uno_staff")||"null")}catch(e){}
 $("spt").textContent=t("tag");
