@@ -65,12 +65,43 @@
       return fetch(C.url + '/storage/v1/' + path, { method: method, headers: h, body: raw ? body : JSON.stringify(body) }).then(function (r) { return r.text().then(function (x) { var d; try { d = JSON.parse(x); } catch (e) { d = x; } if (!r.ok) throw new Error(d && d.message || 'HTTP ' + r.status); return d; }); });
     });
   }
+
+  /* Offline photo queue: photos taken without a connection wait in IndexedDB and upload when the network is back. Idempotent: the storage path is fixed at capture and job_photo_add upserts on path. */
+  var PQ = { db: null };
+  function pqOpen() {
+    if (PQ.db) return Promise.resolve(PQ.db);
+    return new Promise(function (res, rej) { var r = indexedDB.open('uno_photoq', 1); r.onupgradeneeded = function () { r.result.createObjectStore('q', { keyPath: 'path' }); }; r.onsuccess = function () { PQ.db = r.result; res(PQ.db); }; r.onerror = function () { rej(r.error); }; });
+  }
+  function pqTx(mode, fn) { return pqOpen().then(function (db) { return new Promise(function (res, rej) { var t = db.transaction('q', mode), st = t.objectStore('q'), out = fn(st); t.oncomplete = function () { res(out && out.result !== undefined ? out.result : undefined); }; t.onerror = function () { rej(t.error); }; }); }); }
+  function pqAdd(job, path, blob) { return pqTx('readwrite', function (st) { return st.put({ path: path, job: job, blob: blob, at: Date.now(), err: '' }); }); }
+  function pqAll() { return pqTx('readonly', function (st) { return st.getAll(); }); }
+  function pqDel(path) { return pqTx('readwrite', function (st) { return st.delete(path); }); }
+  function isNet(e) { return !navigator.onLine || e instanceof TypeError || /Failed to fetch|NetworkError|Load failed/i.test(String(e && e.message)); }
+  var pqBusy = false;
+  function pqFlush() {
+    if (pqBusy || !navigator.onLine || !window.indexedDB) return Promise.resolve(0);
+    pqBusy = true; var done = 0;
+    return pqAll().then(function (items) {
+      return items.reduce(function (p, it) {
+        return p.then(function () {
+          if (it.err) return;
+          return sb('POST', 'object/job-photos/' + it.path, it.blob, true).catch(function (e) { if (/exist|duplicate|409/i.test(String(e && e.message))) return; throw e; })
+            .then(function () { return rpc('job_photo_add', { p_job: it.job, p_path: it.path }); })
+            .then(function () { done++; return pqDel(it.path); })
+            .catch(function (e) { if (isNet(e)) throw e; return pqTx('readwrite', function (st) { it.err = errmsg(e) || 'error'; return st.put(it); }); });
+        });
+      }, Promise.resolve());
+    }).catch(function () {}).then(function () { pqBusy = false; return done; });
+  }
+  window.addEventListener('online', function () { pqFlush().then(function (n) { if (n && document.getElementById('jph') && window.__jpr) window.__jpr(); }); });
   function photos(id, ended) {
     var box = document.getElementById('jph'); if (!box) return;
+    window.__jpr = function () { photos(id, ended); };
     rpc('job_photos', { p_job: id }).then(function (ps) {
       var h = '<h3>' + T(['الصور', 'Photos']) + '</h3><div class="jgrid" id="pg">' + ps.map(function () { return '<span class="pth"></span>'; }).join('') + '</div>' + (ps.length ? '' : '<div class="hist">—</div>') +
         (ended ? '' : '<div class="msg" id="pe" hidden></div><label class="btn alt" style="display:grid;place-items:center;cursor:pointer;margin-top:8px">' + T(['إضافة صورة', 'Add photo']) + '<input id="pf" type="file" accept="image/*" capture="environment" hidden></label>');
       box.innerHTML = h;
+      if (window.indexedDB) pqAll().then(function (qq) { qq = qq.filter(function (x) { return x.job === id; }); if (!qq.length) return; var pend = qq.filter(function (x) { return !x.err; }).length, bad = qq.length - pend, d = document.createElement('div'); d.className = 'hist'; d.id = 'pqn'; d.textContent = (pend ? T(['صور بانتظار الرفع: ' + pend, 'Photos waiting to upload: ' + pend]) : '') + (bad ? ' ' + T(['(فشل رفع ' + bad + ')', '(' + bad + ' failed)']) : ''); box.appendChild(d); if (pend && navigator.onLine) pqFlush().then(function (n) { if (n) photos(id, ended); }); }).catch(function () {});
       if (ps.length) sb('POST', 'object/sign/job-photos', { expiresIn: 3600, paths: ps.map(function (p) { return p.path; }) }).then(function (r) {
         var cells = document.querySelectorAll('#pg .pth');
         r.forEach(function (x, i) { if (!x.signedURL || !cells[i]) return; var im = document.createElement('img'); im.loading = 'lazy'; im.alt = ps[i].caption || ''; im.src = window.UNO_CFG.url + '/storage/v1' + x.signedURL; im.onclick = function () { window.open(im.src, '_blank'); }; cells[i].appendChild(im); });
@@ -79,8 +110,12 @@
       pf.onchange = function () {
         var f = pf.files && pf.files[0]; if (!f) return; var m = document.getElementById('pe'); m.hidden = false; m.textContent = T(['جارٍ الرفع...', 'Uploading...']);
         var path = id + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 7) + '.jpg';
-        shrink(f).then(function (b) { return sb('POST', 'object/job-photos/' + path, b, true); }).then(function () { return rpc('job_photo_add', { p_job: id, p_path: path }); })
-          .then(function () { photos(id, ended); }).catch(function (e) { m.textContent = navigator.onLine ? errmsg(e) : T(['لا يوجد اتصال. الصور لا تُحفظ دون إنترنت، حاول لاحقًا.', 'No connection. Photos are not saved offline, try again later.']); });
+        shrink(f).then(function (b) {
+          var queue = function () { return pqAdd(id, path, b).then(function () { m.textContent = T(['اتحفظت الصورة على الجهاز وهتترفع لوحدها لما النت يرجع.', 'Photo saved on this device. It will upload when you are back online.']); photos(id, ended); }); };
+          if (!navigator.onLine && window.indexedDB) return queue();
+          return sb('POST', 'object/job-photos/' + path, b, true).then(function () { return rpc('job_photo_add', { p_job: id, p_path: path }); }).then(function () { photos(id, ended); })
+            .catch(function (e) { if (isNet(e) && window.indexedDB) return queue(); throw e; });
+        }).catch(function (e) { m.textContent = errmsg(e); });
       };
     }).catch(function () { box.innerHTML = ''; });
   }
