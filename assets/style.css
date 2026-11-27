@@ -701,3 +701,5 @@ html[data-theme=dark] #chat .ch-sup{color:#5eead4;border-color:rgba(94,234,212,.
 #vc .vc-btns button.end{background:#e11d48;border-color:#e11d48;box-shadow:0 10px 26px rgba(225,29,72,.45)}
 #vc .vc-btns button.on{background:#fff;color:#c2410c}
 @media(prefers-reduced-motion:reduce){#chat,#chat.out,#chat .m,#vc,#chat #ch-hcall{animation:none!important}}
+#chat #ch-tabs button[data-m=ai].on{background:linear-gradient(135deg,#ff7a1f,#f65a00)}
+#chat #ch-tabs button[data-m=live].on{background:linear-gradient(135deg,#059669,#10b981)}
