@@ -47,7 +47,7 @@ var MODS=[
  {id:"vari",g:"المتجر / Store",p:"store",ic:"box",l:"خيارات المنتجات / Variants"},
  {id:"attr",g:"المتجر / Store",p:"store",ic:"tag",l:"مواصفات المنتجات / Attributes"},
  {id:"ship",g:"المتجر / Store",p:"store",ic:"cart",l:"أسعار الشحن / Shipping rates"},
- {id:"pay",g:"المتجر / Store",p:"store",ic:"tag",l:"طرق الدفع / Payment methods"},
+ {id:"paym",g:"المتجر / Store",p:"store",ic:"tag",l:"طرق الدفع / Payment methods"},
  {id:"cpn",g:"المتجر / Store",p:"store",ic:"tag",l:"كوبونات الخصم / Coupons"},
  {id:"pol",g:"المتجر / Store",p:"store",ic:"kb",l:"سياسات المتجر / Policies"},
  {id:"ret",g:"المتجر / Store",p:"orders",ic:"inbox",l:"طلبات الاسترجاع / Returns"},
@@ -79,7 +79,7 @@ var MODS=[
  {id:"cin",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"المخزون / Inventory"}
 ];
 var GR={ov:"نظرة عامة / Overview",sl:"المبيعات / Sales",pu:"المشتريات / Purchases",iv:"المخزون / Inventory",ac:"الحسابات / Accounting",cr:"العملاء / CRM",rp:"التقارير / Reports",st:"المتجر الإلكتروني / Online store",wb:"الموقع / Website",se:"الإعدادات / Settings"};
-var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",pay:"st",cpn:"st",pol:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",rmx:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
+var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",paym:"st",cpn:"st",pol:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",rmx:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
 MODS.forEach(function(m,i){m.gk=GM[m.id]||"se";m.g=GR[m.gk];m.o=i});
 MODS.sort(function(a,b){return GO.indexOf(a.gk)-GO.indexOf(b.gk)||a.o-b.o});
 var GOPEN={};try{GOPEN=JSON.parse(localStorage.getItem("uno_gopen")||"{}")}catch(e){}
@@ -101,7 +101,7 @@ function setMod(id,fromNav){
  var cs=$("#csub");if(cs)cs.classList.toggle("open",id==="content");
  $("#ttl").innerHTML=(m.gk==="ov"?"":'<span class="bc">'+esc(m.g)+" &rsaquo; </span>")+esc(m.l);gset(m.gk,true);gsave();var ah=document.querySelector('#nav .ni[data-m="'+id+'"]');if(ah&&ah.scrollIntoView)try{ah.scrollIntoView({block:"nearest"})}catch(e){}
  if(id==="content"){if(fromNav&&window.__admin)window.__admin.drawMain();if(PH.matches&&fromNav)return}
- else{var mn=$("#main");mn.innerHTML='<p class="hint">…</p>';RENDER[id]&&RENDER[id](mn)}
+ else{var mn=$("#main");mn.innerHTML='<div class="skl" aria-busy="true"><i class="skl-t"></i><div class="skl-g"><i></i><i></i><i></i><i></i></div><i class="skl-b"></i></div>';RENDER[id]&&RENDER[id](mn)}
  if(PH.matches&&id!=="content")closeNav();
  try{location.hash=id}catch(e){}
 }
@@ -297,7 +297,7 @@ RENDER.ads2=function(mn){CRUD(mn,{table:"ad_slots",pk:"id",order:"slot.asc,sort.
  fields:[{k:"slot",l:["المكان","Slot"],t:"sel",o:SLOTS},{k:"lang",l:["اللغة","Lang"],t:"sel",o:YN},{k:"image",l:["الصورة","Image"],t:"img"},{k:"image_mobile",l:["صورة الموبايل","Mobile image"],t:"img"},{k:"link",l:["الرابط","Link"],t:"text",dir:1},{k:"alt_ar",l:["وصف عربي","Alt AR"]},{k:"alt_en",l:["وصف إنجليزي","Alt EN"]},{k:"sort",l:["الترتيب","Order"],t:"num"},{k:"active",l:["مفعل","On"],t:"bool"},{k:"starts_at",l:["يبدأ","Starts"],dir:1},{k:"ends_at",l:["ينتهي","Ends"],dir:1}]})};
 RENDER.ship=function(mn){CRUD(mn,{table:"ship_rates",pk:"code",order:"sort.asc",l:["أسعار الشحن","Shipping rates"],h:["سعر الشحن لكل محافظة. المحافظة بتفضل غير متاحة للطلب لحد ما تكتب السعر وتفعلها. علّم تقديري لو السعر مش نهائي.","Price per governorate. A governorate stays unavailable for orders until you set a price and turn it on. Tick Estimate if the price is not final."],
  fields:[{k:"name_ar",l:["المحافظة","Governorate"],t:"ro"},{k:"price",l:["السعر","Price"],t:"num"},{k:"days_min",l:["أقل أيام","Min days"],t:"num"},{k:"days_max",l:["أكثر أيام","Max days"],t:"num"},{k:"cod",l:["دفع عند الاستلام","COD"],t:"bool"},{k:"active",l:["متاح","On"],t:"bool"},{k:"is_placeholder",l:["تقديري","Estimate"],t:"bool"}]})};
-RENDER.pay=function(mn){CRUD(mn,{table:"payment_methods",pk:"code",order:"sort.asc",l:["طرق الدفع","Payment methods"],h:["الدفع عند الاستلام هو الوحيد المدعوم في الطلبات حاليًا. باقي الطرق تتفعل لما تتوصل بمزود دفع.","Cash on delivery is the only method orders support right now. Others are enabled once a payment provider is connected."],
+RENDER.paym=function(mn){CRUD(mn,{table:"payment_methods",pk:"code",order:"sort.asc",l:["طرق الدفع","Payment methods"],h:["الدفع عند الاستلام هو الوحيد المدعوم في الطلبات حاليًا. باقي الطرق تتفعل لما تتوصل بمزود دفع.","Cash on delivery is the only method orders support right now. Others are enabled once a payment provider is connected."],
  fields:[{k:"code",l:["الكود","Code"],t:"ro"},{k:"name_ar",l:["الاسم عربي","Name AR"]},{k:"name_en",l:["الاسم إنجليزي","Name EN"]},{k:"active",l:["مفعل","On"],t:"bool"},{k:"is_placeholder",l:["تقديري","Placeholder"],t:"bool"},{k:"note_ar",l:["ملاحظة عربي","Note AR"]},{k:"note_en",l:["ملاحظة إنجليزي","Note EN"]},{k:"sort",l:["الترتيب","Order"],t:"num"}]})};
 RENDER.cpn=function(mn){CRUD(mn,{table:"coupons",pk:"code",order:"created_at.desc",add:1,del:1,l:["كوبونات الخصم","Coupons"],h:["كود الخصم بيتحسب في السيرفر عند الطلب. الكود حروف إنجليزي كبيرة.","Coupon codes are checked on the server at order time. Codes are uppercase."],
  fields:[{k:"code",l:["الكود","Code"],t:"ro",dir:1},{k:"kind",l:["النوع","Kind"],t:"sel",o:[["percent","نسبة % / Percent"],["fixed","مبلغ / Fixed"]]},{k:"val",l:["القيمة","Value"],t:"num"},{k:"min_subtotal",l:["حد أدنى","Min subtotal"],t:"num"},{k:"max_uses",l:["أقصى استخدام","Max uses"],t:"num"},{k:"used",l:["مستخدم","Used"],t:"ro"},{k:"starts_at",l:["يبدأ","Starts"],dir:1},{k:"ends_at",l:["ينتهي","Ends"],dir:1},{k:"active",l:["مفعل","On"],t:"bool"}],
@@ -1039,3 +1039,5 @@ RENDER.ins=function(mn){
 
 /* store admin tables: keep row buttons on one line */
 (function(){var s=document.createElement("style");s.textContent="td .btn,td button{white-space:nowrap;writing-mode:horizontal-tb}";document.head.appendChild(s)})();
+
+(function(){var s=document.createElement("style");s.textContent=".skl{display:grid;gap:14px}.skl i{display:block;border-radius:14px;background:linear-gradient(90deg,rgba(128,128,140,.12),rgba(128,128,140,.22),rgba(128,128,140,.12));background-size:200% 100%;animation:sklm 1.2s linear infinite}.skl-t{height:28px;width:40%}.skl-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.skl-g i{height:96px}.skl-b{height:220px}@keyframes sklm{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){.skl i{animation:none}}";document.head.appendChild(s)})();
