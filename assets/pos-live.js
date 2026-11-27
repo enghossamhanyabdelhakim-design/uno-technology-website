@@ -121,10 +121,12 @@
           get('products?select=id,name_ar,name_en,price,barcode,category_id,is_demo&active=eq.true&order=name_ar.asc&limit=1000'),
           get('core_stock_levels?select=product_id,warehouse_id,qty'),
           get('core_partners?kind=in.(customer,both)&active=eq.true&select=id,name,phone,credit_limit,balance&order=name.asc&limit=500'),
-          rpc('pos_item_units').catch(function () { return []; })
+          rpc('pos_item_units').catch(function () { return []; }),
+          rpc('doc_settings_get').catch(function () { return null; })
         ]);
       }).then(function (r) {
         var role = (r[0][0] && r[0][0].active !== false) ? r[0][0].role : 'cashier'; L.role = role;
+        L.doc = r[7] || null;
         L.whs = r[1] || []; L.wh = r[1][0] ? r[1][0].id : null;
         try { var sw = localStorage.getItem('uno_pos_wh'); if (sw && L.whs.some(function (x) { return x.id === sw; })) L.wh = sw; } catch (e) {}
         if (L.whs.length > 1) setTimeout(whPicker, 300);

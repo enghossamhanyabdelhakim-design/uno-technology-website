@@ -1455,12 +1455,19 @@ function rcPage(tpl) {
   const t = window.UnoReceipt.TEMPLATES.find((x) => x.id === tpl) || {};
   st.textContent = '@media print{@page{size:' + (t.w === '210mm' ? 'A4' : (t.w || '80mm') + ' auto') + ';margin:' + (t.w === '210mm' ? '0' : '0') + '}}';
 }
+/* receipt/invoice settings from the admin panel (doc_settings_get). Offline or before load: confirmed default phone, tax line falls back to the phone. */
+function rcDoc() {
+  const d = (window.UnoLive && window.UnoLive.state && window.UnoLive.state.doc) || null, co = (d && d.company) || {};
+  const tax = String(co.tax_id || '').trim(), realTax = !co.is_placeholder && /[1-9]/.test(tax) ? tax : '';
+  return { cfg: d ? d.cfg : { text: { phone: '01505946321' }, tax_fallback_phone: true }, tax: realTax, phone: co.phone || '' };
+}
 function receiptHtml(inv, tplOverride) {
   rcEnsureCss();
   const cust = inv.customer_id ? state.customers.find((c) => c.id === inv.customer_id) : null;
   return window.UnoReceipt.render(inv, {
     tpl: tplOverride || rcTpl(), lang: LANG,
-    co: { nameAr: CFG.company.nameAr, nameEn: CFG.company.nameEn, taxNo: CFG.company.taxNo, phone: '', addrAr: 'فرشوط · قنا', addrEn: 'Farshout · Qena' },
+    cfg: rcDoc().cfg,
+    co: { nameAr: CFG.company.nameAr, nameEn: CFG.company.nameEn, taxNo: rcDoc().tax, phone: rcDoc().phone, addrAr: 'فرشوط · قنا', addrEn: 'Farshout · Qena' },
     money, nf, method: methodName, dt: fmtDateTime(inv.created_at),
     cashier: ROLES[(state.shift && state.shift.cashierRole) || 'cashier'][LANG], customer: cust ? cust[LANG] : (inv.customer_name || ''),
     unitLabel: (l) => uLab(l.product_id)
