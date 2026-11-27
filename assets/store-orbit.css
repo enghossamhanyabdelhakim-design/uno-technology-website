@@ -69,3 +69,13 @@ html[lang=en] .us,html[lang=en] .us-drawer{font-family:"Alexandria","Poppins","S
  .us-dh{position:relative;padding-block-start:22px}
  .us-dh::before{content:"";position:absolute;top:8px;inset-inline-start:50%;width:44px;height:5px;margin-inline-start:-22px;border-radius:3px;background:var(--bd)}
 }
+/* P0-4 filters: pill counts, 22px checks, sticky under header */
+.us-side{top:calc(var(--uno-hdr,68px) + 16px);align-self:start}
+.us-chk{gap:.65rem;min-height:40px}
+.us-chk input{appearance:none;-webkit-appearance:none;width:22px;height:22px;flex:none;margin:0;border:1.5px solid var(--bd);border-radius:7px;background:var(--s1);display:grid;place-content:center;cursor:pointer;transition:background .15s,border-color .15s}
+.us-chk input::after{content:"";width:11px;height:6px;border:2.5px solid #fff;border-top:0;border-inline-end:0;transform:rotate(-45deg) scale(0);transition:transform .12s;margin-top:-2px}
+.us-chk input:checked{background:#F65A00;border-color:#F65A00}
+.us-chk input:checked::after{transform:rotate(-45deg) scale(1)}
+.us-chk input:focus-visible{outline:3px solid rgba(246,90,0,.3);outline-offset:2px}
+.us-chk small{margin-inline-start:auto;min-width:26px;padding:1px 9px;border-radius:999px;background:rgba(246,90,0,.1);color:#B84500;font-size:12px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;line-height:1.6}
+html[data-theme=dark] .us-chk small{background:rgba(255,138,61,.16);color:#FF8A3D}
