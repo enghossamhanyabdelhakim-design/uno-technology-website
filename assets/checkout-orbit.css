@@ -1,0 +1,16 @@
+/* Orbit for cart, checkout and post-purchase pages. Loaded last. Tokens only plus light polish; no logic change. */
+html[data-theme=light],html[data-theme=light] .uo-root{--uo-orange:#F65A00;--uo-orange-600:#E04F00;--uo-orange-300:#FF9E4A;--uo-orange-soft:#FFF1E8;--uo-green:#16A34A;--uo-red:#E5484D;--uo-amber:#D97706;--uo-bg:#FAF9F7;--uo-bg-soft:#F5F3F0;--uo-surface:#FFFFFF;--uo-surface-2:#F8F6F3;--uo-surface-3:#F0EDE8;--uo-line:#ECE8E1;--uo-line-soft:#F2EFEA;--uo-text:#191A1E;--uo-text-2:#44474E;--uo-text-3:#6B6F77;--uo-shadow:0 2px 6px rgba(25,26,30,.05),0 18px 40px -20px rgba(25,26,30,.16);--uo-shadow-sm:0 1px 2px rgba(25,26,30,.05),0 10px 24px -16px rgba(25,26,30,.14);--uo-ring:0 0 0 3px rgba(246,90,0,.2);--uo-input:#FFFFFF;--uo-skel:linear-gradient(90deg,#F0EDE8 0%,#F8F6F3 50%,#F0EDE8 100%);--uo-radius:18px;--uo-radius-sm:14px;--uo-radius-lg:24px;--uo-font:"Alexandria","IBM Plex Sans Arabic","Cairo","Segoe UI",system-ui,sans-serif;--uo-font-display:"Alexandria","IBM Plex Sans Arabic","Cairo",system-ui,sans-serif}
+html[data-theme=light] .uo-head{background:rgba(250,249,247,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.uo-btn{min-height:48px;border-radius:14px;transition:transform .12s cubic-bezier(.2,.8,.2,1),box-shadow .2s}
+.uo-btn:active{transform:scale(.97)}
+.uo-btn--primary{background:linear-gradient(135deg,#F65A00 0%,#FF7A1F 55%,#FF9E4A 100%);color:#fff;border-color:transparent;box-shadow:0 10px 26px -10px rgba(246,90,0,.45)}
+.uo-btn--primary:disabled{opacity:.55;box-shadow:none}
+.uo-step,.uo-summary,.uo-line,.uo-pay__opt,.uo-branch,.uo-rate{border-radius:var(--uo-radius)}
+.uo-step,.uo-summary{box-shadow:var(--uo-shadow-sm)}
+.uo-step__num{background:linear-gradient(135deg,#F65A00,#FF7A1F);color:#fff;border-color:transparent}
+.uo-field input,.uo-field select,.uo-field textarea{min-height:48px;border-radius:12px}
+.uo-line__price,.uo-totals__row--total{font-variant-numeric:tabular-nums}
+.uo-totals__row--total{font-weight:800}
+.uo-pay__opt.is-active,.uo-branch.is-active,.uo-seg__btn.is-active{border-color:var(--uo-orange);box-shadow:0 0 0 3px rgba(246,90,0,.14)}
+.uo-bar{backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+@media(prefers-reduced-motion:reduce){.uo-btn{transition:none}}
