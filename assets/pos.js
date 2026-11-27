@@ -109,7 +109,7 @@ const DEMO_CUSTOMERS = [];
 /* ------------------------------------------------------------- 4. State */
 const state = {
   lang: 'ar',
-  theme: 'dark',
+  theme: 'light',
   density: 'comfortable',
   view: 'pos',                     // pos | display
   online: true,
@@ -148,10 +148,10 @@ function emptyCart() {
 
 /* --------------------------------------------------------- 5. Persistence */
 function save() {
-  if (!CFG.demo) { try { localStorage.setItem(CFG.storageKey, JSON.stringify({ lang: state.lang, theme: state.theme, density: state.density })); } catch (e) {} return; }
+  if (!CFG.demo) { try { localStorage.setItem(CFG.storageKey, JSON.stringify({ lang: state.lang, theme: state.theme, orbit: 1, density: state.density })); } catch (e) {} return; }
   try {
     const keep = {
-      lang: state.lang, theme: state.theme, density: state.density,
+      lang: state.lang, theme: state.theme, orbit: 1, density: state.density,
       shift: state.shift, products: state.products, customers: state.customers,
       invoices: state.invoices, returns: state.returns, cashMoves: state.cashMoves,
       held: state.held, outbox: state.outbox, counters: state.counters, seq: state.seq,
@@ -167,7 +167,7 @@ function load() {
     if (!raw) return false;
     const keep = JSON.parse(raw);
     if (keep.lang) state.lang = keep.lang;
-    if (keep.theme) state.theme = keep.theme;
+    if (keep.theme && keep.orbit) state.theme = keep.theme;
     if (keep.density) state.density = keep.density;
     if (keep.lang) LANG = keep.lang;
     return true;

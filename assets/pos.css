@@ -51,7 +51,7 @@
   --uno-tap-min: 48px;
   --uno-tap: 56px;
 
-  --uno-font: 'IBM Plex Sans Arabic', 'Noto Kufi Arabic', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --uno-font: 'Alexandria', 'IBM Plex Sans Arabic', 'Noto Kufi Arabic', 'Segoe UI', system-ui, -apple-system, sans-serif;
 
   /* density — comfortable by default, swapped by [data-density] */
   --row-h: 56px;
@@ -66,33 +66,36 @@
 }
 
 [data-theme="light"] {
-  --uno-bg: #F4F6F9;
+  /* Orbit light tokens (warm neutrals, one orange) */
+  --uno-bg: #FAF9F7;
   --uno-bg-2: #FFFFFF;
   --uno-surface: #FFFFFF;
-  --uno-surface-2: #F0F3F7;
-  --uno-surface-3: #E3E8EF;
-  --uno-line: #E1E6ED;
-  --uno-line-strong: #8A96A3;
-  --uno-text: #131A22;
-  --uno-text-2: #55606C;
-  --uno-text-3: #7A8592;
-  --uno-brand: #E04F00;
-  --uno-brand-2: #F65A00;
-  --uno-brand-3: #B84300;
+  --uno-surface-2: #F5F3F0;
+  --uno-surface-3: #ECE8E1;
+  --uno-line: #ECE8E1;
+  --uno-line-strong: #A39C90;
+  --uno-text: #191A1E;
+  --uno-text-2: #5D6168;
+  --uno-text-3: #868B93;
+  --uno-brand: #F65A00;
+  --uno-brand-2: #FF7A1F;
+  --uno-brand-3: #C24300;
   --uno-on-brand: #FFFFFF;
-  --uno-ok: #12813C;
-  --uno-ok-text: #0B7A38;
-  --uno-bad: #C6262B;
-  --uno-bad-text: #B01F24;
-  --uno-warn: #A96A00;
-  --uno-info: #1F63D6;
-  --uno-brand-soft: rgba(224, 79, 0, .10);
-  --uno-ok-soft: rgba(18, 129, 60, .12);
-  --uno-bad-soft: rgba(198, 38, 43, .12);
-  --uno-warn-soft: rgba(169, 106, 0, .12);
-  --uno-info-soft: rgba(31, 99, 214, .10);
-  --uno-shadow-card: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 4px 14px rgba(16, 24, 40, .08);
-  --uno-shadow-sheet: 0 24px 60px rgba(16, 24, 40, .28);
+  --uno-ok: #16A34A;
+  --uno-ok-text: #0E7A37;
+  --uno-bad: #E5484D;
+  --uno-bad-text: #C4383D;
+  --uno-warn: #D97706;
+  --uno-info: #2563EB;
+  --uno-brand-soft: #FFF1E8;
+  --uno-ok-soft: #E9F7EF;
+  --uno-bad-soft: #FDECEA;
+  --uno-warn-soft: #FEF3E2;
+  --uno-info-soft: #EAF1FE;
+  --uno-radius-card: 18px;
+  --uno-radius-panel: 22px;
+  --uno-shadow-card: 0 2px 6px rgba(25, 26, 30, .05), 0 12px 28px -14px rgba(25, 26, 30, .12);
+  --uno-shadow-sheet: 0 -20px 48px -16px rgba(25, 26, 30, .22);
 }
 
 [data-density="compact"] { --row-h: 44px; --tile-h: 104px; }
@@ -1459,3 +1462,7 @@ body.is-display #appRoot, body.is-display #mBar, body.is-display .toasts { displ
 }
 /* when a quantity badge is showing, the weighted/blocked flag sits just below it instead of on top of it */
 .tile .t-badge ~ .t-flag { top: 32px; }
+/* Orbit polish */
+[data-theme="light"] .btn.is-primary { background: linear-gradient(135deg, #F65A00 0%, #FF7A1F 55%, #FF9E4A 100%); box-shadow: 0 10px 26px -10px rgba(246, 90, 0, .45); }
+[data-theme="light"] .btn.is-primary:active { box-shadow: none; }
+.num, .price, [class*="total"] { font-variant-numeric: tabular-nums; }
