@@ -898,3 +898,6 @@ RENDER.ins=function(mn){
 })();
 
 })();
+
+/* store admin tables: keep row buttons on one line */
+(function(){var s=document.createElement("style");s.textContent="td .btn,td button{white-space:nowrap;writing-mode:horizontal-tb}";document.head.appendChild(s)})();
