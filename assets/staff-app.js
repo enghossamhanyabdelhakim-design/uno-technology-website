@@ -37,7 +37,7 @@
     { s: 'work', ic: 'shop', t: ['إدارة المتجر', 'Store'], d: ['منتجات وأسعار وشحن', 'Products, prices, shipping'], p: ['store'], h: 'admin.html#store' },
     { s: 'work', ic: 'edit', t: ['المحتوى', 'Content'], d: ['نصوص وصور الموقع', 'Site text and images'], p: ['content'], h: 'admin.html#content' },
     { s: 'work', ic: 'dash', t: ['لوحة المتابعة', 'Dashboard'], d: ['أرقام اليوم', 'Today at a glance'], p: ['dashv'], h: 'admin.html' },
-    { s: 'soon', ic: 'wrench', t: ['أعمال الفنيين', 'Technician jobs'], d: ['مهام الزيارات والتقارير', 'Visits, checklists, reports'], p: ['jobs.view'], soon: 1 },
+    { s: 'work', ic: 'wrench', t: ['أعمال الفنيين', 'Technician jobs'], d: ['مهام الزيارات والتقارير', 'Visits, checklists, reports'], p: ['jobs.view', 'jobs.work', 'jobs.assign'], h: '#jobs' },
     { s: 'soon', ic: 'crm', t: ['المبيعات والعملاء', 'Sales and CRM'], d: ['عملاء محتملون ومتابعة', 'Leads and follow-up'], p: ['crm.view'], soon: 1 },
     { s: 'soon', ic: 'hr', t: ['حضوري وإجازاتي', 'My attendance and leave'], d: ['حضور وانصراف وطلبات إجازة', 'Check-in and leave requests'], p: ['hr.self'], soon: 1 },
     { s: 'admin', ic: 'users', t: ['المستخدمون والصلاحيات', 'Users and roles'], d: ['حسابات الفريق', 'Team accounts'], p: ['users'], h: 'admin.html#users' },
@@ -78,7 +78,8 @@
     };
   }
   function home(user, role, perms, roleName) {
-    applyTheme();
+    applyTheme(); window.UNO_SA.ctx = { user: user, role: role, perms: perms };
+    if (location.hash === '#jobs' && window.UNO_SA.jobs) return window.UNO_SA.jobs();
     var can = function (arr) { return role === 'owner' || arr.some(function (p) { return perms.indexOf(p) >= 0; }); };
     var secs = ['work', 'soon', 'admin'], html = '';
     secs.forEach(function (s) {
@@ -99,6 +100,8 @@
     var upd = function () { var n = document.getElementById('net'); if (!n) return; n.className = 'net' + (navigator.onLine ? '' : ' off'); n.lastChild.nodeValue = ''; n.innerHTML = '<i></i>' + T(navigator.onLine ? ['متصل', 'Online'] : ['بدون إنترنت', 'Offline']); };
     window.ononline = upd; window.onoffline = upd;
   }
+  window.UNO_SA = { api: api, T: T, esc: esc, svg: svg, shellTop: shellTop, wire: wire, applyTheme: applyTheme, app: app, home: function () { if (location.hash) location.hash = ''; else start(); }, lang: function () { return LANG; }, ctx: {} };
+  window.addEventListener('hashchange', function () { if (CL && CL.loggedIn()) start(); });
   function start() {
     applyTheme();
     if (!CL || !CL.loggedIn()) return login();
