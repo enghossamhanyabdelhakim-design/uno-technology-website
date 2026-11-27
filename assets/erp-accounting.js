@@ -425,7 +425,7 @@
       { key: 'memo', label: AR('البيان', 'Memo'), cell: function (r) { return esc(U.state.lang === 'ar' ? r.memo_ar : r.memo_en); } },
       { key: 'total', label: AR('المبلغ', 'Amount'), align: 'end', cell: function (r) { return '<span class="num">' + esc(fmt.money(r.total)) + '</span>'; } }
     ];
-    return head(AR('دفتر اليومية', 'Journal'), AR('دفتر اليومية', 'Journal'), AR('قيود مولّدة آليًا من المخزون والمشتريات والخزائن. لا قيود يدوية في هذه المرحلة.', 'Entries are generated from stock, purchases and treasuries. No manual entries in this phase.')) +
+    return head(AR('دفتر اليومية', 'Journal'), AR('دفتر اليومية', 'Journal'), AR('قيود مولّدة آليًا من المبيعات والمشتريات والخزائن والمخزون. كل قيد مدينه يساوي دائنه.', 'Entries are generated automatically from sales, purchases, treasuries and stock. Every entry balances: debit equals credit.')) +
       '<section class="card"><div class="tab-pad">' + tabs + '</div><div class="toolbar"><div class="search-inline">' + icon('search', 16) +
       '<input data-act="search" data-filter="q" value="' + esc(f.q || '') + '" placeholder="' + esc(AR('رقم القيد أو المستند…', 'Entry or document no.…')) + '"></div>' + rangeSeg(f, 'j-range') + '</div>' +
       ui.table({ cols: cols, rows: d.rows.slice(0, 60), rowId: function (r) { return r.id; }, rowAct: 'j-open', empty: ui.empty({ title: t('app.empty'), hint: t('app.emptyHint'), icon: 'doc' }) }) +
@@ -460,7 +460,7 @@
     return head(AR('ميزان المراجعة', 'Trial balance'), AR('ميزان المراجعة', 'Trial balance'), AR('أرصدة كل الحسابات حتى تاريخ محدد.' + (U.config.demo ? ' بيانات تجريبية.' : ''), 'Every account balance up to a date.' + (U.config.demo ? ' Demo data.' : '')),
         '<input type="date" class="select num" data-filter="as_of" value="' + esc(ctx.filters.as_of || d.as_of) + '">') +
       (d.entries === 0 ? [[true, AR('الدفاتر فارغة: الترحيل التلقائي غير مفعّل بعد، فلا توجد قيود للعرض. الفحوصات تظهر بعد أول قيد.', 'The books are empty: automatic posting is not switched on yet, so there are no entries. Checks appear after the first entry.')]] : checks).map(function (c) { return ui.banner({ tone: d.entries === 0 ? 'info' : (c[0] ? 'ok' : 'bad'), icon: d.entries === 0 ? 'info' : (c[0] ? 'check' : 'alert'), text: c[1] }); }).join('') +
-      '<section class="card">' + ui.table({ cols: cols, rows: d.rows, rowId: function (r) { return r.code; }, foot: { dr: '<b class="num">' + esc(fmt.money(d.total_dr)) + '</b>', cr: '<b class="num">' + esc(fmt.money(d.total_cr)) + '</b>' }, footLabel: t('app.total') }) +
+      '<section class="card">' + (!d.rows.length ? '<div class="tbl-wrap">' + ui.empty({ title: t('app.empty'), hint: t('app.emptyHint'), icon: 'doc' }) + '</div>' : ui.table({ cols: cols, rows: d.rows, rowId: function (r) { return r.code; }, foot: { dr: '<b class="num">' + esc(fmt.money(d.total_dr)) + '</b>', cr: '<b class="num">' + esc(fmt.money(d.total_cr)) + '</b>' }, footLabel: t('app.total') })) +
       ui.totalsStrip([{ label: AR('بتاريخ', 'As of'), value: fmt.date(d.as_of) }, { label: AR('الحسابات', 'Accounts'), value: fmt.num(d.rows.length) }], AR('الأرقام بالجنيه المصري', 'Amounts in EGP')) + '</section>';
   }
 
