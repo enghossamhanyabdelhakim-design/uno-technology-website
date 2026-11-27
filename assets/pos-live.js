@@ -37,9 +37,10 @@
         document.head.appendChild(st); }
       o.innerHTML = '<aside class="pl-side"><img src="assets/logo-uno-technology.png" alt="Uno Technology"><h2>' + 'نقطة بيع أونو' + '</h2><p>' + 'كل عملية باسم صاحبها، والوردية واضحة من أول فاتورة.' + '</p></aside><form><img class="pl-logo" src="assets/logo-uno-technology.png" alt="Uno Technology"><h1>UNO POS</h1><div class="pl-sub">سجّل الدخول بحساب الكاشير أو المدير</div><input id="plE" type="email" autocomplete="username" placeholder="البريد"><input id="plP" type="password" autocomplete="current-password" placeholder="كلمة المرور"><button>دخول</button><div id="plM" class="pl-m"></div></form>';
       document.body.appendChild(o);
+      var __in=[].filter.call(document.body.children,function(x){return x!==o&&x.tagName!=='SCRIPT'&&x.tagName!=='STYLE'});__in.forEach(function(x){x.setAttribute('inert','');x.setAttribute('aria-hidden','true')});
       o.querySelector('form').onsubmit = function (ev) {
         ev.preventDefault(); var m = o.querySelector('#plM'); m.textContent = '...';
-        CL.login(o.querySelector('#plE').value.trim(), o.querySelector('#plP').value).then(function () { o.remove(); resolve(); }, function (e) { m.textContent = 'فشل الدخول: ' + e.message; });
+        CL.login(o.querySelector('#plE').value.trim(), o.querySelector('#plP').value).then(function () { __in.forEach(function(x){x.removeAttribute('inert');x.removeAttribute('aria-hidden')}); o.remove(); resolve(); }, function (e) { m.textContent = 'فشل الدخول: ' + e.message; });
       };
     });
   }
