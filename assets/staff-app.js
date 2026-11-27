@@ -38,7 +38,7 @@
     { s: 'work', ic: 'edit', t: ['المحتوى', 'Content'], d: ['نصوص وصور الموقع', 'Site text and images'], p: ['content'], h: 'admin.html#content' },
     { s: 'work', ic: 'dash', t: ['لوحة المتابعة', 'Dashboard'], d: ['أرقام اليوم', 'Today at a glance'], p: ['dashv'], h: 'admin.html' },
     { s: 'work', ic: 'wrench', t: ['أعمال الفنيين', 'Technician jobs'], d: ['مهام الزيارات والتقارير', 'Visits, checklists, reports'], p: ['jobs.view', 'jobs.work', 'jobs.assign'], h: '#jobs' },
-    { s: 'soon', ic: 'crm', t: ['المبيعات والعملاء', 'Sales and CRM'], d: ['عملاء محتملون ومتابعة', 'Leads and follow-up'], p: ['crm.view'], soon: 1 },
+    { s: 'work', ic: 'crm', t: ['المبيعات والعملاء', 'Sales and CRM'], d: ['عملاء محتملون ومتابعة', 'Leads and follow-up'], p: ['crm.view', 'crm.edit'], h: '#crm' },
     { s: 'work', ic: 'hr', t: ['حضوري وإجازاتي', 'Attendance and leave'], d: ['حضور وانصراف وإجازات ومهام', 'Check-in, leave, tasks'], p: ['hr.self', 'hr.manage'], h: '#hr' },
     { s: 'admin', ic: 'users', t: ['المستخدمون والصلاحيات', 'Users and roles'], d: ['حسابات الفريق', 'Team accounts'], p: ['users'], h: 'admin.html#users' },
     { s: 'admin', ic: 'log', t: ['سجل النشاط', 'Activity log'], d: ['من فعل ماذا', 'Who did what'], p: ['log', 'audit'], h: 'admin.html#log' }
@@ -79,7 +79,7 @@
   }
   function home(user, role, perms, roleName) {
     applyTheme(); window.UNO_SA.ctx = { user: user, role: role, perms: perms };
-    var rt = { '#jobs': 'jobs', '#hr': 'hr' }[location.hash]; if (rt && window.UNO_SA[rt]) return window.UNO_SA[rt]();
+    var rt = { '#jobs': 'jobs', '#hr': 'hr', '#crm': 'crm' }[location.hash]; if (rt && window.UNO_SA[rt]) return window.UNO_SA[rt]();
     var can = function (arr) { return role === 'owner' || arr.some(function (p) { return perms.indexOf(p) >= 0; }); };
     var secs = ['work', 'soon', 'admin'], html = '';
     secs.forEach(function (s) {
