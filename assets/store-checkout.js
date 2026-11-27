@@ -754,13 +754,13 @@
     var qty = U.el('div', { class: 'uo-qty' });
     var minus = U.el('button', { type: 'button', class: 'uo-qty__btn', 'aria-label': t('co.qty_minus') });
     minus.textContent = '−';
-    minus.addEventListener('click', function () { setQty(index, item.qty - 1); });
+    minus.addEventListener('click', function () { setQty(index, Math.round((item.qty - (v.step || 1)) * 1000) / 1000); });
     var value = U.el('span', { class: 'uo-qty__value', 'aria-label': t('co.qty') });
-    value.textContent = item.qty;
+    value.textContent = new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 }).format(item.qty) + ((v.step || 1) !== 1 && v.unit ? ' ' + v.unit : '');
     var plus = U.el('button', { type: 'button', class: 'uo-qty__btn', 'aria-label': t('co.qty_plus') });
     plus.textContent = '+';
     plus.disabled = v.stock ? item.qty >= v.stock : false;
-    plus.addEventListener('click', function () { setQty(index, item.qty + 1); });
+    plus.addEventListener('click', function () { setQty(index, Math.round((item.qty + (v.step || 1)) * 1000) / 1000); });
     qty.appendChild(minus); qty.appendChild(value); qty.appendChild(plus);
     body.appendChild(qty);
 
@@ -1008,7 +1008,7 @@
         ((res && res.variants) || []).forEach(function (v) { byId[v.id] = v; });
         state.items = lines.map(function (l) {
           var v = byId[l.variant_id];
-          return v ? { variant: v, qty: Math.max(1, Number(l.qty) || 1) } : null;
+          return v ? { variant: v, qty: Math.max(v.step || 1, Number(l.qty) || 1) } : null;
         }).filter(Boolean);
         state.items = state.items.filter(function (i) { return i.variant.stock !== 0; });
         if (!state.items.length) { renderEmpty(); return; }

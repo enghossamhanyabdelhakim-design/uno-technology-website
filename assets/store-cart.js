@@ -36,7 +36,7 @@
     const shipPrice = ship && ship.available ? ship.price : null;
     const total = sub() - disc + (shipPrice || 0);
     const qtyBox = it => h('div', { class: 'us-qty' },
-      h('button', { 'aria-label': '-', onclick: () => chg(it, -1) }, '−'), h('span', {}, I.num(it.qty)), h('button', { 'aria-label': '+', onclick: () => chg(it, 1) }, '+'));
+      h('button', { 'aria-label': '-', onclick: () => chg(it, -1) }, '−'), h('span', {}, I.num(it.qty) + (it.unit && (it.step || 1) !== 1 ? ' ' + it.unit : '')), h('button', { 'aria-label': '+', onclick: () => chg(it, 1) }, '+'));
     const govSel = h('select', { class: 'us-sel', 'aria-label': I.t('ship_calc'), onchange: e => { gov = e.target.value; localStorage.setItem('uno_gov', gov); render(); } },
       h('option', { value: '' }, I.t('choose_gov')), I.GOV.map(g => h('option', { value: g.v, selected: g.v === gov }, I.pick(g))));
     const cin = h('input', { class: 'us-in', placeholder: I.t('coupon_ph'), value: coupon ? coupon.code : '', 'aria-label': I.t('coupon') });
@@ -66,8 +66,8 @@
         h('button', { class: 'us-btn pri', style: 'width:100%;margin-block-start:10px', disabled: !gov || !(ship && ship.available), onclick: () => { document.dispatchEvent(new CustomEvent('uno:checkout', { detail: { items: items.slice(), note, coupon: coupon && coupon.valid ? coupon.code : null, governorate: gov, shipping: ship } })); } }, I.t('checkout') + ' · ' + I.t('pay_cod')))].filter(Boolean));
   }
   function chg(it, d) {
-    const q = it.qty + d;
-    if (q < 1) { items = items.filter(x => x !== it); }
+    const sp = it.step || 1, q = Math.round((it.qty + d * sp) * 1000) / 1000;
+    if (q < sp - 1e-9) { items = items.filter(x => x !== it); }
     else if (q > it.max) { toast(I.t('max_qty', { n: I.num(it.max) })); return; } else it.qty = q;
     save(); render();
   }

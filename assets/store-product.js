@@ -14,10 +14,10 @@
     const root = h('div', { class: 'us-wrap' }); el.replaceChildren(root); let shipRes = null, bt = {};
     const priceOf = v => v ? v.price : p.price;
     async function ship() { shipRes = null; if (!st.gov) return draw(); draw(); const v = match(); try { shipRes = await API.store_shipping_rates({ governorate: st.gov, items: [{ product_id: p.id, variant_id: v && v.id, qty: st.qty, price: priceOf(v) }] }); } catch (e) { shipRes = { error: true }; } draw(); }
-    function cartItem(v) { const lab = d.options.map(o => I.pick((o.values.find(x => x.v === v.options[o.key]) || {}))).filter(Boolean).join(' / '); return { key: v.id, product_id: p.id, variant_id: v.id, name: p.name, variant_label: lab ? { ar: lab, en: lab } : null, price: v.price, max: v.stock, image: p.images[0], qty: st.qty }; }
+    function cartItem(v) { const lab = d.options.map(o => I.pick((o.values.find(x => x.v === v.options[o.key]) || {}))).filter(Boolean).join(' / '); return { key: v.id, product_id: p.id, variant_id: v.id, name: p.name, variant_label: lab ? { ar: lab, en: lab } : null, price: v.price, max: v.stock, step: v.step || 1, unit: v.unit || null, image: p.images[0], qty: st.qty }; }
     function draw() {
       const v = match(), stock = v ? v.stock : 0, thr = p.low_stock_threshold || 0, pc = p.compare_at && p.compare_at > priceOf(v) ? Math.round((1 - priceOf(v) / p.compare_at) * 100) : 0;
-      if (st.qty > stock && stock > 0) st.qty = stock;
+      const stp = (v && v.step) || 1, un = v && v.unit; if (st.qty < stp) st.qty = stp; if (st.qty > stock && stock > 0) st.qty = stock;
       const main = h('div', { class: 'main', tabindex: '0', role: 'button', 'aria-label': I.t('zoom_hint'), onclick: () => lightbox(p.images[st.img]), onkeydown: e => e.key === 'Enter' && lightbox(p.images[st.img]) }, h('img', { src: p.images[st.img], alt: I.pick(p.name) }), h('div', { class: 'lens' }));
       const lens = main.querySelector('.lens'); lens.style.backgroundImage = 'url("' + p.images[st.img] + '")';
       main.addEventListener('mousemove', e => { const r = main.getBoundingClientRect(); lens.style.backgroundPosition = ((e.clientX - r.left) / r.width * 100) + '% ' + ((e.clientY - r.top) / r.height * 100) + '%'; });
@@ -37,7 +37,7 @@
         h('p', { style: 'color:var(--mu)' }, I.pick(p.short)), d.options.map(opt),
         h('div', {}, stock > 0 ? h('span', { class: 'us-stock-ok' }, '● ' + I.t('in_stock')) : h('span', { class: 'us-stock-no' }, '● ' + I.t('out_of_stock')), v && v.sku && h('span', { style: 'color:var(--mu);margin-inline-start:12px;font-size:.85rem' }, I.t('sku') + ': ' + v.sku)),
         low && h('div', { class: 'us-low' }, h('div', { class: 't' }, I.t('only_left', { n: I.num(stock) })), h('div', { class: 'tr', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': thr, 'aria-valuenow': stock }, h('div', { class: 'fl', style: 'width:' + Math.max(6, stock / thr * 100) + '%' }))),
-        h('div', { class: 'us-buy' }, h('div', { class: 'us-qty', 'aria-label': I.t('qty') }, h('button', { 'aria-label': '-', onclick: () => { st.qty = Math.max(1, st.qty - 1); draw(); } }, '−'), h('span', {}, I.num(st.qty)), h('button', { 'aria-label': '+', onclick: () => { st.qty = Math.min(stock || 1, st.qty + 1); draw(); } }, '+')),
+        h('div', { class: 'us-buy' }, h('div', { class: 'us-qty', 'aria-label': I.t('qty') }, h('button', { 'aria-label': '-', onclick: () => { st.qty = Math.max(stp, Math.round((st.qty - stp) * 1000) / 1000); draw(); } }, '−'), h('span', {}, I.num(st.qty) + (un && stp !== 1 || un && v.sold_by !== 'unit' ? ' ' + un : '')), h('button', { 'aria-label': '+', onclick: () => { st.qty = Math.min(stock || stp, Math.round((st.qty + stp) * 1000) / 1000); draw(); } }, '+')),
           h('button', { class: 'us-btn pri', disabled: stock <= 0, onclick: doAdd }, stock > 0 ? I.t('add_to_cart') : I.t('out_of_stock'))),
         h('div', { class: 'us-box' }, h('h4', {}, I.t('delivery')), h('select', { class: 'us-sel', 'aria-label': I.t('choose_gov'), onchange: e => { st.gov = e.target.value; localStorage.setItem('uno_gov', st.gov); ship(); } }, h('option', { value: '' }, I.t('choose_gov')), I.GOV.map(g => h('option', { value: g.v, selected: g.v === st.gov }, I.pick(g)))), dl && h('div', { class: 'us-dl' }, dl)));
       const fb = d.bought_together || [];
