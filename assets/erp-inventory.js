@@ -284,7 +284,41 @@
   function loadItem(ctx) {
     var id = ctx.params.id || ctx.filters.product;
     if (!id) return Promise.reject(new Error(U.state.lang === 'ar' ? 'لم يتم تحديد صنف' : 'No item selected'));
-    return U.api.call('erp_item_card', { product_id: id });
+    return U.api.call('erp_item_card', { product_id: id }).then(function (d) {
+      return U.api.call('erp_item_sale_mode', { product_id: id }).catch(function () { return null; }).then(function (m) { d.sale_mode = m; return d; });
+    });
+  }
+
+  /* How the item is sold: by piece, weight, length or volume. Locked once the item has stock movements. */
+  function saleModeCard(p, m) {
+    var ar = U.state.lang === 'ar';
+    if (!m) return '';
+    var modes = [{ value: 'unit', label: ar ? 'بالقطعة' : 'By piece' }, { value: 'weight', label: ar ? 'بالوزن' : 'By weight' },
+      { value: 'length', label: ar ? 'بالطول' : 'By length' }, { value: 'volume', label: ar ? 'بالحجم' : 'By volume' }];
+    var units = [{ value: '', label: '—' }, { value: 'كجم', label: ar ? 'كجم' : 'kg' }, { value: 'جرام', label: ar ? 'جرام' : 'g' },
+      { value: 'متر', label: ar ? 'متر' : 'm' }, { value: 'سم', label: ar ? 'سم' : 'cm' }, { value: 'لتر', label: ar ? 'لتر' : 'L' }];
+    var dis = !!m.locked;
+    return ui.card({ title: ar ? 'طريقة البيع' : 'How it is sold',
+      sub: ar ? 'القطعة، الوزن، الطول أو الحجم، وأصغر كمية تُباع' : 'Piece, weight, length or volume, and the smallest quantity sold',
+      body: '<div class="form-grid">' +
+        '<div>' + ui.field({ label: ar ? 'طريقة البيع' : 'Sold by', type: 'select', id: 'sm-by', options: modes, value: m.sold_by, disabled: dis }) + '</div>' +
+        '<div>' + ui.field({ label: ar ? 'وحدة القياس' : 'Unit', type: 'select', id: 'sm-unit', options: units, value: m.unit, disabled: dis }) + '</div>' +
+        '<div>' + ui.field({ label: ar ? 'أصغر خطوة بيع' : 'Smallest step', type: 'number', id: 'sm-step', value: m.step, step: 'any', min: '0', disabled: dis }) + '</div></div>' +
+        '<div id="sm-error"></div>' +
+        (dis ? '<div style="margin-top:12px">' + ui.banner({ tone: 'info', icon: 'info', text: ar ? 'الصنف عليه حركات مخزون، فطريقة بيعه مقفولة عشان الأرصدة القديمة ما تتلخبطش.' : 'This item already has stock movements, so how it is sold is locked to keep old balances correct.' }) + '</div>'
+          : '<div style="margin-top:12px">' + ui.btn(ar ? 'حفظ' : 'Save', { act: 'save-sale-mode', kind: 'primary' }) + '</div>') });
+  }
+
+  function saveSaleMode(ctx) {
+    var ar = U.state.lang === 'ar';
+    var root = document.querySelector('.uerp'); var box = root.querySelector('#sm-error');
+    var d = ctx.data || {}; var p = d.product || {};
+    if (p.cost === null || p.cost === undefined) { box.innerHTML = ui.banner({ tone: 'bad', icon: 'alert', text: ar ? 'تعديل طريقة البيع يحتاج صلاحية رؤية التكلفة، عشان التكلفة ما تتصفّرش.' : 'Changing how an item is sold needs permission to see costs, so the cost is not reset.' }); return; }
+    var payload = { product_id: p.id, sku: p.sku, min: p.min || 0, cost: p.cost || 0, vat: p.vat || 0, allow_negative: !!p.allow_negative,
+      sold_by: root.querySelector('#sm-by').value, unit: root.querySelector('#sm-unit').value || null, step: Number(root.querySelector('#sm-step').value || 1) };
+    U.api.call('erp_item_settings_set', payload).then(function () {
+      ui.toast(ar ? 'تم حفظ طريقة البيع' : 'Saved', 'ok'); U.refresh();
+    }).catch(function (err) { box.innerHTML = ui.banner({ tone: 'bad', icon: 'alert', text: err.message }); });
   }
 
   function viewItem(ctx, data) {
@@ -345,6 +379,7 @@
             : 'Balances are never written directly: every change posts a stock movement, which refuses negative stock and updates the average cost.' }) + '</div>' }) +
       '</div>' +
 
+      saleModeCard(p, data.sale_mode) +
       ui.card({ title: U.state.lang === 'ar' ? 'آخر الحركات' : 'Recent movements', sub: U.state.lang === 'ar' ? 'أحدث 40 حركة' : 'Latest 40 movements', flush: true,
         body: ui.table({ cols: cols, rows: moves, empty: ui.empty({ title: t('app.empty'), icon: 'layers' }) }) });
   }
@@ -359,7 +394,7 @@
       '<div>' + ui.field({ label: U.state.lang === 'ar' ? 'الاتجاه' : 'Direction', type: 'select', id: 'mv-dir',
         options: [{ value: 'in', label: U.state.lang === 'ar' ? 'إضافة (+) إلى المخزون' : 'Add (+) to stock' },
           { value: 'out', label: U.state.lang === 'ar' ? 'خصم (−) من المخزون' : 'Remove (−) from stock' }] }) + '</div>' +
-      '<div>' + ui.field({ label: t('app.qty'), type: 'number', id: 'mv-qty', value: '', step: '1', min: '0', unit: '' }) + '</div>' +
+      '<div>' + ui.field({ label: t('app.qty'), type: 'number', id: 'mv-qty', value: '', step: 'any', min: '0', unit: '' }) + '</div>' +
       '<div>' + ui.field({ label: t('app.reason'), type: 'select', id: 'mv-reason',
         options: [{ value: 'count_error', label: U.state.lang === 'ar' ? 'خطأ في الجرد' : 'Counting error' },
           { value: 'damage', label: U.state.lang === 'ar' ? 'تلف' : 'Damage' },
@@ -591,6 +626,7 @@
     'clear-count': function (ctx) { ctx.filters.counted = {}; ctx.reload(); },
     'clear-asof': function (ctx) { ctx.filters.as_of = ''; ctx.reload(); },
     'open-move': function (ctx) { openMoveSheet(ctx); },
+    'save-sale-mode': function (ctx) { saveSaleMode(ctx); },
     'submit-move': function (ctx) { submitMove(ctx); },
     'close-sheet': function () { var el = document.querySelector('.uerp [data-ovl="move"]'); if (el) el.remove(); },
     'export-ledger': function (ctx) {

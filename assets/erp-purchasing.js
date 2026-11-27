@@ -371,7 +371,7 @@
       { key: 'recv', label: AR('المستلم', 'Received'), align: 'end', cell: function (l) {
         if (f.mode === 'receive' && canReceive) {
           var remaining = l.qty - l.received_qty;
-          return '<input class="input input--num" style="height:32px;width:72px" type="number" min="0" max="' + remaining + '" step="1" ' +
+          return '<input class="input input--num" style="height:32px;width:72px" type="number" min="0" max="' + remaining + '" step="any" ' +
             'value="' + remaining + '" data-act="p-recv-input" data-line="' + esc(l.id) + '">';
         }
         var tone = l.received_qty < l.qty ? 'color:var(--warn-ink);font-weight:600' : '';
@@ -514,7 +514,7 @@
           }).join('') + '</select>';
       } },
       { key: 'qty', label: AR('الكمية', 'Qty'), align: 'end', cell: function (l) {
-        return '<input class="input input--num" style="height:34px;width:64px" type="number" min="0" step="1" value="' + esc(l.qty) + '" data-act="n-line" data-line="' + d.lines.indexOf(l) + '" data-field="qty">';
+        return '<input class="input input--num" style="height:34px;width:84px" type="number" min="0" step="any" value="' + esc(l.qty) + '" data-act="n-line" data-line="' + d.lines.indexOf(l) + '" data-field="qty">';
       } },
       { key: 'cost', label: AR('سعر الوحدة', 'Unit cost'), align: 'end', cell: function (l) {
         return '<input class="input input--num" style="height:34px;width:86px" type="number" min="0" step="0.01" value="' + esc(l.unit_cost) + '" data-act="n-line" data-line="' + d.lines.indexOf(l) + '" data-field="unit_cost">';
