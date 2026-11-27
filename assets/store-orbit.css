@@ -56,3 +56,16 @@ html[lang=en] .us,html[lang=en] .us-drawer{font-family:"Alexandria","Poppins","S
 .us-tabbar button[aria-selected=true],.us-tabbar .on{color:var(--oi);border-color:var(--or)}
 @media(max-width:700px){.us-pdp{gap:18px}.us-gal{border-radius:20px}}
 .us-info .big{color:var(--oi,#C24300);font-size:clamp(1.8rem,4vw,2.4rem);letter-spacing:-.01em}
+/* wave 3 designer 2: cart drawer as bottom sheet on phones, item cards */
+.us-ci{background:var(--s1);border:1px solid var(--bd);border-radius:18px;padding:10px;margin-block-end:10px;border-block-end:1px solid var(--bd);align-items:center}
+.us-ci img{border-radius:14px;background:var(--osoft,#FFF1E8)}
+.us-ci .us-pr b{color:var(--oi,#C24300)}
+.us-dh h3{font-weight:800}
+.us-dh .us-x{width:40px;height:40px;min-width:40px;min-height:40px;border-radius:50%;border:1px solid var(--bd);background:var(--s1)}
+@media (max-width:640px){
+ .us-drawer{inset-block:auto 0;inset-inline:0;width:100%;max-height:90vh;height:auto;border:0;border-radius:28px 28px 0 0;transform:translateY(105%)!important;box-shadow:0 -12px 40px rgba(0,0,0,.18)}
+ html[dir=rtl] .us-drawer{transform:translateY(105%)!important}
+ .us-drawer.on,html[dir=rtl] .us-drawer.on{transform:none!important}
+ .us-dh{position:relative;padding-block-start:22px}
+ .us-dh::before{content:"";position:absolute;top:8px;inset-inline-start:50%;width:44px;height:5px;margin-inline-start:-22px;border-radius:3px;background:var(--bd)}
+}
