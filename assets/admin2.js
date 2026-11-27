@@ -398,6 +398,12 @@ function roleMgr(box){
    $("#rl-cx").onclick=closeDlg;
    $("#rl-sv").onclick=function(){var b=this;b.disabled=true;var pk=[].map.call(document.querySelectorAll("#dbx [data-pk]:checked"),function(i){return i.dataset.pk});
     api("POST","rpc/staff_role_save",{p:{key:r?r.key:$("#rl-k").value,name_ar:$("#rl-a").value,name_en:$("#rl-e").value,perms:pk}}).then(function(){closeDlg();status("تم ✓ / Done ✓");RENDER.users($("#main"))}).catch(function(e){$("#rl-er").textContent=String(e.message).replace(/^[A-Z]+: /,"");b.disabled=false})}}
+  api("GET","audit_log?action=in.(staff_set_role,staff_role_save,staff_role_delete)&order=at.desc&limit=15&select=at,actor_name,action,target_ref,details").then(function(L){
+   var q=document.createElement("div");q.style.marginTop="22px";
+   var AN={staff_set_role:["تغيير دور مستخدم","User role change"],staff_role_save:["حفظ دور","Role saved"],staff_role_delete:["حذف دور","Role deleted"]};
+   function dt(x){var d=x.details||{},b=d.before,a=d.after;if(Array.isArray(b))b=b.length+" perms";if(Array.isArray(a))a=a.length+" perms";return esc((x.action==="staff_set_role"?(d.email||"")+": ":x.target_ref+": ")+(b==null?"":b+" → ")+(a==null?"":a))}
+   q.innerHTML='<h2>'+bi("آخر تغييرات الأدوار","Recent role changes")+'</h2>'+(L&&L.length?tbl([bi("الوقت","When"),bi("بواسطة","By"),bi("الإجراء","Action"),bi("التفاصيل","Details")],L.map(function(x){var n=AN[x.action]||[x.action,x.action];return [esc(new Date(x.at).toLocaleString()),esc(x.actor_name||""),bi(n[0],n[1]),'<span dir="ltr">'+dt(x)+"</span>"]})):'<p class="hint">'+bi("لا تغييرات بعد.","No changes yet.")+"</p>");
+   box.appendChild(q)}).catch(function(){});
   $("#rl-add").onclick=function(){dlg(null)};
   [].forEach.call(w.querySelectorAll("[data-re]"),function(b){b.onclick=function(){dlg(cu.filter(function(r){return r.key===b.dataset.re})[0])}});
   [].forEach.call(w.querySelectorAll("[data-rd]"),function(b){b.onclick=function(){if(confirm("حذف الدور؟ / Delete this role?"))api("POST","rpc/staff_role_delete",{p_key:b.dataset.rd}).then(function(){status("تم ✓ / Done ✓");RENDER.users($("#main"))}).catch(function(e){status(String(e.message).replace(/^[A-Z]+: /,""),1)})}});
