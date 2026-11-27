@@ -46,9 +46,9 @@
       id: d.id, number: d.number, created_at: new Date(d.created_at).getTime(), shift_id: d.shift_id, device_id: d.device_id,
       customer_id: d.partner_id || null, customer_name: d.customer_name && d.customer_name !== 'عميل نقدي' ? d.customer_name : null,
       lines: lines.map(function (l) {
-        var up = P(l.unit_price), q = Number(l.qty);
+        var up = P(l.unit_price), q = Number(l.qty), m = isMeasured(l.product_id), pp = prodOf(l.product_id);
         return { product_id: l.product_id || ('line-' + l.id), line_id: l.id, name_ar: l.description, name_en: l.description, mono: (l.description || '?').charAt(0),
-          qty: q, qty_kind: 'unit', unit_price: up, unit_ar: 'قطعة', unit_en: 'pc', discount: 0, amount: up * q };
+          qty: m ? Math.round(q * 1000) : q, qty_kind: m ? 'weight' : 'unit', unit_price: up, unit_ar: m ? pp.unitAr : 'قطعة', unit_en: m ? pp.unitEn : 'pc', discount: 0, amount: Math.round(up * q) };
       }),
       subtotal: sub, invoice_discount: P(d.discount), total: tot, tax: Math.round(tot - tot / 1.14),
       payments: pays.filter(function (p) { return p.doc_id === d.id; }).map(function (p) { return { method: p.method, amount: P(p.amount) }; }),
@@ -59,8 +59,12 @@
   function mapReturn(r, rl, inv) {
     return { id: r.id, number: r.number, invoice_id: r.doc_id, invoice_number: inv ? inv.number : '', created_at: new Date(r.created_at).getTime(),
       shift_id: r.shift_id, customer_id: r.partner_id, amount: P(r.total), reason: r.reason, refund_method: r.refund_method, status: 'posted',
-      lines: rl.filter(function (x) { return x.return_id === r.id; }).map(function (x) { return { product_id: x.product_id || ('line-' + x.line_id), line_id: x.line_id, qty: Number(x.qty), refund: P(x.amount), restock: x.restock === 'stock', name_ar: '', name_en: '' }; }) };
+      lines: rl.filter(function (x) { return x.return_id === r.id; }).map(function (x) { return { product_id: x.product_id || ('line-' + x.line_id), line_id: x.line_id, qty: isMeasured(x.product_id) ? Math.round(Number(x.qty) * 1000) : Number(x.qty), refund: P(x.amount), restock: x.restock === 'stock', name_ar: '', name_en: '', qty_kind: isMeasured(x.product_id) ? 'weight' : 'unit' }; }) };
   }
+  /* Measured items: UI quantity = thousandths of the unit; the server stores the real quantity (kg, m, L). */
+  var UEN = { 'كجم': 'kg', 'جرام': 'g', 'متر': 'm', 'سم': 'cm', 'لتر': 'L' };
+  function prodOf(pid) { return pid ? state.products.filter(function (x) { return x.id === pid; })[0] : null; }
+  function isMeasured(pid) { var p = prodOf(pid); return !!(p && p.weighted); }
   function ids(a) { return a.map(function (x) { return x.id; }).join(','); }
   function loadDocs(docs) {
     if (!docs.length) return Promise.resolve([]);
@@ -100,7 +104,8 @@
           get('categories?select=id,name_ar,name_en&order=sort.asc').catch(function () { return get('categories?select=id,name_ar,name_en').catch(function () { return []; }); }),
           get('products?select=id,name_ar,name_en,price,barcode,category_id,is_demo&active=eq.true&order=name_ar.asc&limit=1000'),
           get('core_stock_levels?select=product_id,warehouse_id,qty'),
-          get('core_partners?kind=in.(customer,both)&active=eq.true&select=id,name,phone,credit_limit,balance&order=name.asc&limit=500')
+          get('core_partners?kind=in.(customer,both)&active=eq.true&select=id,name,phone,credit_limit,balance&order=name.asc&limit=500'),
+          rpc('pos_item_units').catch(function () { return []; })
         ]);
       }).then(function (r) {
         var role = (r[0][0] && r[0][0].active !== false) ? r[0][0].role : 'cashier'; L.role = role;
@@ -111,9 +116,10 @@
         DEMO_CATEGORIES.length = 0; DEMO_CATEGORIES.push({ id: 'all', ar: 'الكل', en: 'All' });
         r[2].forEach(function (c) { DEMO_CATEGORIES.push({ id: c.id, ar: c.name_ar || c.name_en, en: c.name_en || c.name_ar }); });
         var stock = {}; r[4].forEach(function (s) { if (!L.wh || s.warehouse_id === L.wh) stock[s.product_id] = (stock[s.product_id] || 0) + Number(s.qty); });
+        var UN = {}; (r[6] || []).forEach(function (u) { UN[u.product_id] = u; });
         state.products = r[3].map(function (p) {
-          var tag = p.is_demo ? ' (تجريبي)' : '';
-          return { id: p.id, cat: p.category_id || 'all', ar: (p.name_ar || p.name_en) + tag, en: (p.name_en || p.name_ar) + (p.is_demo ? ' (demo)' : ''), price: P(p.price), stock: Math.max(0, Math.floor(stock[p.id] || 0)), barcode: p.barcode || '', weighted: false, unitAr: 'قطعة', unitEn: 'pc', mono: (p.name_ar || p.name_en || '?').charAt(0) };
+          var u = UN[p.id], ms = !!(u && u.sold_by && u.sold_by !== 'unit'), tag = p.is_demo ? ' (تجريبي)' : '';
+          return { id: p.id, cat: p.category_id || 'all', ar: (p.name_ar || p.name_en) + tag, en: (p.name_en || p.name_ar) + (p.is_demo ? ' (demo)' : ''), price: P(p.price), stock: ms ? Math.max(0, Math.round((stock[p.id] || 0) * 1000)) : Math.max(0, Math.floor(stock[p.id] || 0)), barcode: p.barcode || '', weighted: ms, step: ms ? Math.max(1, Math.round(Number(u.step || 0.001) * 1000)) : 1, unitAr: ms ? (u.unit || 'كجم') : 'قطعة', unitEn: ms ? (UEN[u.unit] || u.unit || 'kg') : 'pc', mono: (p.name_ar || p.name_en || '?').charAt(0) };
         });
         state.customers = r[5].map(function (c) { return { id: c.id, ar: c.name, en: c.name, phone: c.phone || '', credit_limit: P(c.credit_limit), balance: P(c.balance), tier: 'retail' }; });
         return loadShift().then(loadHolds);
@@ -136,7 +142,7 @@
       var cart = state.cart.lines;
       var items = cart.map(function (l, i) {
         var prod = state.products.filter(function (x) { return x.id === l.productId; })[0];
-        var it = { description: (prod ? prod.ar : l.nameAr || l.name || 'صنف'), qty: l.qty, unit_price: E(prod ? (l.priceOverride ? l.unitPrice : prod.price) : l.unitPrice), discount: E(l.discount || 0) };
+        var it = { description: (prod ? prod.ar : l.nameAr || l.name || 'صنف'), qty: (prod && prod.weighted) ? l.qty / 1000 : l.qty, unit_price: E(prod ? (l.priceOverride ? l.unitPrice : prod.price) : l.unitPrice), discount: E(l.discount || 0) };
         if (prod) { it.product_id = prod.id; if (L.wh) it.warehouse_id = L.wh; }
         return it;
       });
@@ -161,14 +167,14 @@
       p.lines.forEach(function (rl) {
         var left = rl.qty;
         inv.lines.filter(function (l) { return l.product_id === rl.product_id; }).forEach(function (l) {
-          var take = Math.min(left, lineCap(inv, l)); if (take > 0) { lines.push({ line_id: l.line_id, qty: take, restock: rl.restock === false ? 'damaged' : 'stock' }); left -= take; }
+          var take = Math.min(left, lineCap(inv, l)); if (take > 0) { lines.push({ line_id: l.line_id, qty: isMeasured(l.product_id) ? take / 1000 : take, uiqty: take, restock: rl.restock === false ? 'damaged' : 'stock' }); left -= take; }
         });
       });
       return rpc('pos_return', { p: { idem: p.idempotency_key, doc_id: inv.id, reason: p.reason, refund_method: p.refund_method, lines: lines, manager_token: p.manager_token || undefined } }).then(function (r) {
         return get('core_sales_docs?id=eq.' + inv.id + '&select=*').then(loadDocs).then(function () {
           state.returns = state.returns.filter(function (x) { return x.id !== r.id; });
           var ret = { id: r.id, number: r.number, invoice_id: inv.id, invoice_number: inv.number, created_at: Date.now(), shift_id: state.shift && state.shift.id, customer_id: inv.customer_id, amount: P(r.total), reason: p.reason, refund_method: p.refund_method, status: 'posted',
-            lines: lines.map(function (x) { var src = inv.lines.filter(function (l) { return l.line_id === x.line_id; })[0]; return { product_id: src.product_id, line_id: x.line_id, qty: x.qty, refund: Math.round(src.unit_price * x.qty), restock: x.restock === 'stock', name_ar: src.name_ar, name_en: src.name_en, qty_kind: 'unit' }; }) };
+            lines: lines.map(function (x) { var src = inv.lines.filter(function (l) { return l.line_id === x.line_id; })[0]; return { product_id: src.product_id, line_id: x.line_id, qty: x.uiqty, refund: src.qty_kind === 'weight' ? Math.round(src.unit_price * x.uiqty / 1000) : Math.round(src.unit_price * x.uiqty), restock: x.restock === 'stock', name_ar: src.name_ar, name_en: src.name_en, qty_kind: src.qty_kind }; }) };
           state.returns.unshift(ret);
           ret.lines.forEach(function (l) { if (l.restock) { var pr = state.products.filter(function (x) { return x.id === l.product_id; })[0]; if (pr) pr.stock += l.qty; } });
           return { ret: ret, replayed: !!r.replay };

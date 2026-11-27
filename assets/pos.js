@@ -182,6 +182,16 @@ function resetDemo() {
 /* ------------------------------------------------------- 6. Money + totals */
 const round = Math.round;
 
+/* Measured items (weight, length, volume): UI quantity is in thousandths of the unit (grams for kg, mm for m, ml for L), price is per unit. */
+function uLab(pid) { const p = state.products.find((x) => x.id === pid); return LANG === 'ar' ? ((p && p.unitAr) || 'كجم') : ((p && p.unitEn) || 'kg'); }
+function stepOf(pid) { const p = state.products.find((x) => x.id === pid); return (p && p.step) || 1; }
+function incOf(pid) { const s = stepOf(pid); return s >= 250 ? s : Math.ceil(250 / s) * s; }
+function snapQty(pid, q) { const s = stepOf(pid); return Math.max(s, Math.round(q / s) * s); }
+function parseDec(v) {
+  const a = String(v == null ? '' : v).replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 0x660)).replace(/[\u06F0-\u06F9]/g, (d) => String(d.charCodeAt(0) - 0x6F0)).replace(/\u066B|\u066C|,/g, '.');
+  const n = Number(a); return isFinite(n) && n > 0 ? n : 0;
+}
+
 function lineAmount(line) {
   if (line.qtyKind === 'weight') {
     return round(line.unitPrice * line.qty / 1000) - (line.discount || 0);
@@ -756,7 +766,7 @@ function renderCart() {
   } else {
     lines.innerHTML = c.lines.map((l) => {
       const amt = lineAmount(l);
-      const qtyLabel = l.qtyKind === 'weight' ? nf(l.qty / 1000, 3) + ' ' + T('كجم', 'kg') : l.qty + ' × ' + money(l.unitPrice);
+      const qtyLabel = l.qtyKind === 'weight' ? nf(l.qty / 1000, 3) + ' ' + uLab(l.productId) : l.qty + ' × ' + money(l.unitPrice);
       return `<div class="line${state.selected === l.id ? ' is-selected' : ''}${l.discount ? ' is-discount' : ''}"
         data-act="select-line" data-id="${l.id}" role="listitem">
         <span class="l-main">
@@ -836,7 +846,7 @@ function addProduct(id, qty, opts) {
   if (p.blocked) { toast(T('الصنف ده ممنوع بيعه.', 'That item is blocked from sale.'), 'bad'); return; }
 
   const kind = p.weighted ? 'weight' : 'unit';
-  const q = p.weighted ? (qty || 250) : (qty || 1);
+  const q = p.weighted ? snapQty(id, qty || 250) : (qty || 1);
   const existing = state.cart.lines.find((l) => l.productId === id && l.qtyKind === kind && !l.priceOverride);
   if (existing) {
     existing.qty += q;
@@ -869,7 +879,7 @@ function flashTile(id) {
 function changeQty(lineId, d) {
   const line = state.cart.lines.find((l) => l.id === lineId);
   if (!line) return;
-  const step = line.qtyKind === 'weight' ? 250 : 1;
+  const step = line.qtyKind === 'weight' ? incOf(line.productId) : 1;
   const next = line.qty + d * step;
   if (next <= 0) { removeLine(lineId); return; }
   line.qty = next;
@@ -1458,7 +1468,7 @@ function receiptHtml(inv) {
     <div class="r-sep"></div>
     <table>
       ${inv.lines.map((l) => `<tr>
-        <td>${esc(l[LANG === 'ar' ? 'name_ar' : 'name_en'])}<br><span style="font-size:9.5px;color:#555">${l.qty_kind === 'weight' ? nf(l.qty / 1000, 3) + ' ' + T('كجم', 'kg') : l.qty + ' × ' + money(l.unit_price)}</span></td>
+        <td>${esc(l[LANG === 'ar' ? 'name_ar' : 'name_en'])}<br><span style="font-size:9.5px;color:#555">${l.qty_kind === 'weight' ? nf(l.qty / 1000, 3) + ' ' + uLab(l.product_id) : l.qty + ' × ' + money(l.unit_price)}</span></td>
         <td class="r num">${money(l.amount)}</td></tr>`).join('')}
     </table>
     <div class="r-sep"></div>
@@ -1527,7 +1537,7 @@ function postDisplay() {
   const payload = {
     invoiceNo: state.cart.id || nextInvoiceNo(),
     lines: state.cart.lines.map((l) => ({
-      name: l[LANG], qty: l.qtyKind === 'weight' ? nf(l.qty / 1000, 3) + ' ' + T('كجم', 'kg') : '× ' + l.qty,
+      name: l[LANG], qty: l.qtyKind === 'weight' ? nf(l.qty / 1000, 3) + ' ' + uLab(l.productId) : '× ' + l.qty,
       amount: money(lineAmount(l))
     })),
     total: money(t.total), tax: money(t.tax), discount: money(t.discountTotal),
@@ -1677,7 +1687,7 @@ SHEETS.returns = function () {
               <button data-act="ret-qty" data-p="${x.l.product_id}" data-d="1" aria-label="${T('زيادة', 'More')}">+</button>
             </span>
           </span>
-          <span class="r-sub">${T('مباع', 'Sold')} ${x.l.qty_kind === 'weight' ? nf(x.l.qty / 1000, 3) + ' ' + T('كجم', 'kg') : x.l.qty}${x.already ? ' · ' + T('مرتجع', 'returned') + ' ' + x.already : ''} · ${T('متاح', 'left')} ${x.remaining}</span>
+          <span class="r-sub">${T('مباع', 'Sold')} ${x.l.qty_kind === 'weight' ? nf(x.l.qty / 1000, 3) + ' ' + uLab(x.l.product_id) : x.l.qty}${x.already ? ' · ' + T('مرتجع', 'returned') + ' ' + x.already : ''} · ${T('متاح', 'left')} ${x.remaining}</span>
           <span class="r-sub">${money(x.l.amount)}</span>
         </div>`).join('')}
     </div>
@@ -2211,17 +2221,17 @@ SHEETS.weight = function () {
   const amountV = p ? round(p.price * grams / 1000) : 0;
   return {
     title: T('إدخال بالوزن', 'Enter by weight'),
-    sub: T('الوزن × سعر الكيلو = الإجمالي، من غير تحويل ضمني', 'Weight × price per kg = total, no implicit conversion'),
+    sub: T('الكمية × سعر الوحدة = الإجمالي، من غير تحويل ضمني', 'Quantity × unit price = total, no implicit conversion'),
     center: true, width: 520,
     body: `<div class="field">
         <label>${T('الصنف', 'Item')}</label>
         <select class="select" data-act="weight-pick">
-          ${list.map((x) => `<option value="${x.id}" ${x.id === picked ? 'selected' : ''}>${esc(x[LANG])} — ${money(x.price)}/${T('كجم', 'kg')}</option>`).join('')}
+          ${list.map((x) => `<option value="${x.id}" ${x.id === picked ? 'selected' : ''}>${esc(x[LANG])} — ${money(x.price)}/${uLab(x.id)}</option>`).join('')}
         </select>
       </div>
       <div class="field">
-        <label for="grams">${T('الوزن بالجرام', 'Weight in grams')}</label>
-        <input class="input num" id="grams" inputmode="numeric" value="${grams}" data-act="weight-input">
+        <label for="grams">${T('الكمية', 'Quantity')} (${p ? uLab(p.id) : ''})</label>
+        <input class="input num" id="grams" inputmode="decimal" value="${state.ui.weightRaw != null ? esc(state.ui.weightRaw) : nf(grams / 1000, 3)}" data-act="weight-input">
       </div>
       <div class="paid-box"><span class="lbl">${T('الإجمالي', 'Total')}</span><span class="val">${money(amountV)}</span></div>
       <div class="hint">${T('باركود الميزان بادئة 21/22: أول 5 أرقام بعد البادئة وزن بالجرام.', 'Scale barcode prefix 21/22: the 5 digits after the prefix are grams.')}</div>`,
@@ -2544,7 +2554,7 @@ function onAction(act, node) {
       const r = state.ui.ret;
       const inv = state.invoices.find((i) => i.id === r.invoiceId);
       const line = inv.lines.find((l) => l.product_id === d.p);
-      const step = line.qty_kind === 'weight' ? 250 : 1;
+      const step = line.qty_kind === 'weight' ? incOf(line.product_id) : 1;
       const curQty = r.lines[d.p] || 0;
       const max = line.qty - returnedQtyFor(inv.id, d.p);
       r.lines[d.p] = Math.max(0, Math.min(max, curQty + Number(d.d) * step));
@@ -2585,8 +2595,8 @@ function onAction(act, node) {
       break;
     }
     /* weight */
-    case 'weight-pick': state.ui.weightProduct = node.value; refreshSheet(); break;
-    case 'weight-input': state.ui.weightGrams = Number(node.value) || 0; refreshSheet(); break;
+    case 'weight-pick': state.ui.weightProduct = node.value; state.ui.weightRaw = null; refreshSheet(); break;
+    case 'weight-input': state.ui.weightRaw = node.value; state.ui.weightGrams = Math.round(parseDec(node.value) * 1000); refreshSheet(); break;
     case 'weight-add': {
       const p = state.products.find((x) => x.id === (state.ui.weightProduct || (state.products.find((y) => y.weighted) || {}).id));
       if (p) addProduct(p.id, state.ui.weightGrams || 250, { silent: true });
@@ -2675,7 +2685,7 @@ function initActions() {
     else if (act === 'move-note') state.ui.move.note = node.value;
     else if (act === 'cust-search') { state.ui.custQuery = node.value; refreshSheet(); }
     else if (act === 'disc-value') state.ui.disc.value = node.value;
-    else if (act === 'weight-input') { state.ui.weightGrams = Number(node.value) || 0; refreshSheet(); }
+    else if (act === 'weight-input') { state.ui.weightRaw = node.value; state.ui.weightGrams = Math.round(parseDec(node.value) * 1000); refreshSheet(); }
   }, false);
 
   document.addEventListener('change', (e) => {
