@@ -359,4 +359,4 @@ body.chat-open .ua-companion, body.vc-open .ua-companion { display: none !import
 .ua-companion.ua-store { inset-inline-start: auto !important; inset-inline-end: auto !important; left: auto !important; right: 16px !important; bottom: 92px !important; }
 .ua-companion.ua-store[data-min="1"] .ua-stage { width: 48px; height: 48px; }
 .ua-companion.ua-store[data-min="1"] .ua { --ua-size: 92px; margin-left: -46px; top: -11px; }
-@media (max-width: 480px) { .ua-companion.ua-store { right: 12px !important; bottom: 84px !important; } }
+@media (max-width: 480px) { .ua-companion.ua-store { right: 12px !important; bottom: 152px !important; } }

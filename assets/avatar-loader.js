@@ -2,7 +2,7 @@
 (function () {
   if (!window.UNO_ROBOT_ON) return;
   if (!/(\/|index\.html|store\.html|blog\.html|tools\.html)$/.test(location.pathname)) return;
-  var V = '20261128b', base = 'assets/';
+  var V = '20261128c', base = 'assets/';
   function css(h) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + h + '?v=' + V; document.head.appendChild(l); }
   function js(s) { return new Promise(function (ok, no) { var j = document.createElement('script'); j.src = base + s + '?v=' + V; j.onload = ok; j.onerror = no; document.head.appendChild(j); }); }
   function start() {
