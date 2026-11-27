@@ -49,6 +49,29 @@
         .then(function (id) { detail(id); }).catch(function (x) { b.disabled = false; var m = document.getElementById('le'); m.hidden = false; m.textContent = errmsg(x); });
     };
   }
+
+  function money(n) { return Number(n || 0).toLocaleString(S.lang() === 'en' ? 'en-US' : 'ar-EG'); }
+  var QS = { draft: ['مسودة', 'Draft'], sent: ['مرسل', 'Sent'], accepted: ['مقبول', 'Accepted'], rejected: ['مرفوض', 'Rejected'] };
+  function quotes(id, l, ed) {
+    var box = document.getElementById('qp'); if (!box) return;
+    var lines = [];
+    rpc('crm_quotes_list', { p_lead: id }).then(function (qs) {
+      var h = '<div class="panel"><h3>' + T(['العميل وعروض الأسعار', 'Customer & quotes']) + '</h3>';
+      h += l.partner_id ? '<div class="hist">' + T(['مرتبط بسجل عميل', 'Linked to a customer record']) + '</div>' : (ed ? '<div class="acts"><button class="btn alt" id="cv">' + T(['تحويل إلى عميل', 'Convert to customer']) + '</button></div>' : '');
+      h += qs.map(function (q) { return '<div class="hist" style="margin-top:8px"><b>#' + q.no + '</b> · ' + T(QS[q.status]) + ' · ' + money(q.total) + ' ' + T(['ج.م', 'EGP']) + '<br>' + q.lines.map(function (x) { return esc(x.name) + ' × ' + x.qty; }).join(' · ') +
+        (ed && q.status === 'draft' ? '<div class="acts"><button class="btn alt" data-q="' + q.id + '|sent">' + T(['تم الإرسال', 'Mark sent']) + '</button></div>' : '') +
+        (ed && q.status === 'sent' ? '<div class="acts"><button class="btn" data-q="' + q.id + '|accepted">' + T(['مقبول', 'Accepted']) + '</button><button class="btn alt bd" data-q="' + q.id + '|rejected">' + T(['مرفوض', 'Rejected']) + '</button></div>' : '') + '</div>'; }).join('');
+      if (ed && l.stage !== 'won' && l.stage !== 'lost') h += '<h3 style="margin-top:12px">' + T(['عرض سعر جديد', 'New quote']) + '</h3><div id="ql"></div><input id="qn" placeholder="' + T(['البند', 'Item']) + '"><div class="row2"><input id="qq" type="number" min="1" value="1" inputmode="decimal"><input id="qp2" type="number" min="0" placeholder="' + T(['السعر', 'Price']) + '" inputmode="decimal"><button class="sm" id="qa">+</button></div><div class="msg" id="qe" hidden></div><div class="acts"><button class="btn" id="qs" disabled>' + T(['حفظ كمسودة', 'Save draft']) + '</button></div>';
+      box.innerHTML = h + '</div>';
+      var er = function (x) { var m = document.getElementById('qe'); if (m) { m.hidden = false; m.textContent = errmsg(x); } else alert(errmsg(x)); };
+      var cv = document.getElementById('cv'); if (cv) cv.onclick = function () { cv.disabled = true; rpc('crm_convert_customer', { p_id: id }).then(function () { detail(id); }).catch(function (x) { cv.disabled = false; er(x); }); };
+      [].forEach.call(box.querySelectorAll('[data-q]'), function (b) { b.onclick = function () { var a = b.getAttribute('data-q').split('|'); b.disabled = true; rpc('crm_quote_status', { p_id: a[0], p_status: a[1] }).then(function () { detail(id); }).catch(function (x) { b.disabled = false; er(x); }); }; });
+      var qa = document.getElementById('qa'); if (!qa) return;
+      var draw = function () { document.getElementById('ql').innerHTML = lines.map(function (x) { return '<div class="hist">' + esc(x.name) + ' × ' + x.qty + ' = ' + money(x.qty * x.price) + '</div>'; }).join(''); document.getElementById('qs').disabled = !lines.length; };
+      qa.onclick = function () { var n = val('qn'), q = Number(val('qq')), p = Number(val('qp2')); if (!n || !(q > 0) || !(p >= 0) || val('qp2') === '') return er(T(['أكمل البند والكمية والسعر', 'Complete item, quantity and price'])); lines.push({ name: n, qty: q, price: p }); document.getElementById('qn').value = ''; document.getElementById('qp2').value = ''; draw(); };
+      document.getElementById('qs').onclick = function () { var b = this; b.disabled = true; rpc('crm_quote_save', { p: { lead_id: id, lines: lines } }).then(function () { detail(id); }).catch(function (x) { b.disabled = false; er(x); }); };
+    }).catch(function () { box.innerHTML = ''; });
+  }
   function detail(id) {
     page('<div class="empty">' + T(['جارٍ التحميل...', 'Loading...']) + '</div>');
     rpc('crm_lead_get', { p_id: id }).then(function (l) {
@@ -61,7 +84,8 @@
       if (ed && !closed) h += '<div class="panel"><h3>' + T(['تسجيل متابعة', 'Log follow-up']) + '</h3><select id="nk">' + ['call', 'visit', 'whatsapp', 'note'].map(function (k) { return '<option value="' + k + '">' + T(NK[k]) + '</option>'; }).join('') + '</select><label>' + T(['ماذا حدث؟', 'What happened?']) + '</label><textarea id="nb" rows="2"></textarea><label>' + T(['المتابعة القادمة', 'Next follow-up']) + '</label><input id="nn" type="date"><div class="msg" id="ne" hidden></div><div class="acts"><button class="btn" id="na">' + T(['حفظ', 'Save']) + '</button></div></div>' +
         '<div class="panel"><h3>' + T(['المرحلة', 'Stage']) + '</h3><label>' + T(['ملاحظة (إجبارية عند الخسارة)', 'Note (required if lost)']) + '</label><input id="sn"><div class="acts">' + ['contacted', 'quoted', 'won', 'lost'].filter(function (s) { return s !== l.stage; }).map(function (s) { return '<button class="btn ' + (s === 'won' ? '' : 'alt') + (s === 'lost' ? ' bd' : '') + '" data-s="' + s + '">' + T(STG[s]) + '</button>'; }).join('') + '</div></div>';
       h += '<div class="panel"><h3>' + T(['السجل', 'History']) + '</h3>' + (l.notes.length ? l.notes.map(function (n) { return '<div class="hist"><b>' + T(NK[n.kind]) + '</b> · ' + esc(n.body) + ' · ' + new Date(n.at).toLocaleDateString(S.lang() === 'en' ? 'en-GB' : 'ar-EG') + '</div>'; }).join('') : '<div class="hist">—</div>') + '</div>';
-      document.querySelector('.wrap .empty').outerHTML = h;
+      h = h.replace('<div class="panel"><h3>' + T(['السجل', 'History']) + '</h3>', '<div id="qp"></div><div class="panel"><h3>' + T(['السجل', 'History']) + '</h3>');
+      document.querySelector('.wrap .empty').outerHTML = h; quotes(id, l, ed);
       var eb = document.getElementById('eb'); if (eb) eb.onclick = function () { form(l); };
       var show = function (x) { var m = document.getElementById('ne'); if (m) { m.hidden = false; m.textContent = errmsg(x); } else alert(errmsg(x)); };
       var na = document.getElementById('na'); if (na) na.onclick = function () { na.disabled = true; rpc('crm_note_add', { p_id: id, p_kind: val('nk'), p_body: val('nb'), p_next: val('nn') || null }).then(function () { detail(id); }).catch(function (x) { na.disabled = false; show(x); }); };
