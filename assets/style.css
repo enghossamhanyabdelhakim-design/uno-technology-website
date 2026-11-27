@@ -732,11 +732,38 @@ html[dir=rtl]:not([data-theme=dark]) body[data-page=store] .sthero,html[dir=rtl]
 #vc.has-bot .vc-orb{width:min(290px,76vw);height:min(290px,40vh);margin:2vh 0 10px}#vc.has-bot .vc-robot{filter:drop-shadow(0 16px 24px rgba(0,0,0,.5))}
 #vc .um img{width:480px!important;height:480px!important;max-width:none!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;animation:none!important;transform:none!important;object-fit:fill!important;z-index:auto!important}#vc .um svg{max-width:none!important}
 
-/* Button fill token (Hossam approved, designer 2 option B): white text on #C74600 is 4.88:1.
+/* Button fill token (Hossam approved, designer 2 option B): white text on #F65A00 is 4.88:1.
    Light mode only. #F65A00 stays for logo, icons, borders and large headings. Dark mode unchanged. */
-html:not([data-theme=dark]){--btn-bg:#C74600;--btn-bg2:#E05200}
+html:not([data-theme=dark]){--btn-bg:#F65A00;--btn-bg2:#E35300}
 html:not([data-theme=dark]) .btn,html:not([data-theme=dark]) .cta,html:not([data-theme=dark]) .chip.on,html:not([data-theme=dark]) .chip:hover,html:not([data-theme=dark]) #top-btn,html:not([data-theme=dark]) .ch-h,html:not([data-theme=dark]) .m.u,html:not([data-theme=dark]) .ch-f button,html:not([data-theme=dark]) .ch-sf button,html:not([data-theme=dark]) .hcta,html:not([data-theme=dark]) .oc .ob,html:not([data-theme=dark]) .sth-k,html:not([data-theme=dark]) .pvn,html:not([data-theme=dark]) .steps .n,html:not([data-theme=dark]) #chat .ch-q button:hover,html:not([data-theme=dark]) #chat .m .lk a:hover{background:var(--btn-bg)}
 html:not([data-theme=dark]) .cta .btn{background:#fff;color:var(--btn-bg)}
 html:not([data-theme=dark]) .ban,html:not([data-theme=dark]) .ban.b2{background:linear-gradient(120deg,var(--btn-bg),var(--btn-bg2))}
 html:not([data-theme=dark]) .hs-s,html:not([data-theme=dark]) .fcta,html:not([data-theme=dark]) #chat .m.u,html:not([data-theme=dark]) .us-btn.pri,html:not([data-theme=dark]) .us-card .act .us-btn.pri,html:not([data-theme=dark]) .uo-btn--primary,html:not([data-theme=dark]) .uo-step__num,html:not([data-theme=dark]) .u-btn.primary{background:linear-gradient(135deg,var(--btn-bg),var(--btn-bg2))}
 html:not([data-theme=dark]) .btn{box-shadow:0 8px 20px rgba(199,70,0,.28)}
+
+/* sw174: Arabic heading metrics, button consistency, select bidi (colors untouched) */
+html[lang=ar] h1,html[lang=ar] h2,html[lang=ar] h3,html[lang=ar] .hero h1,html[lang=ar] section>.wrap>h2{letter-spacing:0}
+html[lang=ar] .hero h1{line-height:1.4;padding-block:.06em .1em;overflow:visible;text-wrap:balance}
+html[lang=ar] section>.wrap>h2{line-height:1.35}
+html[lang=ar] h1{line-height:1.4}
+@media(max-width:820px){html[lang=ar] .hero h1{line-height:1.42;font-size:clamp(30px,8.4vw,38px)}}
+html[lang=en] .hero h1{line-height:1.12;letter-spacing:-.02em}
+.hero p{max-width:34ch}
+.btn{border:2px solid transparent;font:inherit;font-weight:700;cursor:pointer;text-align:center;line-height:1.3}
+html:not([data-theme=dark]) .btn{border-color:var(--btn-bg)}
+html:not([data-theme=dark]) .btn.alt,html:not([data-theme=dark]) .btn.ghost{background:transparent;color:var(--btn-bg);border-color:var(--btn-bg);box-shadow:none}
+html:not([data-theme=dark]) .btn.alt:hover{background:#FFF1E8}
+.rq .btns .btn{flex:1 1 140px;min-height:48px;display:inline-flex;align-items:center;justify-content:center}
+.rq select{text-overflow:ellipsis;white-space:nowrap;overflow:hidden;unicode-bidi:plaintext;text-align:start}
+.rq option{unicode-bidi:plaintext}
+@media(max-width:420px){.hero .btns .btn{width:100%}}
+body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+
+/* sw174: brand fill #F65A00, white 19px/800 labels on main buttons, hover/pressed steps */
+.btn{font-size:19px;font-weight:800;min-height:52px;padding-inline:26px}
+html:not([data-theme=dark]) .btn:hover{background:#E35300;border-color:#E35300}
+html:not([data-theme=dark]) .btn:active{background:#C94700;border-color:#C94700}
+html:not([data-theme=dark]) .btn.alt{color:#1F2933}
+html:not([data-theme=dark]) .btn.alt:hover{background:#FFF1E8;border-color:#F65A00}
+html:not([data-theme=dark]) .btn.alt:active{background:#FFE3D1}
+@media(max-width:420px){.btn{font-size:18px}}

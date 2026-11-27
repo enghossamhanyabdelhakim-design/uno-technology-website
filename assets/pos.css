@@ -1463,7 +1463,7 @@ body.is-display #appRoot, body.is-display #mBar, body.is-display .toasts { displ
 /* when a quantity badge is showing, the weighted/blocked flag sits just below it instead of on top of it */
 .tile .t-badge ~ .t-flag { top: 32px; }
 /* Orbit polish */
-[data-theme="light"] .btn.is-primary { background: linear-gradient(135deg, #C74600 0%, #E05200 100%); box-shadow: 0 10px 26px -10px rgba(246, 90, 0, .45); }
+[data-theme="light"] .btn.is-primary { background: linear-gradient(135deg, #F65A00 0%, #E35300 100%); box-shadow: 0 10px 26px -10px rgba(246, 90, 0, .45); }
 [data-theme="light"] .btn.is-primary:active { box-shadow: none; }
 .num, .price, [class*="total"] { font-variant-numeric: tabular-nums; }
 /* wave 3: manager gate polish */

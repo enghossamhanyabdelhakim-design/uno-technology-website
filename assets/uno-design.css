@@ -30,7 +30,7 @@
   --u-orange-soft: #FFF1E8;           /* tinted fills */
   --u-orange-softer: #FFF8F2;
   --u-on-orange: #FFFFFF;
-  --u-grad-spark: linear-gradient(135deg, #C74600 0%, #E05200 100%); /* light: 4.88:1 with white (approved button token) */
+  --u-grad-spark: linear-gradient(135deg, #F65A00 0%, #E35300 100%); /* light: 4.88:1 with white (approved button token) */
 
   /* warm neutrals (light theme, the default) */
   --u-bg: #FAF9F7;
