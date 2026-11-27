@@ -41,7 +41,7 @@
   function start() {
     var host = document.getElementById('erp-host');
     // probe permission and connectivity before mounting
-    return rpc('erp_meta', {}).then(function () { U.mount(host, { lang: 'ar', theme: 'dark', screen: new URLSearchParams(location.search).get('screen') || undefined }); },
+    return rpc('erp_meta', {}).then(function () { U.mount(host, { lang: 'ar', theme: 'light', screen: new URLSearchParams(location.search).get('screen') || undefined }); },
       function (e) {
         if (/صلاحية/.test(e.message)) { host.innerHTML = '<div class="erp-login"><form><b>غير مسموح</b><span>' + e.message + '</span><button type="button" id="elOut">تسجيل خروج</button></form></div>'; document.getElementById('elOut').onclick = function () { CL.logout(); location.reload(); }; return; }
         CL.logout(); return login().then(start);
