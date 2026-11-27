@@ -940,6 +940,7 @@ function buzz(ms) {
 const SHEETS = {};   // registered by part 3
 
 function openSheet(name, opts) {
+  if (name === 'held' && !CFG.demo && window.UnoLive && window.UnoLive.loadHolds) window.UnoLive.loadHolds().then(() => { if (state.ui.sheet === 'held') refreshSheet(); });
   state.ui.sheet = name;
   state.ui.sheetOpts = opts || {};
   mountSheet();
@@ -2067,7 +2068,21 @@ SHEETS.voucher = function (opts) {
    ========================================================================== */
 
 /* -------------------------------------------------------- 24. Held tickets */
+async function holdCartLive() {
+  if (!state.cart.lines.length) { toast(T('الفاتورة فاضية.', 'The cart is empty.'), 'bad'); return false; }
+  const c = state.cart;
+  try {
+    await window.unoRpc('pos_hold_save', { customer_id: c.customerId, total: cartTotals(c).total, payload: { lines: JSON.parse(JSON.stringify(c.lines)), customerId: c.customerId, invoiceDiscount: c.invoiceDiscount, invoiceDiscountKind: c.invoiceDiscountKind, note: c.note } });
+  } catch (e) { toast(e.ar || e.message, 'bad'); return false; }
+  state.cart = emptyCart(); state.selected = null;
+  await window.UnoLive.loadHolds();
+  renderAll(); postDisplay();
+  toast(T('اتعلقت وبقت متاحة لكل أجهزة الفرع', 'Held and available on every device'), 'ok');
+  return true;
+}
+
 function holdCart() {
+  if (!CFG.demo) { holdCartLive(); return; }
   if (!state.cart.lines.length) { toast(T('الفاتورة فاضية.', 'The cart is empty.'), 'bad'); return; }
   const held = {
     id: 'h-' + (++state.seq),
@@ -2111,7 +2126,20 @@ SHEETS.held = function () {
   };
 };
 
+async function resumeHeldLive(id) {
+  if (state.cart.lines.length && !(await holdCartLive())) return;
+  let r;
+  try { r = await window.unoRpc('pos_hold_take', { id }); } catch (e) { toast(e.ar || e.message, 'bad'); return; }
+  if (!r || !r.ok) { toast(T('الفاتورة دي اتسحبت من جهاز تاني.', 'This held invoice was already resumed on another device.'), 'bad'); await window.UnoLive.loadHolds(); refreshSheet(); return; }
+  const pl = r.payload || {};
+  state.cart = { lines: pl.lines || [], customerId: r.customer_id || pl.customerId || null, invoiceDiscount: pl.invoiceDiscount || 0, invoiceDiscountKind: pl.invoiceDiscountKind || 'amount', note: pl.note || '', id: null };
+  await window.UnoLive.loadHolds();
+  closeSheet(); renderAll(); postDisplay();
+  toast(T('اتسترجعت الفاتورة', 'Invoice resumed'), 'ok');
+}
+
 function resumeHeld(id) {
+  if (!CFG.demo) { resumeHeldLive(id); return; }
   const h = state.held.find((x) => x.id === id);
   if (!h) return;
   if (state.cart.lines.length) holdCart();

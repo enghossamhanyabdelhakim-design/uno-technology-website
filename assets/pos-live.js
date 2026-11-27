@@ -116,7 +116,7 @@
           return { id: p.id, cat: p.category_id || 'all', ar: (p.name_ar || p.name_en) + tag, en: (p.name_en || p.name_ar) + (p.is_demo ? ' (demo)' : ''), price: P(p.price), stock: Math.max(0, Math.floor(stock[p.id] || 0)), barcode: p.barcode || '', weighted: false, unitAr: 'قطعة', unitEn: 'pc', mono: (p.name_ar || p.name_en || '?').charAt(0) };
         });
         state.customers = r[5].map(function (c) { return { id: c.id, ar: c.name, en: c.name, phone: c.phone || '', credit_limit: P(c.credit_limit), balance: P(c.balance), tier: 'retail' }; });
-        return loadShift();
+        return loadShift().then(loadHolds);
       });
     };
     if (!CL.loggedIn()) return login().then(go);
@@ -202,10 +202,17 @@
       return rpc('pos_void', { p: { doc_id: inv.id, reason: p.reason || 'cashier_error', refund_mode: mode, idem: 'vd-' + Date.now() } }).then(function () {
         return get('core_sales_docs?id=eq.' + inv.id + '&select=*').then(loadDocs).then(function (o) { inv.lines.forEach(function (l) { var pr = state.products.filter(function (x) { return x.id === l.product_id; })[0]; if (pr) pr.stock += l.qty; }); return { invoice: o[0] || inv }; });
       });
-    }
+    },
+    pos_hold_save: function (p) { return rpc('pos_hold_save', { p: { name: p.name || '', customer_id: p.customer_id || undefined, payload: p.payload, total: E(p.total) } }); },
+    pos_hold_take: function (p) { return rpc('pos_hold_take', { p_id: p.id }); }
   };
+  function loadHolds() {
+    return get('core_hold_carts?select=id,customer_id,payload,total,user_id,created_at&order=created_at.desc&limit=50').then(function (rows) {
+      state.held = (rows || []).map(function (h) { var pl = h.payload || {}; return { id: h.id, number: 'H-' + String(h.id).slice(0, 4).toUpperCase(), at: new Date(h.created_at).getTime(), customerId: h.customer_id || pl.customerId || null, lines: pl.lines || [], invoiceDiscount: pl.invoiceDiscount || 0, invoiceDiscountKind: pl.invoiceDiscountKind || 'amount', note: pl.note || '' }; });
+    }).catch(function () {});
+  }
   function verifyPin(pin) { return rpc('verify_manager_pin', { p_pin: pin }).then(function (r) { return r && r.token; }); }
 
-  window.UnoLive = { init: init, findInvoices: findInvoices, verifyPin: verifyPin, rpc: rpc, state: L };
+  window.UnoLive = { init: init, loadHolds: loadHolds, findInvoices: findInvoices, verifyPin: verifyPin, rpc: rpc, state: L };
   window.unoRpc = function (name, payload) { if (!API[name]) return Promise.reject(perr('NO_RPC', 'عملية غير معروفة')); return API[name](payload || {}); };
 })();
