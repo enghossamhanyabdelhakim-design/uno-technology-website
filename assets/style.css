@@ -705,3 +705,11 @@ html[data-theme=dark] #chat .ch-sup{color:#5eead4;border-color:rgba(94,234,212,.
 #chat #ch-tabs button[data-m=live].on{background:linear-gradient(135deg,#059669,#10b981)}
 #vc .vc-robot .rf{width:100%}
 #vc.has-robot .vc-robot{width:86%;height:auto;filter:drop-shadow(0 18px 40px rgba(0,0,0,.5))}
+/* hero imagery (original generated images, text kept readable with overlays) */
+body[data-page=home] .hero{background:linear-gradient(180deg,rgba(10,11,14,.72),rgba(10,11,14,.86)),url(hero/hero-home.webp) center/cover no-repeat,radial-gradient(1200px 600px at 75% 40%,#2a1608 0%,#12141a 55%,#0b0c10 100%)}
+body[data-page=store] .sthero{background:linear-gradient(135deg,rgba(255,243,234,.93),rgba(255,226,204,.8)),url(hero/hero-store.webp) center/cover no-repeat}
+body[data-page=tools] .sthero{background:linear-gradient(135deg,rgba(255,243,234,.93),rgba(255,226,204,.8)),url(hero/hero-tools.webp) center/cover no-repeat}
+body[data-page=blog] .sthero{background:linear-gradient(135deg,rgba(255,243,234,.93),rgba(255,226,204,.8)),url(hero/hero-blog.webp) center/cover no-repeat}
+html[data-theme=dark] body[data-page=store] .sthero{background:linear-gradient(135deg,rgba(24,17,12,.9),rgba(30,22,16,.82)),url(hero/hero-store.webp) center/cover no-repeat}
+html[data-theme=dark] body[data-page=tools] .sthero{background:linear-gradient(135deg,rgba(24,17,12,.9),rgba(30,22,16,.82)),url(hero/hero-tools.webp) center/cover no-repeat}
+html[data-theme=dark] body[data-page=blog] .sthero{background:linear-gradient(135deg,rgba(24,17,12,.9),rgba(30,22,16,.82)),url(hero/hero-blog.webp) center/cover no-repeat}
