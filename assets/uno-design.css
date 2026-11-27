@@ -1,0 +1,467 @@
+/* ==========================================================================
+   UNO DESIGN SYSTEM — "Orbit"  v1.0  (2026-11-27)
+   Design language for all Uno surfaces: staff app, POS, ERP, admin, store.
+
+   Principles
+   1. Light-first. Uno's brand is orange on white. No near-black backgrounds
+      in the core experience. Dark mode exists, but light is the default.
+   2. One orange, used with discipline. Orange = action, urgency, brand.
+      Everything else is warm neutrals + a small set of semantic colors.
+   3. Engineered, not decorative. Geometric type (Alexandria), tabular
+      numerals, an 8px rhythm, consistent radii. Orbit-ring motifs echo the
+      logo and appear ONLY on hero/brand surfaces, never on data surfaces.
+   4. Mobile-first RTL. Every component is written with logical properties
+      (margin-inline-*, inset-inline-*) so ar/rtl and en/ltr share one CSS.
+
+   File map
+   1. Tokens          5. Forms          9. Table
+   2. Base/reset      6. Chips/pills   10. Nav (app bar, bottom nav, rail)
+   3. Typography      7. Cards/tiles   11. Sheet / banner / empty / skeleton
+   4. Buttons         8. Status/prog   12. Motion + dark theme + utilities
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- 1. Tokens */
+:root {
+  /* brand */
+  --u-orange: #F65A00;
+  --u-orange-2: #FF7A1F;
+  --u-orange-3: #FF8A3D;
+  --u-orange-ink: #C24300;            /* orange text on light surfaces */
+  --u-orange-soft: #FFF1E8;           /* tinted fills */
+  --u-orange-softer: #FFF8F2;
+  --u-on-orange: #FFFFFF;
+  --u-grad-spark: linear-gradient(135deg, #F65A00 0%, #FF7A1F 55%, #FF9E4A 100%);
+
+  /* warm neutrals (light theme, the default) */
+  --u-bg: #FAF9F7;
+  --u-surface: #FFFFFF;
+  --u-surface-2: #F5F3F0;
+  --u-line: #ECE8E1;
+  --u-line-strong: #DCD5CA;
+  --u-text: #191A1E;
+  --u-text-2: #5D6168;
+  --u-text-3: #9BA0A8;
+
+  /* semantic */
+  --u-ok: #16A34A;   --u-ok-soft: #E9F7EF;   --u-ok-ink: #0E7A37;
+  --u-bad: #E5484D;  --u-bad-soft: #FDECEA;  --u-bad-ink: #C4383D;
+  --u-warn: #D97706; --u-warn-soft: #FEF3E2; --u-warn-ink: #A35A05;
+  --u-info: #2563EB; --u-info-soft: #EAF1FE; --u-info-ink: #1D4FD7;
+  --u-violet: #7C3AED; --u-violet-soft: #F1EAFE; --u-violet-ink: #6528D6;
+
+  /* radii */
+  --u-r-xs: 8px;  --u-r-sm: 12px; --u-r: 16px;
+  --u-r-lg: 20px; --u-r-xl: 28px; --u-r-pill: 999px;
+
+  /* elevation (warm, low-chroma) */
+  --u-sh-1: 0 1px 2px rgba(25,26,30,.05);
+  --u-sh-2: 0 2px 6px rgba(25,26,30,.05), 0 12px 28px -14px rgba(25,26,30,.12);
+  --u-sh-spark: 0 10px 26px -10px rgba(246,90,0,.45);
+  --u-sh-sheet: 0 -20px 48px -16px rgba(25,26,30,.22);
+
+  /* spacing scale (4px base) */
+  --u-s1: 4px;  --u-s2: 8px;  --u-s3: 12px; --u-s4: 16px;
+  --u-s5: 20px; --u-s6: 24px; --u-s8: 32px; --u-s12: 48px;
+
+  /* type */
+  --u-font: "Alexandria", "Segoe UI", Tahoma, system-ui, sans-serif;
+  --u-fs-display: 30px;   /* hero numerals */
+  --u-fs-h1: 22px;
+  --u-fs-h2: 17px;
+  --u-fs-body: 15px;
+  --u-fs-sm: 13px;
+  --u-fs-micro: 11px;
+
+  /* motion */
+  --u-ease: cubic-bezier(.2, .8, .2, 1);
+  --u-dur-1: .12s;   /* press, hover   */
+  --u-dur-2: .2s;    /* sheets, chips  */
+  --u-dur-3: .34s;   /* page elements  */
+}
+
+/* dark theme — optional, still warm charcoal, never pure black */
+[data-theme="dark"] {
+  --u-bg: #17181D;
+  --u-surface: #1F2128;
+  --u-surface-2: #262931;
+  --u-line: #2E313B;
+  --u-line-strong: #3D414D;
+  --u-text: #F3F4F6;
+  --u-text-2: #A6ABB5;
+  --u-text-3: #6E7480;
+  --u-orange-soft: rgba(246,90,0,.16);
+  --u-orange-softer: rgba(246,90,0,.08);
+  --u-orange-ink: #FF9E4A;
+  --u-ok-soft: rgba(22,163,74,.18);  --u-ok-ink: #4ADE80;
+  --u-bad-soft: rgba(229,72,77,.16); --u-bad-ink: #FF7A7E;
+  --u-warn-soft: rgba(217,119,6,.18); --u-warn-ink: #FBBF24;
+  --u-info-soft: rgba(37,99,235,.18); --u-info-ink: #7BA7FF;
+  --u-violet-soft: rgba(124,58,237,.2); --u-violet-ink: #B79CFF;
+  --u-sh-1: 0 1px 2px rgba(0,0,0,.35);
+  --u-sh-2: 0 2px 6px rgba(0,0,0,.3), 0 12px 28px -14px rgba(0,0,0,.5);
+}
+
+/* ------------------------------------------------------------- 2. Base/reset */
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: var(--u-bg);
+  color: var(--u-text);
+  font-family: var(--u-font);
+  font-size: var(--u-fs-body);
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--u-orange); outline-offset: 2px; border-radius: var(--u-r-xs); }
+
+/* numerals: Latin digits, tabular, everywhere numbers carry meaning
+   (money, counts, dates, phone numbers) */
+.num, .u-price, .u-stat b { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+.u-wrap { max-width: 1120px; margin-inline: auto; padding-inline: var(--u-s4); }
+
+/* ------------------------------------------------------------- 3. Typography */
+.u-display { font-size: var(--u-fs-display); font-weight: 800; line-height: 1.15; letter-spacing: -.01em; }
+.u-h1 { font-size: var(--u-fs-h1); font-weight: 700; line-height: 1.3; margin: 0; }
+.u-h2 { font-size: var(--u-fs-h2); font-weight: 700; line-height: 1.4; margin: 0; }
+.u-sub { color: var(--u-text-2); font-size: var(--u-fs-sm); margin: 0; }
+.u-micro { color: var(--u-text-3); font-size: var(--u-fs-micro); }
+
+/* section header with the signature orange tick */
+.u-sec {
+  display: flex; align-items: center; gap: var(--u-s2);
+  margin: var(--u-s6) 0 var(--u-s3);
+  font-size: var(--u-fs-h2); font-weight: 700;
+}
+.u-sec::before { content: ""; width: 4px; height: 16px; border-radius: 2px; background: var(--u-grad-spark); }
+.u-sec > small { font-weight: 500; color: var(--u-text-3); font-size: var(--u-fs-sm); margin-inline-start: auto; }
+
+/* ---------------------------------------------------------------- 4. Buttons */
+.u-btn {
+  --_bg: var(--u-orange); --_fg: var(--u-on-orange); --_bd: transparent;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--u-s2);
+  min-height: 48px; padding: 0 var(--u-s5);
+  border: 1.5px solid var(--_bd); border-radius: var(--u-r);
+  background: var(--_bg); color: var(--_fg);
+  font: inherit; font-weight: 700; font-size: 15px; text-decoration: none;
+  cursor: pointer; user-select: none;
+  transition: transform var(--u-dur-1) var(--u-ease), box-shadow var(--u-dur-1) var(--u-ease), background var(--u-dur-1) var(--u-ease);
+}
+.u-btn:active { transform: scale(.965); }
+.u-btn.primary { background: var(--u-grad-spark); box-shadow: var(--u-sh-spark); }
+.u-btn.primary:active { box-shadow: none; }
+.u-btn.alt { --_bg: var(--u-surface); --_fg: var(--u-text); --_bd: var(--u-line-strong); box-shadow: var(--u-sh-1); }
+.u-btn.soft { --_bg: var(--u-orange-soft); --_fg: var(--u-orange-ink); }
+.u-btn.ghost { --_bg: transparent; --_fg: var(--u-text-2); --_bd: var(--u-line-strong); }
+.u-btn.danger { --_bg: var(--u-bad-soft); --_fg: var(--u-bad-ink); }
+.u-btn.block { width: 100%; }
+.u-btn.md { min-height: 42px; padding-inline: var(--u-s4); font-size: 14px; border-radius: var(--u-r-sm); }
+.u-btn.sm { min-height: 34px; padding-inline: var(--u-s3); font-size: 13px; border-radius: var(--u-r-sm); }
+.u-btn[disabled] { opacity: .45; pointer-events: none; }
+.u-btn svg { width: 20px; height: 20px; }
+
+.u-iconbtn {
+  width: 42px; height: 42px; flex: none;
+  display: grid; place-items: center;
+  border: 1px solid var(--u-line); border-radius: var(--u-r-sm);
+  background: var(--u-surface); color: var(--u-text); cursor: pointer;
+  transition: transform var(--u-dur-1) var(--u-ease), border-color var(--u-dur-1) var(--u-ease);
+}
+.u-iconbtn:active { transform: scale(.92); }
+.u-iconbtn svg { width: 20px; height: 20px; }
+.u-iconbtn.tint { background: var(--u-orange-soft); border-color: transparent; color: var(--u-orange-ink); }
+
+/* ------------------------------------------------------------------ 5. Forms */
+.u-field { display: block; margin-bottom: var(--u-s3); }
+.u-field > label { display: block; font-size: var(--u-fs-sm); font-weight: 600; color: var(--u-text-2); margin-bottom: 6px; }
+.u-input, .u-field input, .u-field select, .u-field textarea {
+  width: 100%; min-height: 48px;
+  border: 1.5px solid var(--u-line); border-radius: var(--u-r-sm);
+  background: var(--u-surface); color: var(--u-text);
+  padding: 0 var(--u-s3); font: inherit; font-size: 16px;
+  transition: border-color var(--u-dur-1) var(--u-ease), box-shadow var(--u-dur-1) var(--u-ease);
+}
+.u-field textarea { padding: var(--u-s3); min-height: 96px; resize: vertical; }
+.u-input:focus, .u-field input:focus, .u-field select:focus, .u-field textarea:focus {
+  outline: none; border-color: var(--u-orange);
+  box-shadow: 0 0 0 3px var(--u-orange-soft);
+}
+.u-input::placeholder, .u-field input::placeholder { color: var(--u-text-3); }
+
+/* quantity stepper */
+.u-qty { display: inline-flex; align-items: center; gap: 2px; background: var(--u-surface-2); border-radius: var(--u-r-pill); padding: 3px; }
+.u-qty button { width: 32px; height: 32px; border: 0; border-radius: var(--u-r-pill); background: var(--u-surface); color: var(--u-text); font: inherit; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: var(--u-sh-1); display: grid; place-items: center; }
+.u-qty b { min-width: 34px; text-align: center; font-size: 14px; font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------ 6. Chips/pills */
+.u-chips { display: flex; gap: var(--u-s2); overflow-x: auto; padding-bottom: var(--u-s2); scrollbar-width: none; }
+.u-chips::-webkit-scrollbar { display: none; }
+.u-chip {
+  flex: none; min-height: 36px; padding: 0 var(--u-s4);
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1.5px solid var(--u-line); border-radius: var(--u-r-pill);
+  background: var(--u-surface); color: var(--u-text-2);
+  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all var(--u-dur-1) var(--u-ease);
+}
+.u-chip.on { background: var(--u-text); border-color: var(--u-text); color: var(--u-bg); }
+.u-chip.on-orange { background: var(--u-orange); border-color: var(--u-orange); color: #fff; }
+
+/* status pill — ONE status language across jobs, stock, orders, attendance */
+.u-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: var(--u-r-pill);
+  font-size: var(--u-fs-micro); font-weight: 700; white-space: nowrap;
+  background: var(--u-surface-2); color: var(--u-text-2);
+}
+.u-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.u-pill.ok      { background: var(--u-ok-soft);    color: var(--u-ok-ink); }
+.u-pill.bad     { background: var(--u-bad-soft);   color: var(--u-bad-ink); }
+.u-pill.warn    { background: var(--u-warn-soft);  color: var(--u-warn-ink); }
+.u-pill.info    { background: var(--u-info-soft);  color: var(--u-info-ink); }
+.u-pill.orange  { background: var(--u-orange-soft); color: var(--u-orange-ink); }
+.u-pill.violet  { background: var(--u-violet-soft); color: var(--u-violet-ink); }
+
+/* count badge (nav items, tiles, cart) */
+.u-badge {
+  min-width: 20px; height: 20px; padding: 0 6px;
+  display: inline-grid; place-items: center;
+  border-radius: var(--u-r-pill); background: var(--u-orange); color: #fff;
+  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ 7. Cards/tiles */
+.u-card {
+  background: var(--u-surface); border: 1px solid var(--u-line);
+  border-radius: var(--u-r-lg); padding: var(--u-s4);
+  box-shadow: var(--u-sh-1);
+}
+.u-card h3 { margin: 0 0 var(--u-s3); font-size: var(--u-fs-h2); }
+.u-card .sub { color: var(--u-text-2); font-size: var(--u-fs-sm); }
+
+/* interactive card (jobs, orders, leads) */
+.u-item {
+  display: block; width: 100%; text-align: start; text-decoration: none; cursor: pointer; font: inherit;
+  background: var(--u-surface); border: 1px solid var(--u-line); border-radius: var(--u-r-lg);
+  padding: var(--u-s4); margin-bottom: var(--u-s3); color: var(--u-text);
+  border-inline-start: 4px solid var(--u-line-strong);
+  transition: transform var(--u-dur-1) var(--u-ease), box-shadow var(--u-dur-2) var(--u-ease), border-color var(--u-dur-1) var(--u-ease);
+}
+.u-item:active { transform: scale(.98); }
+@media (hover: hover) { .u-item:hover { box-shadow: var(--u-sh-2); transform: translateY(-1px); } }
+.u-item.p-urgent { border-inline-start-color: var(--u-bad); }
+.u-item.p-high   { border-inline-start-color: var(--u-orange); }
+.u-item .r { display: flex; align-items: center; justify-content: space-between; gap: var(--u-s2); }
+.u-item b { font-size: 15px; }
+.u-item small { display: block; color: var(--u-text-2); font-size: var(--u-fs-sm); margin-top: 4px; }
+
+/* module tile (home grids) */
+.u-tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--u-s3); }
+@media (min-width: 640px) { .u-tiles { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 980px) { .u-tiles { grid-template-columns: repeat(4, 1fr); } }
+.u-tile {
+  position: relative; display: flex; flex-direction: column; gap: var(--u-s3);
+  min-height: 120px; padding: var(--u-s4);
+  background: var(--u-surface); border: 1px solid var(--u-line); border-radius: var(--u-r-lg);
+  color: var(--u-text); text-decoration: none;
+  transition: transform var(--u-dur-1) var(--u-ease), box-shadow var(--u-dur-2) var(--u-ease);
+}
+.u-tile:active { transform: scale(.97); }
+@media (hover: hover) { .u-tile:hover { box-shadow: var(--u-sh-2); transform: translateY(-2px); } }
+.u-tile b { font-size: 15px; }
+.u-tile small { color: var(--u-text-2); font-size: 12px; line-height: 1.45; }
+.u-tile .u-badge { position: absolute; top: 12px; inset-inline-end: 12px; }
+
+/* icon squircle — tinted, one tint per domain, reused across the system */
+.u-ico {
+  width: 44px; height: 44px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 14px; background: var(--u-orange-soft); color: var(--u-orange-ink);
+}
+.u-ico svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.u-ico.ok { background: var(--u-ok-soft); color: var(--u-ok-ink); }
+.u-ico.info { background: var(--u-info-soft); color: var(--u-info-ink); }
+.u-ico.warn { background: var(--u-warn-soft); color: var(--u-warn-ink); }
+.u-ico.bad { background: var(--u-bad-soft); color: var(--u-bad-ink); }
+.u-ico.violet { background: var(--u-violet-soft); color: var(--u-violet-ink); }
+
+/* stat card (dashboards / overview) */
+.u-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--u-s3); }
+@media (min-width: 900px) { .u-stats { grid-template-columns: repeat(4, 1fr); } }
+.u-stat { background: var(--u-surface); border: 1px solid var(--u-line); border-radius: var(--u-r-lg); padding: var(--u-s4); }
+.u-stat small { color: var(--u-text-2); font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.u-stat b { display: block; font-size: 24px; font-weight: 800; margin-top: 6px; letter-spacing: -.01em; }
+.u-stat .delta { font-size: var(--u-fs-micro); font-weight: 700; margin-inline-start: 6px; }
+.u-stat .delta.up { color: var(--u-ok-ink); } .u-stat .delta.down { color: var(--u-bad-ink); }
+
+/* avatar */
+.u-avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--u-orange-soft); color: var(--u-orange-ink); font-weight: 700; flex: none; }
+
+/* hero — the ONLY surface allowed to carry the orange gradient + orbit rings */
+.u-hero {
+  position: relative; overflow: hidden;
+  border-radius: var(--u-r-xl); padding: var(--u-s5);
+  background: var(--u-grad-spark); color: #fff;
+  box-shadow: var(--u-sh-spark);
+}
+.u-hero::after { /* orbit rings — decorative, echoes the logo */
+  content: ""; position: absolute; inset-inline-end: -70px; top: -70px;
+  width: 220px; height: 220px; border-radius: 50%;
+  border: 26px solid rgba(255,255,255,.14);
+  box-shadow: 0 0 0 26px rgba(255,255,255,.07), 0 0 0 60px rgba(255,255,255,.05);
+  pointer-events: none;
+}
+.u-hero h1 { margin: 0 0 4px; font-size: 21px; font-weight: 800; position: relative; }
+.u-hero p { margin: 0; font-size: 14px; opacity: .94; position: relative; }
+.u-hero .hero-actions { display: flex; gap: var(--u-s2); margin-top: var(--u-s4); position: relative; }
+.u-hero .u-btn { min-height: 40px; background: #fff; color: var(--u-orange-ink); border: 0; box-shadow: 0 4px 14px rgba(0,0,0,.15); }
+.u-hero .u-btn.ghost { background: rgba(255,255,255,.18); color: #fff; border: 1px solid rgba(255,255,255,.35); box-shadow: none; }
+
+/* ------------------------------------------------------------ 8. Status/prog */
+.u-prog { height: 6px; background: var(--u-surface-2); border-radius: var(--u-r-pill); overflow: hidden; }
+.u-prog i { display: block; height: 100%; border-radius: inherit; background: var(--u-grad-spark); transition: width var(--u-dur-3) var(--u-ease); }
+
+/* stepper (job status, order tracking) */
+.u-steps { display: flex; gap: 0; margin: var(--u-s3) 0; }
+.u-steps .step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; text-align: center; }
+.u-steps .step::before { /* connector */
+  content: ""; position: absolute; top: 11px; inset-inline-start: -50%;
+  width: 100%; height: 2px; background: var(--u-line-strong);
+}
+.u-steps .step:first-child::before { display: none; }
+.u-steps .step i {
+  width: 22px; height: 22px; border-radius: 50%; z-index: 1;
+  background: var(--u-surface); border: 2px solid var(--u-line-strong);
+  display: grid; place-items: center; font-style: normal;
+}
+.u-steps .step span { font-size: 10.5px; color: var(--u-text-3); font-weight: 600; line-height: 1.2; }
+.u-steps .step.done::before, .u-steps .step.now::before { background: var(--u-orange); }
+.u-steps .step.done i { background: var(--u-orange); border-color: var(--u-orange); color: #fff; }
+.u-steps .step.done i::after { content: "✓"; font-size: 11px; font-weight: 800; color: #fff; }
+.u-steps .step.now i { border-color: var(--u-orange); box-shadow: 0 0 0 4px var(--u-orange-soft); }
+.u-steps .step.now i::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--u-orange); }
+.u-steps .step.now span { color: var(--u-orange-ink); font-weight: 800; }
+
+/* ----------------------------------------------------------------- 9. Table  */
+.u-tablewrap { overflow-x: auto; border: 1px solid var(--u-line); border-radius: var(--u-r-lg); background: var(--u-surface); }
+.u-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.u-table th {
+  text-align: start; font-size: 12px; font-weight: 700; color: var(--u-text-3);
+  padding: 12px var(--u-s4); background: var(--u-surface-2);
+  position: sticky; top: 0; white-space: nowrap;
+}
+.u-table td { padding: 12px var(--u-s4); border-top: 1px solid var(--u-line); white-space: nowrap; }
+.u-table tbody tr { transition: background var(--u-dur-1) var(--u-ease); }
+.u-table tbody tr:hover { background: var(--u-orange-softer); }
+.u-table td.num, .u-table th.num { text-align: end; }
+
+/* ------------------------------------------------------------------- 10. Nav */
+/* app bar */
+.u-appbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: var(--u-s3);
+  padding: var(--u-s3) var(--u-s4);
+  background: color-mix(in srgb, var(--u-bg) 82%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--u-line);
+}
+.u-appbar .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.u-appbar .brand b { display: block; font-size: 15px; line-height: 1.2; }
+.u-appbar .brand small { display: block; color: var(--u-text-2); font-size: 11.5px; }
+.u-appbar .sp { flex: 1; }
+.u-mark { /* logo mark: rounded squircle with the spark gradient */
+  width: 40px; height: 40px; flex: none; border-radius: 13px;
+  background: var(--u-grad-spark); color: #fff;
+  display: grid; place-items: center; font-weight: 800; font-size: 19px;
+  box-shadow: var(--u-sh-spark);
+}
+
+/* bottom nav (mobile). Center action raised. Hide on desktop, show rail/sidebar. */
+.u-nav {
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 40;
+  display: flex; align-items: stretch; justify-content: space-around;
+  padding: 6px var(--u-s2) calc(6px + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--u-surface) 92%, transparent);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--u-line);
+}
+.u-nav a {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 0; color: var(--u-text-3); text-decoration: none;
+  font-size: 10.5px; font-weight: 600; border-radius: var(--u-r-sm);
+  position: relative;
+  transition: color var(--u-dur-1) var(--u-ease);
+}
+.u-nav a svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.u-nav a.on { color: var(--u-orange-ink); }
+.u-nav a .u-badge { position: absolute; top: 0; inset-inline-start: calc(50% + 4px); }
+.u-nav .fab {
+  flex: none; width: 56px; height: 56px; margin-top: -26px;
+  border-radius: 19px; background: var(--u-grad-spark); color: #fff;
+  display: grid; place-items: center; box-shadow: var(--u-sh-spark);
+  border: 4px solid var(--u-bg);
+  transition: transform var(--u-dur-1) var(--u-ease);
+}
+.u-nav .fab:active { transform: scale(.93); }
+.u-nav .fab svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+body.has-nav { padding-bottom: 84px; }
+@media (min-width: 980px) { .u-nav { display: none; } body.has-nav { padding-bottom: 0; } }
+
+/* --------------------------------------------- 11. Sheet / banner / empty etc */
+/* bottom sheet (cart, filters, actions) */
+.u-sheet {
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 50;
+  background: var(--u-surface); border-radius: var(--u-r-xl) var(--u-r-xl) 0 0;
+  box-shadow: var(--u-sh-sheet); padding: var(--u-s3) var(--u-s4) calc(var(--u-s4) + env(safe-area-inset-bottom));
+  max-height: 86vh; overflow-y: auto;
+  animation: u-sheet-in var(--u-dur-3) var(--u-ease);
+}
+.u-sheet::before { content: ""; display: block; width: 40px; height: 4px; border-radius: 2px; background: var(--u-line-strong); margin: 0 auto var(--u-s3); }
+@keyframes u-sheet-in { from { transform: translateY(24px); opacity: .6; } }
+
+/* slim alert banner (offline, sync pending, low stock) */
+.u-banner {
+  display: flex; align-items: center; gap: var(--u-s2);
+  padding: 10px var(--u-s4); border-radius: var(--u-r-sm);
+  font-size: var(--u-fs-sm); font-weight: 600;
+  background: var(--u-warn-soft); color: var(--u-warn-ink);
+}
+.u-banner.ok { background: var(--u-ok-soft); color: var(--u-ok-ink); }
+.u-banner.bad { background: var(--u-bad-soft); color: var(--u-bad-ink); }
+
+/* empty state — every list needs one: icon, one line, one action */
+.u-empty { text-align: center; padding: var(--u-s12) var(--u-s4); color: var(--u-text-2); }
+.u-empty .u-ico { width: 64px; height: 64px; border-radius: 22px; margin: 0 auto var(--u-s4); }
+.u-empty .u-ico svg { width: 30px; height: 30px; }
+.u-empty b { display: block; color: var(--u-text); font-size: 16px; margin-bottom: 4px; }
+.u-empty .u-btn { margin-top: var(--u-s4); }
+
+/* skeleton shimmer while loading */
+.u-skel { position: relative; overflow: hidden; background: var(--u-surface-2); border-radius: var(--u-r-sm); min-height: 14px; }
+.u-skel::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+  animation: u-shimmer 1.4s infinite;
+  transform: translateX(-100%);
+}
+[dir="rtl"] .u-skel::after { animation-name: u-shimmer-rtl; }
+@keyframes u-shimmer { to { transform: translateX(100%); } }
+@keyframes u-shimmer-rtl { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+
+/* staggered entrance for grids/lists: add .u-rise and --i per child */
+.u-rise { animation: u-rise var(--u-dur-3) var(--u-ease) both; animation-delay: calc(var(--i, 0) * 45ms); }
+@keyframes u-rise { from { opacity: 0; transform: translateY(10px); } }
+
+/* ------------------------------------------- 12. Motion prefs + utilities */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+.u-row { display: flex; align-items: center; gap: var(--u-s2); }
+.u-row .sp { flex: 1; }
+.u-hide-d { display: initial; }
+@media (min-width: 980px) { .u-hide-d { display: none !important; } } /* mobile-only */
+.u-show-d { display: none !important; }
+@media (min-width: 980px) { .u-show-d { display: initial !important; } } /* desktop-only */

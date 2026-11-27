@@ -3,7 +3,7 @@
   'use strict';
   var C = window.UNO_CFG, app = document.getElementById('app'), CL = window.CLOUD;
   var LANG = (function () { try { return localStorage.getItem('uno_sa_lang') || 'ar'; } catch (e) { return 'ar'; } })();
-  var THEME = (function () { try { return localStorage.getItem('uno_sa_theme') || 'dark'; } catch (e) { return 'dark'; } })();
+  var THEME = (function () { try { return localStorage.getItem('uno_sa_theme') || 'light'; } catch (e) { return 'light'; } })();
   var BUILTIN = {
     owner: ['audit', 'dashv', 'pos', 'users', 'log', 'content', 'store', 'orders', 'requests', 'core', 'chat', 'jobs.view', 'hr.self', 'crm.view'],
     admin: ['audit', 'dashv', 'pos', 'log', 'content', 'store', 'orders', 'requests', 'core', 'chat'],
@@ -62,7 +62,20 @@
       '<button class="ib" id="lg" aria-label="Language"><b style="font-size:13px">' + (LANG === 'en' ? 'ع' : 'EN') + '</b></button>' +
       '<button class="ib" id="th" aria-label="Theme">' + (THEME === 'dark' ? '<svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>' : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/></svg>')+ '</button></div>';
   }
+  var NI = { home: '<path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1v-9.5z"/>', wrench: IC.wrench, crm: IC.crm, hr: IC.hr, dash: IC.dash };
+  function nav() {
+    var o = document.querySelector('.u-nav'); if (o) o.remove();
+    var c = window.UNO_SA && window.UNO_SA.ctx; if (!c || !c.user) return;
+    var can = function (arr) { return c.role === 'owner' || arr.some(function (p) { return (c.perms || []).indexOf(p) >= 0; }); };
+    var items = [['', 'home', ['الرئيسية', 'Home'], true]].concat(TILES.filter(function (x) { return x.h && x.h.charAt(0) === '#' && x.h !== '#offline' && can(x.p); }).slice(0, 3).map(function (x) { return [x.h, x.ic, x.t, true]; }));
+    if (items.length < 2) return;
+    var h = location.hash, el = document.createElement('nav'); el.className = 'u-nav'; el.setAttribute('aria-label', 'Nav');
+    el.innerHTML = items.map(function (i) { return '<a href="' + (i[0] || '#') + '"' + ((i[0] || '') === h ? ' class="on"' : '') + '><svg viewBox="0 0 24 24">' + (NI[i[1]] || IC[i[1]] || '') + '</svg>' + T(i[2]) + '</a>'; }).join('');
+    el.onclick = function (e) { var a = e.target.closest('a'); if (a && (a.getAttribute('href') === '#') && !location.hash) { e.preventDefault(); window.scrollTo(0, 0); } };
+    document.body.appendChild(el);
+  }
   function wire() {
+    nav();
     var l = document.getElementById('lg'), t = document.getElementById('th');
     if (l) l.onclick = function () { LANG = LANG === 'en' ? 'ar' : 'en'; try { localStorage.setItem('uno_sa_lang', LANG); } catch (e) {} start(); };
     if (t) t.onclick = function () { THEME = THEME === 'dark' ? 'light' : 'dark'; try { localStorage.setItem('uno_sa_theme', THEME); } catch (e) {} start(); };
@@ -85,15 +98,15 @@
     var rt = { '#jobs': 'jobs', '#hr': 'hr', '#crm': 'crm', '#offline': 'offline', '#overview': 'overview' }[location.hash]; var tl = TILES.filter(function (x) { return x.h === location.hash; })[0]; if (rt && window.UNO_SA[rt] && tl && can(tl.p)) return window.UNO_SA[rt]();
     var secs = ['work', 'soon', 'admin'], html = '';
     secs.forEach(function (s) {
-      var ts = TILES.filter(function (x) { return x.s === s && can(x.p); }); if (!ts.length) return;
-      html += '<h2 class="sec">' + T(SEC[s]) + '</h2><div class="grid">' + ts.map(function (x) {
+      var ts = TILES.filter(function (x) { return x.s === s && can(x.p); }); if (!ts.length) return; var TINT = ['', 'ok', 'info', 'warn', 'violet', 'bad'];
+      html += '<h2 class="sec">' + T(SEC[s]) + '</h2><div class="grid">' + ts.map(function (x, ix) {
         var tag = x.soon ? '<span class="tag">' + T(['قريبًا', 'Soon']) + '</span>' : '';
-        return (x.soon ? '<div class="tile soon">' : '<a class="tile" href="' + x.h + '">') + tag + '<span class="ic">' + svg(x.ic) + '</span><b>' + T(x.t) + '</b><small>' + T(x.d) + '</small>' + (x.soon ? '</div>' : '</a>');
+        return (x.soon ? '<div class="tile soon">' : '<a class="tile" href="' + x.h + '">') + tag + '<span class="ic ' + TINT[ix % 6] + '">' + svg(x.ic) + '</span><b>' + T(x.t) + '</b><small>' + T(x.d) + '</small>' + (x.soon ? '</div>' : '</a>');
       }).join('') + '</div>';
     });
     if (!html) html = '<div class="empty">' + T(['حسابك مفعل لكن لا توجد صلاحيات بعد. اطلب من المالك تحديد دورك.', 'Your account is active but has no permissions yet. Ask the owner to assign a role.']) + '</div>';
     app.innerHTML = '<div class="wrap">' + shellTop('<span class="net' + (navigator.onLine ? '' : ' off') + '" id="net"><i></i>' + T(navigator.onLine ? ['متصل', 'Online'] : ['بدون إنترنت', 'Offline']) + '</span>') +
-      '<div class="hero"><h1>' + T(['أهلاً', 'Hello']) + '، ' + esc((user.email || '').split('@')[0]) + '</h1><p>' + T(['هنا كل اللي تحتاجه لشغلك اليوم.', 'Everything you need for work today.']) + '</p><span class="pill">' + esc(roleName) + '</span></div>' + html +
+      '<div class="hero u-hero u-rise"><h1>' + T(['أهلاً', 'Hello']) + '، ' + esc((user.email || '').split('@')[0]) + '</h1><p>' + T(['هنا كل اللي تحتاجه لشغلك اليوم.', 'Everything you need for work today.']) + '</p><span class="pill">' + esc(roleName) + '</span></div>' + html +
       '<button class="btn alt" id="inst" hidden>' + T(['تثبيت التطبيق على الجهاز', 'Install the app on this device']) + '</button><button class="btn alt" id="out">' + T(['تسجيل الخروج', 'Sign out']) + '</button>' +
       '<p class="note">' + T(['أضف التطبيق للشاشة الرئيسية من قائمة المتصفح لو لم يظهر زر التثبيت.', 'If no install button appears, use the browser menu: Add to Home screen.']) + '</p></div>';
     wire(); if (dip) document.getElementById('inst').hidden = false;
