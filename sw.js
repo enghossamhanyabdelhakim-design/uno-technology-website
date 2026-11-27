@@ -1,5 +1,5 @@
 /* Uno offline shell: network first, cache fallback. */
-var V="uno-v4-78",SHELL=["./","index.html","tools.html","blog.html","store.html","assets/style.css","assets/app.js","assets/content.js","assets/config.js","assets/live.js","assets/store.js","assets/logo-tu.png","assets/logo-uno-technology.png","manifest.webmanifest"];
+var V="uno-v4-79",SHELL=["./","index.html","tools.html","blog.html","store.html","assets/style.css","assets/app.js","assets/content.js","assets/config.js","assets/live.js","assets/store.js","assets/logo-tu.png","assets/logo-uno-technology.png","manifest.webmanifest"];
 self.addEventListener("install",function(e){e.waitUntil(caches.open(V).then(function(c){return Promise.all(SHELL.map(function(u){return c.add(u).catch(function(){})}))}).then(function(){return self.skipWaiting()}))});
 self.addEventListener("activate",function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k!==V}).map(function(k){return caches.delete(k)}))}).then(function(){return self.clients.claim()}))});
 self.addEventListener("fetch",function(e){var r=e.request;if(r.method!=="GET")return;var u=new URL(r.url);if(u.origin!==location.origin)return;
