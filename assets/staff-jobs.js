@@ -46,6 +46,44 @@
     };
   }
   function val(i) { return document.getElementById(i).value.trim(); }
+
+  function shrink(file) {
+    return new Promise(function (res, rej) {
+      var im = new Image(), u = URL.createObjectURL(file);
+      im.onload = function () {
+        var m = 1280, k = Math.min(1, m / Math.max(im.width, im.height)), c = document.createElement('canvas');
+        c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
+        var q = 0.8, go = function () { c.toBlob(function (b) { if (!b) return rej(new Error('x')); if (b.size > 900000 && q > 0.35) { q -= 0.15; return go(); } res(b); }, 'image/jpeg', q); }; go();
+      };
+      im.onerror = function () { rej(new Error(T(['تعذر قراءة الصورة', 'Could not read the image']))); }; im.src = u;
+    });
+  }
+  function sb(method, path, body, raw) {
+    var C = window.UNO_CFG;
+    return window.CLOUD.token().then(function (t) {
+      var h = { apikey: C.key, Authorization: 'Bearer ' + t }; if (!raw) h['Content-Type'] = 'application/json';
+      return fetch(C.url + '/storage/v1/' + path, { method: method, headers: h, body: raw ? body : JSON.stringify(body) }).then(function (r) { return r.text().then(function (x) { var d; try { d = JSON.parse(x); } catch (e) { d = x; } if (!r.ok) throw new Error(d && d.message || 'HTTP ' + r.status); return d; }); });
+    });
+  }
+  function photos(id, ended) {
+    var box = document.getElementById('jph'); if (!box) return;
+    rpc('job_photos', { p_job: id }).then(function (ps) {
+      var h = '<h3>' + T(['الصور', 'Photos']) + '</h3><div class="jgrid" id="pg">' + ps.map(function () { return '<span class="pth"></span>'; }).join('') + '</div>' + (ps.length ? '' : '<div class="hist">—</div>') +
+        (ended ? '' : '<div class="msg" id="pe" hidden></div><label class="btn alt" style="display:grid;place-items:center;cursor:pointer;margin-top:8px">' + T(['إضافة صورة', 'Add photo']) + '<input id="pf" type="file" accept="image/*" capture="environment" hidden></label>');
+      box.innerHTML = h;
+      if (ps.length) sb('POST', 'object/sign/job-photos', { expiresIn: 3600, paths: ps.map(function (p) { return p.path; }) }).then(function (r) {
+        var cells = document.querySelectorAll('#pg .pth');
+        r.forEach(function (x, i) { if (!x.signedURL || !cells[i]) return; var im = document.createElement('img'); im.loading = 'lazy'; im.alt = ps[i].caption || ''; im.src = window.UNO_CFG.url + '/storage/v1' + x.signedURL; im.onclick = function () { window.open(im.src, '_blank'); }; cells[i].appendChild(im); });
+      }).catch(function () {});
+      var pf = document.getElementById('pf'); if (!pf) return;
+      pf.onchange = function () {
+        var f = pf.files && pf.files[0]; if (!f) return; var m = document.getElementById('pe'); m.hidden = false; m.textContent = T(['جارٍ الرفع...', 'Uploading...']);
+        var path = id + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 7) + '.jpg';
+        shrink(f).then(function (b) { return sb('POST', 'object/job-photos/' + path, b, true); }).then(function () { return rpc('job_photo_add', { p_job: id, p_path: path }); })
+          .then(function () { photos(id, ended); }).catch(function (e) { m.textContent = navigator.onLine ? errmsg(e) : T(['لا يوجد اتصال. الصور لا تُحفظ دون إنترنت، حاول لاحقًا.', 'No connection. Photos are not saved offline, try again later.']); });
+      };
+    }).catch(function () { box.innerHTML = ''; });
+  }
   function detail(id) {
     page('<div class="empty">' + T(['جارٍ التحميل...', 'Loading...']) + '</div>', 'x');
     var staff = mgr() && can('jobs.assign') ? rpc('jobs_staff').catch(function () { return []; }) : Promise.resolve([]);
@@ -58,6 +96,7 @@
       if (j.checklist.length) h += '<div class="panel"><h3>' + T(['قائمة الفحص', 'Checklist']) + '</h3>' + j.checklist.map(function (c) { return '<label class="chk' + (c.done ? ' d' : '') + '"><input type="checkbox" data-c="' + c.id + '"' + (c.done ? ' checked' : '') + (ended ? ' disabled' : '') + '><span>' + esc(c.label) + '</span></label>'; }).join('') + '</div>';
       h += '<div class="panel"><h3>' + T(['القطع المستخدمة', 'Parts used']) + '</h3>' + (j.parts.length ? j.parts.map(function (p) { return '<div class="hist">' + esc(p.name) + ' × ' + esc(p.qty) + (p.item_id ? ' · ' + T([p.consumed_at ? 'تم الخصم من المخزون' : 'تُخصم عند الاعتماد', p.consumed_at ? 'deducted from stock' : 'deducted on approval']) : '') + '</div>'; }).join('') : '<div class="hist">' + T(['لا توجد قطع مسجلة', 'No parts logged']) + '</div>') +
         (ended ? '' : '<div class="hist" style="margin-top:6px">' + T(['اختر قطعة من المخزون لخصمها عند الاعتماد، أو اكتب اسمًا حرًا (بدون خصم).', 'Pick a stock item to deduct it on approval, or type a free name (no deduction).']) + '</div><div class="row2" style="margin-top:8px"><input id="pn" list="pl" autocomplete="off" placeholder="' + T(['اسم القطعة', 'Part name']) + '"><datalist id="pl"></datalist><input id="pq" class="q" type="number" min="0.01" step="any" value="1" inputmode="decimal"><button class="sm" id="pa">+</button></div>') + '</div>';
+      h += '<div class="panel" id="jph"></div>';
       if (st.length && !ended) h += '<div class="panel"><h3>' + T(['الفني', 'Technician']) + '</h3><select id="as"><option value="">—</option>' + st.map(function (u) { return '<option value="' + u.user_id + '"' + (u.user_id === j.assigned_to ? ' selected' : '') + '>' + esc(u.email) + ' (' + esc(u.role) + ')</option>'; }).join('') + '</select></div>';
       var a = '', b = function (to, ar, en, cls) { return '<button class="btn ' + (cls || '') + '" data-to="' + to + '">' + T([ar, en]) + '</button>'; };
       if (j.status === 'assigned') a += b('on_the_way', 'أنا في الطريق', 'I am on my way', 'alt') + b('in_progress', 'بدء العمل', 'Start work');
@@ -69,7 +108,7 @@
       if (!ended && can('jobs.assign')) a += b('cancelled', 'إلغاء المهمة', 'Cancel job', 'alt bd');
       if (a) h += '<div class="panel"><label>' + T(['ملاحظة (اختياري)', 'Note (optional)']) + '</label><textarea id="nt" rows="2"></textarea><div class="msg" id="je" hidden></div><div class="acts">' + a + '</div></div>';
       h += '<div class="panel"><h3>' + T(['السجل', 'History']) + '</h3>' + j.history.map(function (x) { return '<div class="hist">' + T(ST[x.to_status] || ['', '']) + (x.note ? ' · ' + esc(x.note) : '') + ' · ' + new Date(x.at).toLocaleString(S.lang() === 'en' ? 'en-GB' : 'ar-EG') + '</div>'; }).join('') + '</div>';
-      document.querySelector('.wrap .empty').outerHTML = h;
+      document.querySelector('.wrap .empty').outerHTML = h; photos(id, ended);
       var show = function (x) { var m = document.getElementById('je'); if (m) { m.hidden = false; m.textContent = errmsg(x); } else alert(errmsg(x)); };
       [].forEach.call(document.querySelectorAll('[data-c]'), function (c) { c.onchange = function () { rpc('job_check', { p_item: c.getAttribute('data-c'), p_done: c.checked }).then(function () { c.parentNode.classList.toggle('d', c.checked); }).catch(function (x) { c.checked = !c.checked; show(x); }); }; });
       var items = {}, pn = document.getElementById('pn'), tmr = null;
