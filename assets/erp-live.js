@@ -29,7 +29,8 @@
     return new Promise(function (resolve) {
       var o = document.createElement('div');
       o.className = 'erp-login';
-      o.innerHTML = '<form><img src="assets/logo-uno-technology.png" alt="Uno Technology"><b>UNO Core ERP</b><span>سجّل الدخول بحساب الإدارة</span><input id="elE" type="email" autocomplete="username" placeholder="Email" required><input id="elP" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">دخول</button><small id="elM"></small></form>';
+      o.innerHTML = '<aside class="el-side"><img src="assets/logo-uno-technology.png" alt="Uno Technology"><h2>UNO Core ERP</h2><p>المخزون والمشتريات والحسابات والمستحقات في نظام واحد مترابط.</p><div class="mods"><em>المخزون</em><em>المشتريات</em><em>الحسابات</em><em>المستحقات</em></div></aside><form><img src="assets/logo-uno-technology.png" alt="Uno Technology"><b>دخول المخزون والإدارة</b><span>بحسابك وصلاحياتك</span><input id="elE" type="email" autocomplete="username" placeholder="Email" required dir="ltr"><div class="pw"><input id="elP" type="password" autocomplete="current-password" placeholder="Password" required dir="ltr"><i id="elEye">إظهار</i></div><button type="submit">دخول</button><small id="elM"></small><div class="el-note">صلاحيات الحساب بتحدد الشاشات اللي تظهر لك بعد الدخول.</div></form>';
+      setTimeout(function () { var e = o.querySelector('#elEye'), p = o.querySelector('#elP'); if (e) e.onclick = function () { var h = p.type === 'password'; p.type = h ? 'text' : 'password'; e.textContent = h ? 'إخفاء' : 'إظهار'; }; }, 0);
       document.body.appendChild(o);
       o.querySelector('form').onsubmit = function (ev) {
         ev.preventDefault();
