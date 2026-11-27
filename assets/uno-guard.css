@@ -1,0 +1,76 @@
+/* Companion placement, safe area, focus and dismissal.
+   Additive: load after uno-avatar.css, changes nothing about the avatar art. */
+.ua-companion {
+  --ua-lift: 0px;
+  bottom: calc(18px + var(--ua-lift) + env(safe-area-inset-bottom, 0px));
+  transition: bottom .28s ease;
+}
+.ua-companion[data-side="end"] { inset-inline-end: calc(18px + env(safe-area-inset-right, 0px)); }
+.ua-companion[data-side="start"] { inset-inline-start: calc(18px + env(safe-area-inset-left, 0px)); }
+
+@media (max-width: 480px) {
+  .ua-companion { bottom: calc(12px + var(--ua-lift) + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* the minimize button has to be reachable by keyboard and on touch */
+.ua-companion .ua-min { opacity: .0; }
+.ua-companion:hover .ua-min,
+.ua-companion:focus-within .ua-min,
+.ua-companion[data-touch="1"] .ua-min { opacity: 1; }
+.ua-companion .ua-min:focus-visible {
+  outline: 2px solid #f65a00;
+  outline-offset: 2px;
+  opacity: 1;
+}
+.ua-companion .ua-min { width: 30px; height: 30px; }
+
+/* hide control */
+.ua-hide {
+  position: absolute;
+  top: 2px;
+  inset-inline-start: 2px;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, .12);
+  background: rgba(255, 255, 255, .92);
+  color: #2a2a2a;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+.ua-companion:hover .ua-hide, .ua-companion:focus-within .ua-hide { opacity: 1; }
+.ua-companion[data-theme="dark"] .ua-hide { background: rgba(20, 28, 36, .92); color: #eef2f6; border-color: rgba(255, 255, 255, .14); }
+.ua-hide:focus-visible, .ua-restore:focus-visible { outline: 2px solid #f65a00; outline-offset: 2px; }
+
+/* restore chip shown after the customer hides Uno */
+.ua-restore {
+  position: fixed;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  inset-inline-end: calc(18px + env(safe-area-inset-right, 0px));
+  z-index: 9990;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px 7px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, .1);
+  background: #fff;
+  color: #101820;
+  font: 13px/1 system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .18);
+  cursor: pointer;
+}
+.ua-restore[data-show="1"] { display: inline-flex; }
+.ua-restore[data-theme="dark"] { background: #141c24; color: #f2f5f8; border-color: rgba(255, 255, 255, .12); }
+.ua-restore img { width: 22px; height: 22px; border-radius: 50%; display: block; }
+
+/* reduced transparency / high contrast fallbacks */
+@media (prefers-contrast: more) {
+  .ua-bubble { box-shadow: 0 0 0 2px currentColor; }
+  .ua-companion .ua-min, .ua-hide, .ua-restore { box-shadow: 0 0 0 2px currentColor; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ua-companion { transition: none; }
+}

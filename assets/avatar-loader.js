@@ -8,13 +8,13 @@
   function css(h) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + h + '?v=' + V; document.head.appendChild(l); }
   function js(s) { return new Promise(function (ok, no) { var j = document.createElement('script'); j.src = base + s + '?v=' + V; j.onload = ok; j.onerror = no; document.head.appendChild(j); }); }
   function start() {
-    css('uno-avatar.css');
-    js('uno-avatar-art.js').then(function () { return js('uno-avatar.js'); }).then(function () { return js('uno-personality.js'); }).then(function () {
+    css('uno-avatar.css'); css('uno-guard.css');
+    js('uno-avatar-art.js').then(function () { return js('uno-avatar.js'); }).then(function () { return js('uno-personality.js'); }).then(function () { return js('uno-personality-v2.js'); }).then(function () { return js('uno-guard.js'); }).then(function () {
       var small = window.innerWidth < 600; var isStore = /store\.html$/.test(location.pathname);
-      var a = window.UnoAvatar.create({ size: small ? 92 : 120, side: 'end', theme: 'auto', minimized: small || isStore });
+      var mk = window.UnoGuard ? window.UnoGuard.mount : window.UnoAvatar.create; var a = mk({ size: small ? 92 : 120, side: 'end', theme: 'auto', minimized: small || isStore });
       if (isStore) { var c = document.querySelector('.ua-companion'); if (c) c.classList.add('ua-store'); }
       var lang = (document.documentElement.lang || 'ar').slice(0, 2) === 'en' ? 'en' : 'ar';
-      var p = window.UnoPersona.attach(a, { humor: 'light', lang: lang });
+      var p = (window.UnoPersonaV2 || window.UnoPersona).attach(a, { humor: 'light', lang: lang });
       window.UNO_AVATAR = a;
       var seen = false; try { seen = sessionStorage.getItem('uno_ava_greet') === '1'; } catch (e) {}
       if (!seen) {
