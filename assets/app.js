@@ -520,7 +520,7 @@ function wire(){ptnLoad();
 }
 
 function store(){
-  window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src=window.UNO_STORE_OLD?"assets/store.js?v=20261127j":"assets/store-main.js?v=20261128zb";document.body.appendChild(sc);
+  window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src=window.UNO_STORE_OLD?"assets/store.js?v=20261127j":"assets/store-main.js?v=20261129o1";document.body.appendChild(sc);
   document.title=(h.lang==="en"?"Store | ":"المتجر | ")+((C.site&&C.site.name&&(C.site.name.en))||"Uno");
 }
 

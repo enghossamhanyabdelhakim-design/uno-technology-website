@@ -1,0 +1,44 @@
+/* Orbit design system applied to the store (loaded after store-ui and store-discovery). Tokens first, then component polish. No markup or logic changes. */
+html:not([data-theme=dark]) .us,html:not([data-theme=dark]) .us-drawer,html:not([data-theme=dark]) .us-lb{--or:#F65A00;--or2:#FF7A1F;--bg:#FAF9F7;--s1:#FFFFFF;--s2:#F5F3F0;--bd:#ECE8E1;--tx:#191A1E;--mu:#5D6168;--ok:#16A34A;--warn:#D97706;--bad:#E5484D;--r:20px;--oi:#C24300;--osoft:#FFF1E8;--sh:0 2px 6px rgba(25,26,30,.05),0 12px 28px -14px rgba(25,26,30,.12)}
+html[data-theme=dark] .us,html[data-theme=dark] .us-drawer,html[data-theme=dark] .us-lb{--or:#F65A00;--or2:#FF7A1F;--bg:#17181D;--s1:#1F2128;--s2:#262931;--bd:#2E313B;--tx:#F3F4F6;--mu:#A4A8B1;--ok:#34D399;--warn:#F5A524;--bad:#FF6B6B;--r:20px;--oi:#FF9E4A;--osoft:rgba(246,90,0,.16);--sh:0 12px 28px -14px rgba(0,0,0,.5)}
+:root:not([data-theme=dark]),[data-theme=light]{--ud-bg:#FAF9F7;--ud-s1:#fff;--ud-s2:#F5F3F0;--ud-bd:#ECE8E1;--ud-tx:#191A1E;--ud-mu:#5D6168;--ud-or:#F65A00;--ud-or2:#FF7A1F;--ud-ok:#16A34A;--ud-no:#E5484D;--ud-sh:0 20px 48px -16px rgba(25,26,30,.22)}
+.us,.us-drawer,.us-lb,.us button,.us input,.us select,.us textarea{font-family:"Alexandria","Cairo","Tajawal","Segoe UI",system-ui,sans-serif}
+html[lang=en] .us,html[lang=en] .us-drawer{font-family:"Alexandria","Poppins","Segoe UI",system-ui,sans-serif}
+.us{font-variant-numeric:tabular-nums}
+/* buttons */
+.us-btn{border-radius:14px;min-height:48px;background:var(--s1);border-color:var(--bd);box-shadow:0 1px 2px rgba(25,26,30,.05);transition:transform .12s cubic-bezier(.2,.8,.2,1),box-shadow .2s}
+.us-btn:active{transform:scale(.965)}
+.us-btn.pri{background:linear-gradient(135deg,#F65A00 0%,#FF7A1F 55%,#FF9E4A 100%);box-shadow:0 10px 26px -10px rgba(246,90,0,.45);color:#fff}
+.us-btn.pri:active{box-shadow:none}
+.us-btn.sm{min-height:40px;border-radius:12px}
+/* fields */
+.us-price input,.us-sel,.us-in,.us-ta{background:var(--s1);border-color:var(--bd);border-radius:12px;min-height:48px;transition:border-color .12s,box-shadow .12s}
+.us-price input:focus,.us-sel:focus,.us-in:focus,.us-ta:focus{outline:0;border-color:var(--or);box-shadow:0 0 0 3px rgba(246,90,0,.16)}
+.ud-sbox{background:var(--ud-s1);border-radius:999px;border:1px solid var(--ud-bd);height:50px;box-shadow:0 1px 2px rgba(25,26,30,.05)}
+.ud-sbox:focus-within{border-color:var(--ud-or);box-shadow:0 0 0 3px rgba(246,90,0,.16)}
+/* cards */
+.us-card{border-radius:20px;background:var(--s1);border-color:var(--bd);box-shadow:var(--sh);transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s,border-color .2s}
+.us-card:hover{border-color:var(--bd);transform:translateY(-3px);box-shadow:0 2px 6px rgba(25,26,30,.06),0 18px 36px -14px rgba(25,26,30,.2)}
+.us-card:active{transform:scale(.985)}
+.us-card .im{background:var(--s2);margin:10px 10px 0;border-radius:14px;overflow:hidden;aspect-ratio:1}
+.us-card .bd{padding:12px 14px 14px}
+.us-card .nm{font-weight:600;font-size:.95rem;min-height:2.9em}
+.us-card .br{font-size:.78rem;letter-spacing:.01em}
+.us-pr b{color:var(--oi,#C24300);font-weight:800}
+.us-card .act .us-btn{min-height:44px;border-radius:12px;background:var(--osoft);color:var(--oi);border-color:transparent;box-shadow:none}
+.us-card .act .us-btn.pri{background:linear-gradient(135deg,#F65A00,#FF7A1F);color:#fff;box-shadow:0 8px 20px -10px rgba(246,90,0,.5)}
+/* tags and pills */
+.us-tag{border-radius:999px;font-weight:700}
+.us-side{border-radius:20px;background:var(--s1);box-shadow:var(--sh);border-color:var(--bd)}
+.us-fg h4{font-size:.95rem;font-weight:700}
+.us-chk input{accent-color:#F65A00}
+/* product page: keep the buy row and the warranty row apart */
+.us-buy{gap:12px;margin-block:16px}
+.us-buy+*{margin-block-start:14px}
+.us-pdp{gap:32px}
+.us-gal,.us-info{min-width:0}
+.us-stock-ok{border-radius:999px}
+/* sheets, drawers, modals */
+.us-drawer,.ud-modal,.ud-sheet,.us-sheet-head{border-radius:24px}
+.us-sticky{background:color-mix(in srgb,var(--s1) 92%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--bd)}
+@media(prefers-reduced-motion:reduce){.us-card,.us-btn{transition:none}}

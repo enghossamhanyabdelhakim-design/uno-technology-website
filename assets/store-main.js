@@ -1,7 +1,7 @@
 /* Uno store page: loads the storefront modules and mounts them between the site header and footer. Own code. */
 (function () {
   'use strict';
-  var V = '20261128zb', MODS = ['store-rpc', 'store-i18n', 'store-api', 'store-cart', 'store-category', 'store-product', 'store-404', 'store-discovery'];
+  var V = '20261129o1', MODS = ['store-rpc', 'store-i18n', 'store-api', 'store-cart', 'store-category', 'store-product', 'store-404', 'store-discovery'];
   function css(n) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'assets/' + n + '.css?v=' + V; document.head.appendChild(l); }
   function load(n) { return new Promise(function (ok) { var s = document.createElement('script'); s.src = 'assets/' + n + '.js?v=' + V; s.onload = ok; s.onerror = ok; document.body.appendChild(s); }); }
   var st = document.createElement('style');
@@ -11,7 +11,7 @@
     '.us-seo,.us-links{max-width:1280px;margin:0 auto;padding:8px 16px 24px;color:var(--mu,#b9aba0);line-height:1.9;font-size:.95rem}.us-links{display:flex;gap:14px;flex-wrap:wrap;padding-bottom:90px}.us-links a{color:var(--or,#F65A00);font-weight:700;min-height:44px;display:inline-flex;align-items:center}' +
     '.us-slot:empty{display:none}.us-slot{max-width:340px;margin:0 auto;padding:0 16px 16px}';
   document.head.appendChild(st);
-  css('store-ui'); css('store-discovery');
+  css('store-ui'); css('store-discovery'); css('store-orbit');
 
   function tr(ar, en) { return document.documentElement.lang === 'en' ? en : ar; }
   function lang() { return document.documentElement.lang === 'en' ? 'en' : 'ar'; }
