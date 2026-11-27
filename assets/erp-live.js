@@ -29,7 +29,7 @@
     return new Promise(function (resolve) {
       var o = document.createElement('div');
       o.className = 'erp-login';
-      o.innerHTML = '<form><b>UNO Core ERP</b><span>سجّل الدخول بحساب الإدارة</span><input id="elE" type="email" autocomplete="username" placeholder="Email" required><input id="elP" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">دخول</button><small id="elM"></small></form>';
+      o.innerHTML = '<form><img src="assets/logo-uno-technology.png" alt="Uno Technology"><b>UNO Core ERP</b><span>سجّل الدخول بحساب الإدارة</span><input id="elE" type="email" autocomplete="username" placeholder="Email" required><input id="elP" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">دخول</button><small id="elM"></small></form>';
       document.body.appendChild(o);
       o.querySelector('form').onsubmit = function (ev) {
         ev.preventDefault();
