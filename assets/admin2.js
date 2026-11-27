@@ -52,6 +52,7 @@ var MODS=[
  {id:"users",g:"الفريق / Team",p:"users",ic:"users",l:"المستخدمون والصلاحيات / Users and roles"},
  {id:"bk",g:"الفريق / Team",p:"users",ic:"kb",l:"نسخة احتياطية / Backup"},
  {id:"log",g:"الفريق / Team",p:"log",ic:"log",l:"سجل النشاط / Activity log"},
+ {id:"aud",g:"الفريق / Team",p:"users",ic:"log",l:"سجل التدقيق / Audit trail"},
  {id:"cco",g:"النظام الداخلي / UNO Core",p:"core",ic:"kb",l:"بيانات الشركة / Company"},
  {id:"cbr",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"الفروع والمخازن / Branches and warehouses"},
  {id:"cun",g:"النظام الداخلي / UNO Core",p:"core",ic:"tag",l:"وحدات القياس / Units"},
@@ -66,7 +67,7 @@ var MODS=[
  {id:"cin",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"المخزون / Inventory"}
 ];
 var GR={ov:"نظرة عامة / Overview",sl:"المبيعات / Sales",pu:"المشتريات / Purchases",iv:"المخزون / Inventory",ac:"الحسابات / Accounting",cr:"العملاء / CRM",rp:"التقارير / Reports",st:"المتجر الإلكتروني / Online store",wb:"الموقع / Website",se:"الإعدادات / Settings"};
-var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",prod:"st",cat:"st",ord:"st",rv:"st",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cco:"se",users:"se",bk:"se",log:"se"},GO=Object.keys(GR);
+var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",prod:"st",cat:"st",ord:"st",rv:"st",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cco:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
 MODS.forEach(function(m,i){m.gk=GM[m.id]||"se";m.g=GR[m.gk];m.o=i});
 MODS.sort(function(a,b){return GO.indexOf(a.gk)-GO.indexOf(b.gk)||a.o-b.o});
 var GOPEN={};try{GOPEN=JSON.parse(localStorage.getItem("uno_gopen")||"{}")}catch(e){}
@@ -295,6 +296,14 @@ function userForm(){
 }
 
 /* activity */
+RENDER.aud=function(mn){
+ var rows=[];
+ mn.innerHTML='<h2>'+bi("سجل التدقيق","Audit trail")+'</h2><p class="hint" style="margin-bottom:8px">'+bi("العمليات الحساسة: مين عملها، إمتى، وعلى إيه. للمالك والمدير فقط.","Sensitive operations: who did what, when. Owner and admin only.")+'</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><input id="au-q" placeholder="'+bi("بحث","Search").replace(/<[^>]*>/g,"")+'" style="flex:1;min-width:140px"><select id="au-a"><option value="">'+bi("كل الإجراءات","All actions").replace(/<[^>]*>/g,"")+'</option></select><select id="au-r"><option value="">'+bi("كل الأدوار","All roles").replace(/<[^>]*>/g,"")+'</option></select><button class="sec sm" id="au-x" type="button">CSV</button></div><div id="au-l"></div>';
+ function paint(){var q=$("#au-q").value.toLowerCase(),a=$("#au-a").value,r=$("#au-r").value;var f=rows.filter(function(x){return (!a||x.action===a)&&(!r||x.actor_role===r)&&(!q||JSON.stringify(x).toLowerCase().indexOf(q)>-1)});
+  $("#au-l").innerHTML=f.length?tbl([bi("الوقت","Time"),bi("المستخدم","User"),bi("الدور","Role"),bi("الإجراء","Action"),bi("الهدف","Target"),bi("تفاصيل","Details")],f.map(function(x){return [esc(dt(x.at)),esc(x.actor_name||""),esc(x.actor_role||""),esc(x.action),esc((x.target_type||"")+" "+(x.target_ref||"")),esc(x.details?JSON.stringify(x.details).slice(0,140):"")]})):empty("لا توجد سجلات","No records")}
+ api("GET","audit_log?select=*&order=at.desc&limit=500").then(function(r){rows=r;function opts(id,k){var v=[];r.forEach(function(x){if(x[k]&&v.indexOf(x[k])<0)v.push(x[k])});$(id).innerHTML+=v.map(function(o){return '<option>'+esc(o)+"</option>"}).join("")}opts("#au-a","action");opts("#au-r","actor_role");paint();["#au-q","#au-a","#au-r"].forEach(function(i){$(i).oninput=paint;$(i).onchange=paint});
+  $("#au-x").onclick=function(){var c=["at,actor_name,actor_role,action,target_type,target_ref"].concat(rows.map(function(x){return [x.at,x.actor_name,x.actor_role,x.action,x.target_type,x.target_ref].map(function(v){return '"'+String(v==null?"":v).replace(/"/g,'""')+'"'}).join(",")})).join("\n");var b=new Blob([c],{type:"text/csv"}),u=URL.createObjectURL(b),el=document.createElement("a");el.href=u;el.download="audit.csv";document.body.appendChild(el);el.click();el.remove()}}).catch(function(e){$("#au-l").innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
 RENDER.log=function(mn){
  api("GET","activity_log?select=*&order=created_at.desc&limit=150").then(function(rows){
   mn.innerHTML='<h2>'+bi("سجل النشاط","Activity log")+'</h2><p class="hint" style="margin-bottom:8px">'+bi("بيتسجل تلقائيًا من قاعدة البيانات.","Recorded automatically by the database.")+"</p>"+(rows.length?tbl([bi("الوقت","Time"),bi("المستخدم","User"),bi("الإجراء","Action"),bi("العنصر","Item"),bi("تفاصيل","Detail")],rows.map(function(x){return [dt(x.created_at),esc(x.actor),esc(x.action),esc(x.entity),esc((x.detail&&x.detail.name)||"")+(x.detail&&x.detail.status?" · "+esc(x.detail.status):"")]})):empty("لا يوجد نشاط بعد","No activity yet"));
