@@ -101,6 +101,14 @@
     });
   }
 
+  function whPicker() {
+    var bar = document.querySelector('.topbar .brand'); if (!bar || document.getElementById('whSel')) return;
+    var sel = document.createElement('select'); sel.id = 'whSel'; sel.setAttribute('aria-label', 'المخزن / Warehouse');
+    sel.style.cssText = 'margin-inline-start:10px;max-width:min(150px,26vw);height:34px;border-radius:10px;border:1px solid var(--uno-line);background:var(--uno-surface-2);color:inherit;padding:0 8px;font:inherit;font-size:12.5px';
+    sel.innerHTML = L.whs.map(function (w) { return '<option value="' + w.id + '"' + (w.id === L.wh ? ' selected' : '') + '>' + String(w.name_ar || '').replace(/</g, '') + '</option>'; }).join('');
+    sel.onchange = function () { if (state.cart && state.cart.lines && state.cart.lines.length && !confirm('تغيير المخزن هيفضّي الفاتورة الحالية. متأكد؟ / Changing warehouse clears the current cart. Continue?')) { sel.value = L.wh; return; } try { localStorage.setItem('uno_pos_wh', sel.value); } catch (e) {} location.reload(); };
+    bar.appendChild(sel);
+  }
   function init() {
     state.products = []; state.customers = []; state.invoices = []; state.returns = []; state.cashMoves = []; state.held = []; state.outbox = []; state.shift = null;
     var go = function () {
@@ -108,7 +116,7 @@
         L.uid = jwtSub(t);
         return Promise.all([
           get('admin_roles?user_id=eq.' + L.uid + '&select=role,active&limit=1').catch(function () { return []; }),
-          get('core_branches?kind=eq.warehouse&active=eq.true&select=id,name_ar&order=created_at.asc&limit=1'),
+          get('core_branches?kind=eq.warehouse&active=eq.true&select=id,name_ar&order=created_at.asc&limit=20'),
           get('categories?select=id,name_ar,name_en&order=sort.asc').catch(function () { return get('categories?select=id,name_ar,name_en').catch(function () { return []; }); }),
           get('products?select=id,name_ar,name_en,price,barcode,category_id,is_demo&active=eq.true&order=name_ar.asc&limit=1000'),
           get('core_stock_levels?select=product_id,warehouse_id,qty'),
@@ -117,7 +125,9 @@
         ]);
       }).then(function (r) {
         var role = (r[0][0] && r[0][0].active !== false) ? r[0][0].role : 'cashier'; L.role = role;
-        L.wh = r[1][0] ? r[1][0].id : null;
+        L.whs = r[1] || []; L.wh = r[1][0] ? r[1][0].id : null;
+        try { var sw = localStorage.getItem('uno_pos_wh'); if (sw && L.whs.some(function (x) { return x.id === sw; })) L.wh = sw; } catch (e) {}
+        if (L.whs.length > 1) setTimeout(whPicker, 300);
         var nm = (L.email || '').split('@')[0];
         ROLES.cashier.nameAr = nm; ROLES.cashier.nameEn = nm; ROLES.manager.nameAr = nm; ROLES.manager.nameEn = nm;
         if (role === 'owner' || role === 'admin') ROLES.cashier.keys = ROLES.manager.keys.slice();
