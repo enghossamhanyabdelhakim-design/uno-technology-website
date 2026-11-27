@@ -656,10 +656,15 @@ function vaFinish(){
   VA.st="think";vcState("think");vcAudioAsk(w.b64);
 }
 function vaStop(){try{if(VA.srcNode){VA.srcNode.onended=null;VA.srcNode.stop()}}catch(e){}VA.srcNode=null;VC.speaking=false}
+function vaDest(){var c=VA.ctx;if(VA.dst)return VA.dst;VA.dst=c.destination;
+  try{if(c.createMediaStreamDestination&&window.Audio){var d=c.createMediaStreamDestination(),el=new Audio();el.setAttribute("playsinline","");el.autoplay=true;el.srcObject=d.stream;VA.el=el;VA.dst=d;
+    var pr=el.play();if(pr&&pr.catch)pr.catch(function(){try{if(VA.pan){VA.pan.disconnect();VA.pan.connect(c.destination)}VA.dst=c.destination}catch(e){}})}}catch(e){VA.dst=c.destination}
+  return VA.dst}
+function vaWake(){try{var c=VA.ctx;if(c&&c.state!=="running")c.resume();if(VA.el&&VA.el.paused)VA.el.play&&VA.el.play().catch(function(){})}catch(e){}}
 function vaPlay(b64,rate,done){
-  try{var bin=atob(b64),n=bin.length>>1,buf=VA.ctx.createBuffer(1,n,rate),ch=buf.getChannelData(0),i;
+  try{vaWake();var bin=atob(b64),n=bin.length>>1,buf=VA.ctx.createBuffer(1,n,rate),ch=buf.getChannelData(0),i;
     for(i=0;i<n;i++){var v=bin.charCodeAt(i*2)|(bin.charCodeAt(i*2+1)<<8);if(v>32767)v-=65536;ch[i]=v/32768}
-    var src=VA.ctx.createBufferSource();src.buffer=buf;if(!VA.pan){VA.pan=VA.ctx.createAnalyser();VA.pan.fftSize=512;VA.pan.connect(VA.ctx.destination)}
+    var src=VA.ctx.createBufferSource();src.buffer=buf;if(!VA.pan){VA.pan=VA.ctx.createAnalyser();VA.pan.fftSize=512;VA.pan.connect(vaDest())}
     src.connect(VA.pan);VA.srcNode=src;VC.speaking=true;VA.st="speak";VA.barge=0;vcState("speak");
     src.onended=function(){if(VA.srcNode===src){VA.srcNode=null;VC.speaking=false;if(VC.on){VA.st="listen";vcState(VC.mute?"idle":"listen");done&&done()}}};
     src.start();return true}catch(e){return false}
@@ -714,14 +719,14 @@ function vcCloudFail(){
 function vaStart(cb){
   var AC=window.AudioContext||window.webkitAudioContext;
   if(!AC||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return cb(false);
-  try{VA.ctx=new AC();VA.ctx.resume&&VA.ctx.resume()}catch(e){return cb(false)}
+  try{VA.ctx=new AC();VA.ctx.resume&&VA.ctx.resume();VA.dst=null;VA.pan=null;VA.pan=VA.ctx.createAnalyser();VA.pan.fftSize=512;VA.pan.connect(vaDest())}catch(e){return cb(false)}
   navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(function(st){
     VA.stream=st;VA.src=VA.ctx.createMediaStreamSource(st);VA.an=VA.ctx.createAnalyser();VA.an.fftSize=512;VA.src.connect(VA.an);
     VA.proc=VA.ctx.createScriptProcessor(4096,1,1);VA.src.connect(VA.proc);var z=VA.ctx.createGain();z.gain.value=0;VA.proc.connect(z);z.connect(VA.ctx.destination);VA.proc.onaudioprocess=vaChunk;
     VA.cal=0;VA.calN=0;VA.pre=[];VA.buf=[];VA.rec=false;VA.st="listen";VA.lv=setInterval(vaLevel,60);cb(true)
   }).catch(function(e){cb(false,e&&e.name)});
 }
-function vaClose(){clearInterval(VA.lv);vaStop();try{VA.proc&&(VA.proc.onaudioprocess=null,VA.proc.disconnect())}catch(e){}try{VA.stream&&VA.stream.getTracks().forEach(function(t){t.stop()})}catch(e){}try{VA.ctx&&VA.ctx.close()}catch(e){}VA.ctx=null;VA.stream=null;VA.pan=null;VA.an=null;VA.st="idle"}
+function vaClose(){clearInterval(VA.lv);vaStop();try{VA.proc&&(VA.proc.onaudioprocess=null,VA.proc.disconnect())}catch(e){}try{VA.stream&&VA.stream.getTracks().forEach(function(t){t.stop()})}catch(e){}try{VA.ctx&&VA.ctx.close()}catch(e){}try{VA.el&&(VA.el.pause(),VA.el.srcObject=null)}catch(e){}VA.el=null;VA.dst=null;VA.ctx=null;VA.stream=null;VA.pan=null;VA.an=null;VA.st="idle"}
 
 /* ---- Gemini Live (native audio over WebSocket, ephemeral token minted by our Edge Function) ---- */
 var VL={ws:null,ok:false,q:[],nt:0,inT:"",outT:"",gotAudio:false};
@@ -732,9 +737,9 @@ function vlFallback(msg){
 }
 function vlHalt(){VL.q.forEach(function(s){try{s.onended=null;s.stop()}catch(e){}});VL.q=[];VL.nt=0;VC.speaking=false}
 function vlPlay(b64){
-  if(!VA.ctx)return;var bin=atob(b64),n=bin.length>>1,buf=VA.ctx.createBuffer(1,n,24000),ch=buf.getChannelData(0),i;
+  if(!VA.ctx)return;vaWake();var bin=atob(b64),n=bin.length>>1,buf=VA.ctx.createBuffer(1,n,24000),ch=buf.getChannelData(0),i;
   for(i=0;i<n;i++){var v=bin.charCodeAt(i*2)|(bin.charCodeAt(i*2+1)<<8);if(v>32767)v-=65536;ch[i]=v/32768}
-  var src=VA.ctx.createBufferSource();src.buffer=buf;if(!VA.pan){VA.pan=VA.ctx.createAnalyser();VA.pan.fftSize=512;VA.pan.connect(VA.ctx.destination)}
+  var src=VA.ctx.createBufferSource();src.buffer=buf;if(!VA.pan){VA.pan=VA.ctx.createAnalyser();VA.pan.fftSize=512;VA.pan.connect(vaDest())}
   src.connect(VA.pan);var now=VA.ctx.currentTime;if(VL.nt<now+0.03)VL.nt=now+0.03;src.start(VL.nt);VL.nt+=buf.duration;VL.q.push(src);
   src.onended=function(){var k=VL.q.indexOf(src);if(k>=0)VL.q.splice(k,1);if(!VL.q.length&&VC.on&&VC.mode==="live"){VC.speaking=false;if(VA.st==="speak"){VA.st="listen";vcState(VC.mute?"idle":"listen")}}};
   VC.speaking=true;VA.st="speak";vcState("speak")
@@ -815,7 +820,7 @@ function vcStart(){
   vaStart(function(ok,err){
     if(!VC.on)return;
     if(ok){var go=function(lok){if(!VC.on)return;
-        if(lok){VC.mode="live";VA.st="listen";$("#vc-note").textContent=vcT("اتكلم عادي بأي لغة، وممكن تقاطعني في أي وقت. الصوت بيتعالج بواسطة Google Gemini (الخدمة المجانية، وجوجل ممكن تستخدمه لتحسين منتجاتها).","Just talk in any language and interrupt anytime. Audio is processed by Google Gemini (free tier; Google may use it to improve its products).");vcState("listen");window.UNO_vt&&(window.UNO_vt.ready=Date.now()-VC.t0)}
+        if(lok){VC.mode="live";VA.st="listen";$("#vc-note").textContent=vcT("اتكلم عادي بأي لغة، وممكن تقاطعني في أي وقت. الصوت بيتعالج بواسطة Google Gemini (الخدمة المجانية، وجوجل ممكن تستخدمه لتحسين منتجاتها).","Just talk in any language and interrupt anytime. Audio is processed by Google Gemini (free tier; Google may use it to improve its products).");vcState("listen");window.UNO_vt&&(window.UNO_vt.ready=Date.now()-VC.t0);try{vlSend({realtimeInput:{text:(h.lang==="ar"?"رحب بالمتصل بجملة قصيرة جدا وقله يسأل.":"Greet the caller in one very short sentence and invite them to ask.")}})}catch(e){}}
         else{VC.mode="cloud";VA.st="listen";$("#vc-note").textContent=vcT("اتكلم عادي، وممكن تقاطعني في أي وقت. الصوت بيتعالج على السيرفر بتاعنا باستخدام Gemini.","Just talk, and interrupt anytime. Audio is processed on our server using Gemini.");vcState("listen")}};
       VA.st="idle";vcState("connect");if(VL.res===undefined)VL.cb=go;else go(VL.res)}
     else{VC.mode="browser";if(VL.ws){try{VL.ws.onclose=null;VL.ws.close()}catch(e){}VL.ws=null}VL.ok=false;

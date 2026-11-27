@@ -1,6 +1,8 @@
 /* Uno companion avatar loader. Runs only on devices where ?robot=1 was used (UNO_ROBOT_ON), on public pages only. */
 (function () {
   if (!window.UNO_ROBOT_ON) return;
+  /* 20261128e: no floating full-body mascot over page content on phones or the store; the normal chat button opens the assistant. */
+  if (window.innerWidth < 900 || /store\.html$/.test(location.pathname)) return;
   if (!/(\/|index\.html|store\.html|blog\.html|tools\.html)$/.test(location.pathname)) return;
   var V = '20261128c', base = 'assets/';
   function css(h) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + h + '?v=' + V; document.head.appendChild(l); }
