@@ -89,15 +89,27 @@
     });
   }
 
+  /* Session label: device + date + sequence of this cashier's shifts that day. Labelling only, nothing is posted. */
+  function sessLabel(s) {
+    var d = new Date(state.shift.openedAt), p2 = function (n) { return (n < 10 ? '0' : '') + n; };
+    var ymd = d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate());
+    var start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString();
+    var dev = String(CFG.deviceId || '').replace(/^pos-/, '').toUpperCase();
+    return get('core_shifts?opened_by=eq.' + L.uid + '&opened_at=gte.' + encodeURIComponent(start) + '&select=id,opened_at&order=opened_at.asc').then(function (rows) {
+      var i = -1; rows.forEach(function (r, k) { if (r.id === state.shift.id) i = k; });
+      var n = (i < 0 ? rows.length : i) + 1;
+      state.shift.label = dev + '-' + ymd + '-' + p2(n);
+    }).catch(function () { state.shift.label = dev + '-' + ymd; });
+  }
   function loadShift() {
     return get('core_shifts?opened_by=eq.' + L.uid + '&closed_at=is.null&select=*&limit=1').then(function (r) {
       if (!r.length) { state.shift = null; return; }
       var s = r[0];
       state.shift = { id: s.id, openedAt: new Date(s.opened_at || s.created_at || Date.now()).getTime(), openingFloat: P(s.opening_cash), cashierId: L.uid, cashierRole: L.role === 'owner' || L.role === 'admin' ? 'manager' : 'cashier', status: 'open', counted: null, expected: null, variance: null, closedAt: null };
-      return Promise.all([get('core_sales_docs?shift_id=eq.' + s.id + '&kind=eq.invoice&select=*&order=created_at.desc&limit=300'), get('core_cash_moves?shift_id=eq.' + s.id + '&select=*&order=created_at.desc')]).then(function (x) {
+      return sessLabel(s).then(function () { return Promise.all([get('core_sales_docs?shift_id=eq.' + s.id + '&kind=eq.invoice&select=*&order=created_at.desc&limit=300'), get('core_cash_moves?shift_id=eq.' + s.id + '&select=*&order=created_at.desc')]).then(function (x) {
         state.cashMoves = x[1].map(function (m) { return { id: m.id, shift_id: m.shift_id, type: m.type, amount: P(m.amount), reason: m.reason, note: null, voucher_no: m.voucher_no, user_id: m.user_id, created_at: new Date(m.created_at).getTime() }; });
         return loadDocs(x[0]);
-      });
+      }); });
     });
   }
 

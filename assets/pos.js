@@ -672,6 +672,7 @@ function renderTopbar() {
 
   const shiftPill = el('shiftPill');
   shiftPill.className = 'pill btn' + (openShift ? '' : ' is-bad');
+  shiftPill.title = (openShift && state.shift.label) ? T('الجلسة', 'Session') + ': ' + state.shift.label : '';
   shiftPill.innerHTML = openShift
     ? `<span class="txt-long">${T('وردية', 'Shift')} <strong class="num">#${String(state.shift.id).slice(-2)}</strong> · ${fmtDuration(Date.now() - state.shift.openedAt)}</span>`
     : `<span class="txt-long">${T('مفيش وردية', 'No shift')}</span>`;
@@ -745,6 +746,7 @@ function renderGrid() {
 }
 
 function renderCart() {
+  renderTabs();
   const c = state.cart;
   const t = cartTotals();
   el('invNo').textContent = c.id ? c.id : nextInvoiceNo();
@@ -1257,7 +1259,8 @@ SHEETS.pay = function () {
     ? `${T('آجل الباقي', 'Credit the rest')} ${money(s.remaining)}`
     : `${T('تأكيد ودفع', 'Confirm & pay')}`;
 
-  const quick = [t.total, 5000, 10000, 20000, 50000];
+  const NOTES = [500, 1000, 2000, 5000, 10000, 20000];
+  const roundUp = Math.ceil(t.total / 500) * 500;
   const body = `
     <div class="pay-grid">
       <div class="pay-col">
@@ -1268,12 +1271,16 @@ SHEETS.pay = function () {
         </div>
         <div class="methods" role="group" aria-label="${T('طريقة الدفع', 'Payment method')}">
           ${['cash', 'card', 'wallet', 'credit'].map((m) => {
-            const off = !state.online && m !== 'cash';
+            let reason = '';
+            if (!state.online && m !== 'cash') reason = T('أوفلاين', 'Offline');
+            else if (m === 'credit' && !cust) reason = T('اختر عميل', 'Pick a customer');
+            else if (m === 'credit' && free <= 0) reason = T('وصل للحد', 'At limit');
+            const off = !!reason;
             return `
             <button class="method${state.ui.payMethod === m ? ' is-on' : ''}${off ? ' is-off' : ''}" data-act="method" data-m="${m}"
               ${off ? 'disabled aria-disabled="true"' : ''} aria-pressed="${state.ui.payMethod === m}">
               <span class="m-ico" aria-hidden="true">${methodIco(m)}</span><span>${methodName(m)}</span>
-              ${off ? `<span class="m-off">${T('أوفلاين', 'Offline')}</span>` : ''}
+              ${off ? `<span class="m-off">${reason}</span>` : ''}
             </button>`;
           }).join('')}
         </div>
@@ -1293,7 +1300,8 @@ SHEETS.pay = function () {
         <div class="quick">
           <button class="is-exact" data-act="quick" data-amt="${t.total}">${T('المبلغ بالظبط', 'Exact amount')} · ${money(t.total)}</button>
           ${s.rows.length && s.remaining > 0 ? `<button data-act="quick" data-amt="${s.remaining}">${T('المتبقي', 'Remaining')} · ${money(s.remaining)}</button>` : ''}
-          ${quick.slice(1).map((v) => `<button data-act="quick" data-amt="${v}">${money(v)}</button>`).join('')}
+          ${roundUp > t.total ? `<button data-act="quick" data-amt="${roundUp}">${T('تقريب', 'Round up')} · ${money(roundUp)}</button>` : ''}
+          ${NOTES.filter((v) => v !== roundUp).map((v) => `<button data-act="quick" data-amt="${v}">${money(v)}</button>`).join('')}
         </div>
         <div class="change-box${short ? ' is-short' : ''}">
           <span class="lbl">${short ? T('المتبقي', 'Remaining') : T('الباقي للعميل', 'Change due')}</span>
@@ -1395,6 +1403,7 @@ async function commitSale(forceCredit) {
     const inv = res.invoice;
     state.lastReceipt = inv;
     state.cart = emptyCart();
+    tabAfterSale();
     state.selected = null;
     closeSheet();
     renderAll();
@@ -1469,6 +1478,7 @@ function receiptHtml(inv, tplOverride) {
     cfg: rcDoc().cfg,
     co: { nameAr: CFG.company.nameAr, nameEn: CFG.company.nameEn, taxNo: rcDoc().tax, phone: rcDoc().phone, addrAr: 'فرشوط · قنا', addrEn: 'Farshout · Qena' },
     money, nf, method: methodName, dt: fmtDateTime(inv.created_at),
+    session: (state.shift && state.shift.label && inv.shift_id === state.shift.id) ? state.shift.label : '',
     cashier: ROLES[(state.shift && state.shift.cashierRole) || 'cashier'][LANG], customer: cust ? cust[LANG] : (inv.customer_name || ''),
     unitLabel: (l) => uLab(l.product_id)
   });
@@ -2066,6 +2076,58 @@ SHEETS.voucher = function (opts) {
    manager gate, help, more menu, action dispatcher, boot
    ========================================================================== */
 
+/* -------------------------------------------------------- 23b. Order tabs (client side, no accounting) */
+const MAX_TABS = 5;
+function tabsInit() { if (!state.tabs) { state.tabs = [state.cart]; state.tabIdx = 0; } }
+function tabSwitch(i) {
+  tabsInit();
+  if (i < 0 || i >= state.tabs.length || i === state.tabIdx) return;
+  state.tabs[state.tabIdx] = state.cart;
+  state.tabIdx = i; state.cart = state.tabs[i]; state.selected = null;
+  renderAll(); postDisplay();
+}
+function tabNew() {
+  tabsInit();
+  if (state.tabs.length >= MAX_TABS) { toast(T('أقصى عدد فواتير مفتوحة ' + MAX_TABS, 'Up to ' + MAX_TABS + ' open invoices'), 'bad'); return; }
+  state.tabs[state.tabIdx] = state.cart;
+  state.tabs.push(emptyCart()); state.tabIdx = state.tabs.length - 1; state.cart = state.tabs[state.tabIdx]; state.selected = null;
+  renderAll(); postDisplay();
+}
+function tabClose(i) {
+  tabsInit();
+  if (state.tabs.length < 2) return;
+  state.tabs[state.tabIdx] = state.cart;
+  if (state.tabs[i].lines.length) { toast(T('الفاتورة فيها أصناف. علّقها أو أتمّ بيعها الأول.', 'This invoice has items. Hold it or finish the sale first.'), 'bad'); return; }
+  state.tabs.splice(i, 1);
+  if (state.tabIdx >= i) state.tabIdx = Math.max(0, state.tabIdx - (state.tabIdx === i ? 0 : 1));
+  state.tabIdx = Math.min(state.tabIdx, state.tabs.length - 1);
+  state.cart = state.tabs[state.tabIdx]; state.selected = null;
+  renderAll(); postDisplay();
+}
+/* After a finished sale: drop the finished tab when others are open and go to the first one with items. */
+function tabAfterSale() {
+  tabsInit();
+  state.tabs[state.tabIdx] = state.cart;
+  if (state.tabs.length < 2) return;
+  state.tabs.splice(state.tabIdx, 1);
+  let j = state.tabs.findIndex((c) => c.lines.length); if (j < 0) j = 0;
+  state.tabIdx = j; state.cart = state.tabs[j];
+}
+function renderTabs() {
+  tabsInit();
+  const box = el('cart'); if (!box) return;
+  let st = el('tabStrip');
+  if (!st) { st = document.createElement('div'); st.id = 'tabStrip'; st.className = 'tabstrip'; st.setAttribute('role', 'tablist'); box.insertBefore(st, el('cartHead')); }
+  state.tabs[state.tabIdx] = state.cart;
+  const multi = state.tabs.length > 1;
+  st.innerHTML = state.tabs.map((c, i) => {
+    const on = i === state.tabIdx, n = c.lines.length;
+    const cust = state.customers.find((x) => x.id === c.customerId);
+    const lab = cust ? esc(cust[LANG]) : T('فاتورة ', 'Order ') + (i + 1);
+    return `<span class="tabx${on ? ' on' : ''}"><button type="button" role="tab" aria-selected="${on}" data-act="tab-go" data-id="${i}"><span class="tl">${lab}</span>${n ? `<span class="tn">${n}</span>` : ''}</button>${multi && !n ? `<button type="button" class="tc" data-act="tab-x" data-id="${i}" aria-label="${T('إغلاق', 'Close')}">✕</button>` : ''}</span>`;
+  }).join('') + `<button type="button" class="tabadd" data-act="tab-new" aria-label="${T('فاتورة جديدة', 'New invoice')}" title="${T('فاتورة جديدة', 'New invoice')}">${ico('plus', 14)}</button>`;
+}
+
 /* -------------------------------------------------------- 24. Held tickets */
 async function holdCartLive() {
   if (!state.cart.lines.length) { toast(T('الفاتورة فاضية.', 'The cart is empty.'), 'bad'); return false; }
@@ -2569,6 +2631,9 @@ function onAction(act, node) {
     case 'move-note': state.ui.move.note = node.value; break;
     case 'move-submit': submitMove(); break;
     /* held */
+    case 'tab-go': tabSwitch(+id); break;
+    case 'tab-new': tabNew(); break;
+    case 'tab-x': tabClose(+id); break;
     case 'hold': holdCart(); break;
     case 'resume': resumeHeld(id); break;
     /* scan */
