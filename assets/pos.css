@@ -1473,3 +1473,4 @@ body.is-display #appRoot, body.is-display #mBar, body.is-display .toasts { displ
 .gate .pin-dots{gap:14px;margin:10px 0 6px}
 .gate .pin-dots i{border:2px solid var(--uno-line-strong,#b9b2aa);background:transparent;width:14px;height:14px}
 .gate .pin-dots i.on{background:var(--uno-brand);border-color:var(--uno-brand)}
+@media (max-width:640px){.sheet-foot{flex-wrap:wrap}.sheet-foot .btn{flex:1 1 auto;min-width:0}}

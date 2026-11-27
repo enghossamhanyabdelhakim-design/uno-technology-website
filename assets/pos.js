@@ -11,7 +11,7 @@
 const CFG = {
   demo: false,                       // demo tenant only — never real orders
   deviceId: (function () { try { var d = localStorage.getItem('uno.pos.dev'); if (!d) { d = 'pos-' + Math.random().toString(36).slice(2, 8); localStorage.setItem('uno.pos.dev', d); } return d; } catch (e) { return 'pos-x'; } })(),
-  company: { nameAr: 'أونو تكنولوجي', nameEn: 'Uno Technology', taxNo: '789-456-123' },
+  company: { nameAr: 'أونو تكنولوجي', nameEn: 'Uno Technology', taxNo: '' },
   branch: { id: 'br-farshout', nameAr: 'فرشوط', nameEn: 'Farshout', code: 'FAR' },
   currency: { ar: 'ج.م', en: 'EGP' },
   taxRate: 0.14,
@@ -1460,7 +1460,7 @@ function receiptHtml(inv, tplOverride) {
   const cust = inv.customer_id ? state.customers.find((c) => c.id === inv.customer_id) : null;
   return window.UnoReceipt.render(inv, {
     tpl: tplOverride || rcTpl(), lang: LANG,
-    co: { nameAr: CFG.company.nameAr, nameEn: CFG.company.nameEn, taxNo: CFG.company.taxNo, phone: '01505946321', addrAr: 'فرشوط · قنا', addrEn: 'Farshout · Qena' },
+    co: { nameAr: CFG.company.nameAr, nameEn: CFG.company.nameEn, taxNo: CFG.company.taxNo, phone: '', addrAr: 'فرشوط · قنا', addrEn: 'Farshout · Qena' },
     money, nf, method: methodName, dt: fmtDateTime(inv.created_at),
     cashier: ROLES[(state.shift && state.shift.cashierRole) || 'cashier'][LANG], customer: cust ? cust[LANG] : (inv.customer_name || ''),
     unitLabel: (l) => uLab(l.product_id)
