@@ -1,7 +1,7 @@
 /* Uno store page: loads the storefront modules and mounts them between the site header and footer. Own code. */
 (function () {
   'use strict';
-  var V = '20261128z', MODS = ['store-rpc', 'store-i18n', 'store-api', 'store-cart', 'store-category', 'store-product', 'store-404', 'store-discovery'];
+  var V = '20261128zb', MODS = ['store-rpc', 'store-i18n', 'store-api', 'store-cart', 'store-category', 'store-product', 'store-404', 'store-discovery'];
   function css(n) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'assets/' + n + '.css?v=' + V; document.head.appendChild(l); }
   function load(n) { return new Promise(function (ok) { var s = document.createElement('script'); s.src = 'assets/' + n + '.js?v=' + V; s.onload = ok; s.onerror = ok; document.body.appendChild(s); }); }
   var st = document.createElement('style');
@@ -9,7 +9,7 @@
     '.us-tbtn{min-height:44px;border-radius:12px;border:1px solid var(--bd,#3a2f28);background:var(--s1,#201a16);color:var(--tx,#f6efe9);padding:0 14px;font:inherit;font-weight:700;cursor:pointer}' +
     'html[data-theme=light] .us-tbtn{background:#fff;color:#2a1d12;border-color:#ecd9c8}#app.us input.us-in[type=search]{display:none}' +
     '.us-seo,.us-links{max-width:1280px;margin:0 auto;padding:8px 16px 24px;color:var(--mu,#b9aba0);line-height:1.9;font-size:.95rem}.us-links{display:flex;gap:14px;flex-wrap:wrap;padding-bottom:90px}.us-links a{color:var(--or,#F65A00);font-weight:700;min-height:44px;display:inline-flex;align-items:center}' +
-    '.us-slot:empty{display:none}';
+    '.us-slot:empty{display:none}.us-slot{max-width:340px;margin:0 auto;padding:0 16px 16px}';
   document.head.appendChild(st);
   css('store-ui'); css('store-discovery');
 
@@ -20,8 +20,8 @@
     var app = document.getElementById('app'), q = new URLSearchParams(location.search), page = q.get('page') || 'category';
     app.className = 'us';
     app.innerHTML = '<div class="us-tools"><div id="us-srch"></div><button class="us-tbtn" id="us-wb"></button><button class="us-tbtn" id="us-cb"></button></div>' +
-      '<div class="us-slot" data-uno-slot="store_sidebar"></div><div class="us-slot" data-uno-slot="store_grid"></div>' +
-      '<div id="us-pg"></div><section id="us-rec" class="us" style="max-width:1280px;margin:0 auto;padding:0 16px 24px" hidden></section>' +
+      '<div id="us-pg"></div><div class="us-slot" data-uno-slot="store_grid"></div><div class="us-slot" data-uno-slot="store_sidebar"></div>' +
+      '<section id="us-rec" class="us" style="max-width:1280px;margin:0 auto;padding:0 16px 24px" hidden></section>' +
       '<aside id="us-wp"></aside><div id="us-tray"></div>' +
       '<section class="us-seo"><h2 style="font-size:1.1rem;margin:0 0 6px;color:inherit">' + tr('متجر أونو للخدمات التكنولوجية', 'Uno Technology Services store') + '</h2><p>' +
       tr('المتجر بيعرض منتجات تجريبية للشبكات وكاميرات المراقبة ونقاط البيع وإكسسوارات الكمبيوتر ومستلزمات الطباعة. الأسعار والمنتجات الحالية عينة للعرض فقط، والمنتجات الحقيقية والشحن بيتحددوا قبل الإطلاق. للاستفسار كلمنا من صفحة التواصل.',
