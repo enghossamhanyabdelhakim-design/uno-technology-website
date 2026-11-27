@@ -729,3 +729,5 @@ html[dir=rtl]:not([data-theme=dark]) body[data-page=store] .sthero,html[dir=rtl]
 #chat:has(#ch-b .typing) .ch-h img{animation:uhb .45s ease-in-out infinite alternate}
 @media (prefers-reduced-motion:reduce){#chat:has(#ch-b .typing) .ch-h img{animation:none}}
 #vc.has-bot .vc-orb{margin:3vh 0 18px}#vc.has-bot h2{margin:0 0 4px;font-size:18px}
+#vc.has-bot .vc-orb{width:min(290px,76vw);height:min(290px,40vh);margin:2vh 0 10px}#vc.has-bot .vc-robot{filter:drop-shadow(0 16px 24px rgba(0,0,0,.5))}
+#vc .um img{width:480px!important;height:480px!important;max-width:none!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;animation:none!important;transform:none!important;object-fit:fill!important;z-index:auto!important}#vc .um svg{max-width:none!important}

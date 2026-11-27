@@ -789,10 +789,11 @@ function vlStart(done){
 /* ---- bot voice call robot face: lazy-loads robot-face.js/css, wired through vcState (state) and vaLevel (audio level) ---- */
 window.UNO_vcRobot=(function(){
   var bot=null,st="think",hold=0,mv=null,tv=null,ld=null,MAP={listen:"listening",think:"thinking",speak:"speaking",connect:"thinking",idle:"idle",text:"idle"};
-  function load(){if(ld)return ld;ld=new Promise(function(ok,no){if(window.UnoBot)return ok();var j=document.createElement("script");j.src="assets/uno-bot.js?v=20261128g";j.onload=ok;j.onerror=no;document.head.appendChild(j)});return ld}
+  function load(){if(ld)return ld;ld=new Promise(function(ok,no){if(window.UnoMascot)return ok();var j=document.createElement("script");j.src="assets/uno-mascot.js?v=20261128h";j.onload=ok;j.onerror=no;document.head.appendChild(j)});return ld}
+  function loadSvg(){return new Promise(function(ok,no){if(window.UnoBot)return ok();var j=document.createElement("script");j.src="assets/uno-bot.js?v=20261128g";j.onload=ok;j.onerror=no;document.head.appendChild(j)})}
   function apply(k){if(!bot)return;var n=MAP[k]||"idle";if(st==="speak"&&k==="listen"){bot.setState("happy");clearTimeout(hold);hold=setTimeout(function(){if(bot&&st==="listen")bot.setState("listening")},1100);return}clearTimeout(hold);bot.setState(n);if(n!=="speaking")bot.setMouthLevel(0)}
   return{
-    mount:function(el){if(!el)return;load().then(function(){if(!window.UnoBot||!document.body.contains(el))return;var vc=$("#vc");bot=window.UnoBot.mount(el,{state:MAP[st]||"thinking"});bot.setState(MAP[st]||"thinking");vc&&vc.classList.add("has-robot","has-bot");
+    mount:function(el){if(!el)return;var fb=function(){loadSvg().then(function(){if(!window.UnoBot||!document.body.contains(el))return;if(bot){try{bot.destroy()}catch(e){}}bot=window.UnoBot.mount(el,{state:MAP[st]||"thinking"});var vc=$("#vc");vc&&vc.classList.add("has-robot","has-bot")}).catch(function(){})};load().then(function(){if(!window.UnoMascot||!document.body.contains(el))return fb();var vc=$("#vc");bot=window.UnoMascot.mount(el,{state:MAP[st]||"thinking",onfail:fb});vc&&vc.classList.add("has-robot","has-bot");
       mv=function(e){var t=e.touches&&e.touches[0]||e;bot&&bot.lookAt(t.clientX,t.clientY)};tv=function(){bot&&bot.lookCenter()};
       document.addEventListener("pointermove",mv,{passive:true});document.addEventListener("touchmove",mv,{passive:true});document.addEventListener("pointerleave",tv)}).catch(function(){})},
     state:function(k){apply(k);st=k},
