@@ -462,7 +462,7 @@
       ui.card({ title: AR('الأصناف', 'Line items'), sub: AR('المطلوب مقابل المستلم', 'Ordered vs received'),
         actions: (f.mode === 'receive' ? '<span class="pill pill--brand">' + esc(AR('وضع الاستلام', 'Receive mode')) + '</span>' : ''),
         flush: true,
-        body: ui.table({ cols: cols, rows: lines }) +
+        body: '<div class="lines-tbl">' + ui.table({ cols: cols, rows: lines }) + '</div>' +
           '<div style="padding:12px 18px">' + ui.banner({ tone: 'neutral', icon: 'info',
             text: AR('لا يمكن استلام أكثر من المطلوب في أي سطر، ولا يتغيّر المخزون قبل تأكيد الاستلام.',
               'No line can be received beyond the ordered quantity, and stock does not change before receipt is confirmed.') }) + '</div>' }) +

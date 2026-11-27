@@ -1606,6 +1606,7 @@
 .uerp a{color:var(--brand-ink);text-decoration:none}
 .uerp .ico{flex:0 0 auto;vertical-align:-3px}
 .uerp .num{font-variant-numeric:tabular-nums;font-family:var(--font-latin);direction:ltr;unicode-bidi:isolate;font-feature-settings:"tnum" 1}
+.uerp .seg .num,.uerp .tab .num,.uerp .btn .num{font-family:inherit;font-size:inherit;font-weight:inherit;font-feature-settings:normal}
 .uerp .num.is-neg{color:var(--bad-ink)}
 .uerp .cur{font-size:12px;color:var(--ink-3);font-weight:500;margin-inline-start:4px}
 .uerp .sub{font-size:var(--t-xs);color:var(--ink-3);line-height:1.5}
@@ -1954,6 +1955,12 @@
 
 .uerp .amt-in{color:var(--ok-ink)}.uerp .amt-out{color:var(--bad-ink)}.uerp .tab-pad{padding:0 18px}
 .uerp .sup-body{padding:16px 18px}.uerp .sup-body .card{border:0;box-shadow:none;background:none}.uerp .sup-body .card-body{padding:0}.uerp .sup-body .card-head{padding-inline:0}
+.uerp .lines-tbl .tbl thead th,.uerp .lines-tbl .tbl tbody td{padding-inline:7px}
+.uerp .lines-tbl .tbl{font-size:12.5px}
+.uerp .age-seg.age-1,.uerp i.dot-age-1{background:var(--age-1)}.uerp .age-seg.age-2,.uerp i.dot-age-2{background:var(--age-2)}.uerp .age-seg.age-3,.uerp i.dot-age-3{background:var(--age-3)}.uerp .age-seg.age-4,.uerp i.dot-age-4{background:var(--age-4)}
+.uerp .crumbs button{font-size:inherit;color:inherit;padding:0}
+.uerp .lim-cell{display:inline-flex;align-items:center;gap:8px}
+.uerp .amt-strong{font-weight:600}
 .uerp .hint-s{font-size:11.5px}
 .uerp .card-body--flush{overflow:hidden;border-radius:0 0 var(--r-lg) var(--r-lg)}
 .uerp .card-body--flush .tbl th:first-child,.uerp .card-body--flush .tbl td:first-child{padding-inline-start:16px}
@@ -2066,7 +2073,8 @@
   .uerp .step:not(.step--active) .step-lbl{display:none}
   .uerp .step-sep,.uerp .step::after{flex:0 0 8px}
   .uerp .tab-pad{padding:0}
-  .uerp .sup-body .tbl tr{border:0;border-bottom:1px solid var(--line-soft);background:none;box-shadow:none;border-radius:0}
+  .uerp .tbl tbody td:first-child,.uerp .tbl tbody td:last-child,.uerp .card-body--flush .tbl td:first-child,.uerp .card-body--flush .tbl td:last-child{padding-inline:0!important}
+  .uerp .sup-body .tbl tbody tr{padding:8px 0;border:0;border-bottom:1px solid var(--line-soft);background:none;box-shadow:none;border-radius:0}
   .uerp .sup-body{padding:12px 14px}
   .uerp .tab{padding:0 6px;font-size:12px}
   .uerp .empty{margin:12px;padding:24px 12px}
