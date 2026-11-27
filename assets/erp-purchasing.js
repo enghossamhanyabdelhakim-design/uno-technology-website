@@ -161,7 +161,7 @@
         return '<button class="seg' + (f.range === p[0] ? ' is-active' : '') + '" data-act="p-range" data-id="' + p[0] + '">' + esc(t(p[1])) + '</button>';
       }).join('') + '</div>' +
       '<span class="grow"></span>' +
-      ui.btn(AR('كثافة', 'Density'), { act: 'toggle-density', kind: 'ghost', icon: 'sliders', size: 'sm' }) +
+      ui.btn(AR('كثافة', 'Density'), { act: 'toggle-density', kind: 'ghost', icon: 'sliders', size: 'sm', cls: 'hide-m' }) +
       '</div>' +
       (f.status === 'awaiting' ? '<div class="bulkbar"><b>' + esc(AR('الاستلام يزيد المخزون بالكمية الفعلية فقط', 'Receipt increases stock by the actual quantity only')) + '</b>' +
         '<span class="grow"></span>' + ui.btn(AR('إغلاق', 'Dismiss'), { act: 'p-tab', kind: 'ghost', size: 'sm', data: { id: 'all' } }) + '</div>' : '') +
@@ -244,7 +244,7 @@
       { id: 'invoices', label: AR('الفواتير', 'Invoices'), count: data.invoices.length },
       { id: 'payments', label: AR('المدفوعات', 'Payments'), count: data.payments.length },
       { id: 'items', label: AR('الأصناف', 'Items'), count: data.items.length },
-      { id: 'statement', label: AR('كشف الحساب', 'Statement') }
+      { id: 'statement', label: AR('الكشف', 'Statement') }
     ], f.tab, 'p-sup-tab');
 
     var invCols = [
@@ -273,7 +273,7 @@
     ];
     var ledCols = [
       { key: 'date', label: t('app.date'), cell: function (r) { return '<span class="num">' + esc(fmt.date(r.date)) + '</span>'; } },
-      { key: 'doc', label: t('app.doc'), cell: function (r) { return '<div class="doc-no">' + esc(r.doc) + '</div>' + (r.note ? '<div class="id-s">' + esc(r.note) + '</div>' : ''); } },
+      { key: 'doc', label: t('app.doc'), cell: function (r) { return '<div class="doc-no">' + esc(r.doc) + '</div>' + (r.note ? '<div class="id-s">' + esc(U.state.lang === 'en' && r.note_en ? r.note_en : r.note) + '</div>' : ''); } },
       { key: 'debit', label: AR('مدين (دفع)', 'Debit (paid)'), align: 'end', cell: function (r) { return r.debit ? ui.money(r.debit) : '<span class="faint">—</span>'; } },
       { key: 'credit', label: AR('دائن (فاتورة)', 'Credit (invoice)'), align: 'end', cell: function (r) { return r.credit ? ui.money(r.credit) : '<span class="faint">—</span>'; } },
       { key: 'balance', label: AR('الرصيد', 'Balance'), align: 'end', cell: function (r) { return '<span class="num" style="font-weight:600">' + esc(fmt.money(r.balance)) + '</span>'; } }
@@ -314,7 +314,7 @@
       ' · ' + esc(data.invoices.length) + ' ' + esc(AR('فاتورة', 'invoices')) + ' · ' + esc(data.payments.length) + ' ' + esc(AR('دفعة', 'payments')) + '</p></div>' +
       '<div class="page-actions">' + ui.btn(AR('دفعة', 'Record payment'), { act: 'p-pay-supplier', icon: 'cash' }) +
       ui.btn(AR('فاتورة شراء', 'New invoice'), { act: 'p-new', kind: 'primary', icon: 'plus' }) + '</div></div>' +
-      '<section class="card"><div style="padding:0 18px">' + tabsHtml + '</div><div style="padding:16px 18px" class="sup-body">' + body + '</div></section>';
+      '<section class="card"><div class="tab-pad">' + tabsHtml + '</div><div style="padding:16px 18px" class="sup-body">' + body + '</div></section>';
   }
 
   U.purch = { H: H, loadInvoices: loadInvoices, viewInvoices: viewInvoices, loadSuppliers: loadSuppliers,
@@ -408,7 +408,7 @@
       '<div class="kv"><span class="k">' + esc(AR('المتبقي', 'Remaining')) + '</span><span class="v num" style="color:' + (data.remaining > 0.009 ? 'var(--bad-ink)' : 'var(--ok-ink)') + '">' + esc(fmt.money(data.remaining)) + '</span></div>' });
 
     var supplierCard = ui.card({ title: AR('المورد', 'Supplier'), body:
-      '<div class="id-cell" style="margin-bottom:10px">' + ui.avatar(L(s)) +
+      '<div class="id-cell id-cell--row">' + ui.avatar(L(s)) +
       '<div><div class="id-t">' + esc(L(s)) + '</div><div class="id-s num">' + esc(s.code) + ' · ' + esc(s.phone) + '</div></div></div>' +
       '<div class="kv"><span class="k">' + esc(AR('الرقم الضريبي', 'Tax number')) + '</span><span class="v num">' + esc(s.tax) + '</span></div>' +
       '<div class="kv"><span class="k">' + esc(AR('شروط السداد', 'Terms')) + '</span><span class="v">' + esc(s.terms + ' ' + AR('يوم', 'days')) + '</span></div>' +

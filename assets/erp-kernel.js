@@ -518,6 +518,7 @@
     waste: [{ code: 'damage', ar: 'تلف', en: 'Damage' }, { code: 'expiry', ar: 'انتهاء صلاحية', en: 'Expiry' }]
   };
 
+  function capToday(d) { var t0 = U.util.todayISO(); return d > t0 ? t0 : d; }
   var DB = null;
 
   function build() {
@@ -687,11 +688,11 @@
     DB.invoices.forEach(function (inv) {
       var total = invoiceTotal(inv);
       if (inv.status === 'paid') {
-        DB.payments.push({ id: U.util.uid('pm'), supplier_id: inv.supplier_id, date: U.util.addDays(inv.date, 3), amount: total,
+        DB.payments.push({ id: U.util.uid('pm'), supplier_id: inv.supplier_id, date: capToday(U.util.addDays(inv.date, 3)), amount: total,
           treasury_id: 't1', method: 'cash', invoice_id: inv.id, no: 'PMT-2026-0' + (DB.payments.length + 11) });
       }
       if (inv.status === 'financially_approved') {
-        DB.payments.push({ id: U.util.uid('pm'), supplier_id: inv.supplier_id, date: U.util.addDays(inv.date, 5), amount: U.util.round(total * 0.4, 2),
+        DB.payments.push({ id: U.util.uid('pm'), supplier_id: inv.supplier_id, date: capToday(U.util.addDays(inv.date, 5)), amount: U.util.round(total * 0.4, 2),
           treasury_id: 't2', method: 'transfer', invoice_id: inv.id, no: 'PMT-2026-0' + (DB.payments.length + 11) });
       }
     });
@@ -1102,10 +1103,10 @@
     var payments = U.util.sortBy(DB.payments.filter(function (p) { return p.supplier_id === a.id; }), function (p) { return p.date; }, 'desc');
     var ledger = [];
     invs.filter(function (i) { return i.status !== 'draft' && i.status !== 'cancelled'; }).forEach(function (i) {
-      ledger.push({ date: i.date, doc: i.no, kind: 'invoice', ref: i.id, debit: 0, credit: U.util.round(invoiceTotal(i) + invoiceVat(i), 2), note: i.paper_no ? ('فاتورة المورد ' + i.paper_no) : '' });
+      ledger.push({ date: i.date, doc: i.no, kind: 'invoice', ref: i.id, debit: 0, credit: U.util.round(invoiceTotal(i) + invoiceVat(i), 2), note: i.paper_no ? ('فاتورة المورد ' + i.paper_no) : '', note_en: i.paper_no ? ('Supplier no. ' + i.paper_no) : '' });
     });
     payments.forEach(function (p) {
-      ledger.push({ date: p.date, doc: p.no, kind: 'payment', ref: p.id, debit: p.amount, credit: 0, note: (U.util.byId(TREASURIES, p.treasury_id) || {}).ar || '' });
+      ledger.push({ date: p.date, doc: p.no, kind: 'payment', ref: p.id, debit: p.amount, credit: 0, note: (U.util.byId(TREASURIES, p.treasury_id) || {}).ar || '', note_en: (U.util.byId(TREASURIES, p.treasury_id) || {}).en || '' });
     });
     ledger = U.util.sortBy(ledger, function (l) { return l.date; });
     var run = 0;
@@ -1804,7 +1805,8 @@
 .uerp .cb{width:16px;height:16px;accent-color:var(--brand-fill);border-radius:4px;cursor:pointer}
 .uerp .tbl .group-row td{background:var(--surface-2);font-weight:700;font-size:12px;color:var(--ink-2);padding:7px 12px}
 .uerp .group-title{font-weight:700}
-.uerp .group-meta{float:inline-end;font-size:11.5px;color:var(--ink-3);font-weight:600}
+.uerp .tbl .group-row td{display:flex;gap:12px;justify-content:space-between;align-items:center}
+.uerp .group-meta{font-size:11.5px;color:var(--ink-3);font-weight:600}
 .uerp .tbl tfoot td{padding:10px 12px;border-top:1px solid var(--line);font-weight:700;font-size:12.5px;background:var(--surface-2)}
 .uerp .tbl-empty-row td{padding:0!important}
 .uerp .row-act{opacity:.55}
@@ -1951,6 +1953,19 @@
 
 
 .uerp .amt-in{color:var(--ok-ink)}.uerp .amt-out{color:var(--bad-ink)}.uerp .tab-pad{padding:0 18px}
+.uerp .sup-body{padding:16px 18px}.uerp .sup-body .card{border:0;box-shadow:none;background:none}.uerp .sup-body .card-body{padding:0}.uerp .sup-body .card-head{padding-inline:0}
+.uerp .hint-s{font-size:11.5px}
+.uerp .card-body--flush{overflow:hidden;border-radius:0 0 var(--r-lg) var(--r-lg)}
+.uerp .card-body--flush .tbl th:first-child,.uerp .card-body--flush .tbl td:first-child{padding-inline-start:16px}
+.uerp .card-body--flush .tbl th:last-child,.uerp .card-body--flush .tbl td:last-child{padding-inline-end:16px}
+.uerp .id-cell--row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.uerp .kv--total{font-weight:700;font-size:14px;border-bottom:1px solid var(--line);border-top:1px solid var(--line);padding:10px 0;margin-top:4px}
+.uerp .meta-strip{display:flex;flex-wrap:wrap;gap:6px 20px;padding:10px 12px;margin-bottom:10px;background:var(--surface-2);border-radius:var(--r-md);font-size:12.5px;color:var(--ink-2)}
+.uerp .meta-strip b{color:var(--ink);font-weight:700;margin-inline-end:4px}
+.uerp .kv--total .k{color:var(--ink)}
+.uerp .tbl td>.id-s{font-size:10.5px;color:var(--ink-3);margin-top:2px}
+.uerp .card>.tbl-wrap{border-radius:0 0 var(--r-lg) var(--r-lg)}
+.uerp .acct-n{margin-inline-start:6px}
 /* treasuries */
 .uerp .tr-card{display:block;width:100%;text-align:start;padding:14px 16px;cursor:pointer;transition:border-color var(--d2) var(--ease),box-shadow var(--d2) var(--ease)}
 .uerp .tr-card:hover{border-color:var(--line-strong)}
@@ -2029,7 +2044,7 @@
   .uerp .tbl tbody tr{position:relative}
   .uerp .tbl tbody td.c-check::before{display:none}
   .uerp .tbl .group-row{padding:6px 10px;background:var(--surface-2);box-shadow:none}
-  .uerp .tbl .group-row td{display:block}
+  .uerp .tbl .group-row td{display:flex}
   .uerp .tbl .group-row td::before{display:none}
   .uerp .tbl tfoot td{display:flex;justify-content:space-between;border:0}
   .uerp .tbl tfoot td::before{content:attr(data-th);color:var(--ink-3);font-weight:600}
@@ -2046,6 +2061,14 @@
   .uerp .tabs{padding:0 6px;gap:0}
   .uerp .tab{padding:0 8px;font-size:12.5px;white-space:nowrap;flex:1 1 auto;justify-content:center}
   .uerp .tab .tab-count{display:none}
+  .uerp .hide-m{display:none!important}
+  .uerp .steps{overflow:visible;gap:4px;justify-content:space-between}
+  .uerp .step:not(.step--active) .step-lbl{display:none}
+  .uerp .step-sep,.uerp .step::after{flex:0 0 8px}
+  .uerp .tab-pad{padding:0}
+  .uerp .sup-body .tbl tr{border:0;border-bottom:1px solid var(--line-soft);background:none;box-shadow:none;border-radius:0}
+  .uerp .sup-body{padding:12px 14px}
+  .uerp .tab{padding:0 6px;font-size:12px}
   .uerp .empty{margin:12px;padding:24px 12px}
   .uerp .toast-host{inset-inline:14px;bottom:14px}
 }

@@ -186,9 +186,9 @@
       (f.range !== 'month' ? ui.chip(t('app.date'), H.rangeLabel(f), 'clear-range') : '') +
       (f.warehouse ? ui.chip(t('app.warehouse'), H.whName(f.warehouse), 'clear-warehouse') : '') +
       (f.q ? ui.chip(U.state.lang === 'ar' ? 'بحث' : 'Search', f.q, 'clear-q') : '') +
-      '<span class="faint" style="font-size:11.5px">' + esc(t('app.filters')) + (filterCount ? ' · ' + filterCount : '') + '</span>' +
+      '<span class="faint hint-s hide-m">' + esc(t('app.filters')) + (filterCount ? ' · ' + filterCount : '') + '</span>' +
       '<span class="grow"></span>' +
-      '<span class="faint" style="font-size:11.5px">' + esc(U.state.lang === 'ar' ? 'الأرقام بالجنيه المصري' : 'Amounts in EGP') + '</span>' +
+      '<span class="faint hint-s hide-m">' + esc(U.state.lang === 'ar' ? 'الأرقام بالجنيه المصري' : 'Amounts in EGP') + '</span>' +
       '</div>' +
       ui.table({ cols: cols, rows: d.rows, rowId: function (m) { return m.id; }, rowAct: 'open-item', selectable: false }) +
       ui.totalsStrip([
@@ -268,7 +268,7 @@
       '<input type="date" class="select num" data-filter="as_of" value="' + esc(f.as_of || '') + '" style="width:150px">' +
       (f.as_of ? ui.btn(U.state.lang === 'ar' ? 'اليوم' : 'Today', { act: 'clear-asof', kind: 'ghost' }) : '') +
       '<span class="grow"></span>' +
-      '<span class="faint" style="font-size:11.5px">' + esc(U.state.lang === 'ar' ? 'مرتبة حسب كود الصنف' : 'Sorted by SKU') + '</span>' +
+      '<span class="faint hint-s hide-m">' + esc(U.state.lang === 'ar' ? 'مرتبة حسب كود الصنف' : 'Sorted by SKU') + '</span>' +
       '</div>' +
       ui.table({ cols: cols, groups: data.grouped, rowId: function (r) { return r.product_id + '|' + r.warehouse_id; }, rowAct: 'open-item',
         empty: ui.empty({ title: U.state.lang === 'ar' ? 'لا أرصدة مطابقة' : 'No balances match', hint: t('app.emptyHint'), icon: 'box' }) }) +
@@ -490,7 +490,7 @@
       '<input data-act="search" data-filter="q" value="' + esc(f.q || '') + '" placeholder="' + esc(U.state.lang === 'ar' ? 'ابحث بالصنف أو الكود…' : 'Search item or SKU…') + '"></div>' +
       (Object.keys(f.counted || {}).length ? ui.btn(U.state.lang === 'ar' ? 'مسح المدخلات' : 'Clear entries', { act: 'clear-count', kind: 'ghost' }) : '') +
       '<span class="grow"></span>' +
-      '<span class="faint" style="font-size:11.5px">' + esc(U.state.lang === 'ar' ? 'الفرق = العدد الفعلي − رصيد الدفاتر' : 'Difference = counted − book balance') + '</span>' +
+      '<span class="faint hint-s hide-m">' + esc(U.state.lang === 'ar' ? 'الفرق = العدد الفعلي − رصيد الدفاتر' : 'Difference = counted − book balance') + '</span>' +
       '</div>' +
       ui.table({ cls: 'count-tbl', cols: cols, rows: rows, rowId: function (r) { return r.product_id; }, selectable: false,
         empty: ui.empty({ title: U.state.lang === 'ar' ? 'لا أصناف في هذا المستودع' : 'No items in this warehouse', hint: t('app.emptyHint'), icon: 'scale' }) }) +
