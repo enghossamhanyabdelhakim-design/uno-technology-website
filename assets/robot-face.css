@@ -1,0 +1,183 @@
+/* ==========================================================================
+   Uno robot face — standalone component styles
+   Palette: Uno orange #F65A00 on white / on #0E1318.
+   Only transform, opacity and colour are animated (cheap on mid-range Android).
+   ========================================================================== */
+
+.rf {
+  --rf-brand: #F65A00;
+  --rf-brand-soft: rgba(246, 90, 0, .16);
+  --rf-shell: #ffffff;
+  --rf-shell-edge: rgba(16, 26, 36, .10);
+  --rf-face: #f2f5f8;
+  --rf-ink: #16202b;
+  --rf-ink-soft: rgba(22, 32, 43, .34);
+  --rf-glow: rgba(246, 90, 0, .35);
+  --rf-shadow: 0 10px 30px rgba(16, 26, 36, .12);
+  --rf-mouth: 0;
+  --rf-blink: 0;
+  --rf-px: 0;
+  --rf-py: 0;
+  --rf-tilt: 0;
+  --rf-scale: 1;
+  --rf-speed: 1;
+
+  display: inline-block;
+  width: 240px;
+  max-width: 100%;
+  line-height: 0;
+  color: var(--rf-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rf[data-theme="dark"] {
+  --rf-shell: #141c24;
+  --rf-shell-edge: rgba(255, 255, 255, .08);
+  --rf-face: #0b1116;
+  --rf-ink: #f2f6fa;
+  --rf-ink-soft: rgba(242, 246, 250, .34);
+  --rf-glow: rgba(246, 90, 0, .45);
+  --rf-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+}
+
+@media (prefers-color-scheme: dark) {
+  .rf[data-theme="auto"] {
+    --rf-shell: #141c24;
+    --rf-shell-edge: rgba(255, 255, 255, .08);
+    --rf-face: #0b1116;
+    --rf-ink: #f2f6fa;
+    --rf-ink-soft: rgba(242, 246, 250, .34);
+    --rf-glow: rgba(246, 90, 0, .45);
+    --rf-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+  }
+}
+
+.rf-svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.rf-head {
+  transform: scale(calc(1 + var(--rf-breathe, 0))) rotate(var(--rf-tilt));
+  transform-origin: 120px 110px;
+  transition: transform .35s cubic-bezier(.2, .7, .3, 1);
+}
+
+/* ---------------------------------------------------------------- shell */
+.rf-shell {
+  fill: var(--rf-shell);
+  stroke: var(--rf-shell-edge);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 6px 14px rgba(16, 26, 36, .10));
+}
+.rf[data-theme="dark"] .rf-shell { filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .35)); }
+
+.rf-face { fill: var(--rf-face); }
+.rf-face-edge { fill: none; stroke: var(--rf-ink-soft); stroke-width: 1; opacity: .5; }
+
+.rf-ear { fill: var(--rf-brand); opacity: .9; }
+.rf-ear-inner { fill: var(--rf-shell); opacity: .55; }
+
+.rf-antenna-stem { stroke: var(--rf-ink-soft); stroke-width: 2.5; stroke-linecap: round; }
+.rf-antenna-dot { fill: var(--rf-brand); }
+.rf-antenna-ring { fill: none; stroke: var(--rf-brand); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+
+/* ----------------------------------------------------------------- eyes */
+.rf-eye-white { fill: var(--rf-ink); }
+.rf-pupil { fill: var(--rf-shell); }
+.rf-eye {
+  transform: translate(calc(var(--rf-px) * 5px), calc(var(--rf-py) * 3.5px));
+  transition: transform .12s linear;
+}
+.rf-eye-in {
+  transform: scaleY(calc(1 - 0.93 * var(--rf-blink, 0)));
+  transform-origin: center;
+  transform-box: fill-box;
+}
+.rf-eye-happy { fill: none; stroke: var(--rf-ink); stroke-width: 4; stroke-linecap: round; opacity: 0; }
+.rf-brow { fill: none; stroke: var(--rf-ink); stroke-width: 3.5; stroke-linecap: round; opacity: .85; }
+.rf-cheek { fill: var(--rf-brand); opacity: 0; }
+
+/* ---------------------------------------------------------------- mouth */
+.rf-mouth-open {
+  fill: var(--rf-ink);
+  transform: scaleY(calc(.18 + var(--rf-mouth) * .95));
+  transform-origin: 120px 126px;
+  transition: transform .08s linear;
+}
+.rf-mouth-smile { fill: none; stroke: var(--rf-ink); stroke-width: 4; stroke-linecap: round; opacity: 0; }
+.rf-mouth-line { fill: none; stroke: var(--rf-ink); stroke-width: 4; stroke-linecap: round; opacity: 0; }
+
+/* thinking dots */
+.rf-dots { opacity: 0; }
+.rf-dot { fill: var(--rf-brand); opacity: .9; }
+
+/* ------------------------------------------------------------- states */
+/* idle: calm, brows level, mouth closed */
+.rf[data-state="idle"] .rf-mouth-open { transform: scaleY(calc(.16 + var(--rf-mouth) * .5)); }
+.rf[data-state="idle"] .rf-brow { transform: translateY(0); }
+
+/* listening: eyes a touch wider, antenna pulses, small open mouth */
+.rf[data-state="listening"] .rf-eye { transform: translate(calc(var(--rf-px) * 5px), calc(var(--rf-py) * 3.5px)) scale(1.06); transform-box: fill-box; transform-origin: center; }
+.rf[data-state="listening"] .rf-antenna-ring { animation: rf-ring 1.8s ease-out infinite; }
+.rf[data-state="listening"] .rf-mouth-open { transform: scaleY(calc(.3 + var(--rf-mouth) * .6)); }
+.rf[data-state="listening"] .rf-brow { transform: translateY(-2px); }
+
+/* thinking: eyes up and to the side, brows angled, dots */
+.rf[data-state="thinking"] .rf-eye { transform: translate(calc(var(--rf-px) * 4px - 3px), calc(var(--rf-py) * 2px - 3px)); }
+.rf[data-state="thinking"] .rf-brow-l { transform: translateY(-3px); }
+.rf[data-state="thinking"] .rf-brow-r { transform: translateY(1px); }
+.rf[data-state="thinking"] .rf-mouth-line { opacity: 1; }
+.rf[data-state="thinking"] .rf-mouth-open { opacity: 0; }
+.rf[data-state="thinking"] .rf-dots { opacity: 1; }
+.rf[data-state="thinking"] .rf-dot { animation: rf-dot 1.2s ease-in-out infinite; }
+.rf[data-state="thinking"] .rf-dot:nth-child(2) { animation-delay: .16s; }
+.rf[data-state="thinking"] .rf-dot:nth-child(3) { animation-delay: .32s; }
+
+/* speaking: mouth driven by setMouthLevel, brows lively */
+.rf[data-state="speaking"] .rf-mouth-open { opacity: 1; }
+.rf[data-state="speaking"] .rf-brow { transform: translateY(-1px); }
+
+/* happy: arc eyes, smile, cheeks, tiny bounce */
+.rf[data-state="happy"] .rf-eye-in { opacity: 0; }
+.rf[data-state="happy"] .rf-eye-happy { opacity: 1; }
+.rf[data-state="happy"] .rf-mouth-open { opacity: 0; }
+.rf[data-state="happy"] .rf-mouth-smile { opacity: 1; }
+.rf[data-state="happy"] .rf-cheek { opacity: .55; }
+.rf[data-state="happy"] .rf-head { animation: rf-bounce 1.6s ease-in-out infinite; }
+
+@keyframes rf-ring {
+  0% { opacity: .55; transform: scale(1); }
+  70% { opacity: 0; transform: scale(2.4); }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+@keyframes rf-dot {
+  0%, 100% { transform: translateY(0); opacity: .35; }
+  40% { transform: translateY(-3px); opacity: 1; }
+}
+@keyframes rf-bounce {
+  0%, 100% { transform: translateY(0) rotate(var(--rf-tilt)); }
+  50% { transform: translateY(-3px) rotate(var(--rf-tilt)); }
+}
+
+/* --------------------------------------------------- reduced motion */
+.rf[data-reduced="1"] .rf-head,
+.rf[data-reduced="1"] .rf-eye,
+.rf[data-reduced="1"] .rf-mouth-open,
+.rf[data-reduced="1"] .rf-eye-in {
+  transition: none !important;
+  animation: none !important;
+}
+.rf[data-reduced="1"] .rf-antenna-ring,
+.rf[data-reduced="1"] .rf-dot,
+.rf[data-reduced="1"] .rf-head { animation: none !important; }
+.rf[data-reduced="1"] .rf-eye { transform: none !important; }
+.rf[data-reduced="1"] .rf-dots { opacity: 0 !important; }
+.rf[data-reduced="1"] .rf-antenna-ring { opacity: 0 !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rf:not([data-reduced="0"]) .rf-head,
+  .rf:not([data-reduced="0"]) .rf-eye,
+  .rf:not([data-reduced="0"]) .rf-mouth-open,
+  .rf:not([data-reduced="0"]) .rf-antenna-ring,
+  .rf:not([data-reduced="0"]) .rf-dot { transition: none; animation: none; }
+  .rf:not([data-reduced="0"]) .rf-dots,
+  .rf:not([data-reduced="0"]) .rf-antenna-ring { opacity: 0; }
+}
