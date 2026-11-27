@@ -487,11 +487,11 @@ function openChat(greetOnly,topic){
   if(!$("#chat"))return; $("#chat").hidden=false; chatOpen=true; document.body.classList.add("chat-open"); vvFit(); $("#chat-fab").classList.add("hid");
   if(!chatInit){chatInit=true;bot({a:C.chatbot.greeting,links:[]});quick();}
   if(topic){user(L({ar:"عايز أسأل عن: ",en:"I'd like to ask about: "})+topic);setTimeout(function(){bot(brain(topic))},300)}
-  setTimeout(function(){$("#ch-i").focus()},50);
+  setTimeout(function(){$("#ch-i").focus();[150,400,800].forEach(function(t){setTimeout(vvFit,t)})},50);
 }
-function vvFit(){var v=window.visualViewport,c=$("#chat");if(!c)return;if(v){c.style.setProperty("--vvh",v.height+"px");c.style.transform="translateY("+(v.offsetTop||0)+"px)";var b=$("#ch-b");if(b)b.scrollTop=b.scrollHeight}}
+function vvFit(){var v=window.visualViewport,c=$("#chat");if(!c)return;if(v){c.style.setProperty("--vvh",v.height+"px");if(window.matchMedia("(max-width:820px)").matches){c.style.transform="";c.style.bottom="auto";c.style.top=(v.offsetTop||0)+"px";c.style.height=v.height+"px"}else{c.style.top="";c.style.bottom="";c.style.height=""}var b=$("#ch-b");if(b)b.scrollTop=b.scrollHeight}}
 if(window.visualViewport){visualViewport.addEventListener("resize",function(){if(chatOpen)vvFit()});visualViewport.addEventListener("scroll",function(){if(chatOpen)vvFit()})}
-function closeChat(){document.body.classList.remove("chat-open");$("#chat").style.removeProperty("--vvh");$("#chat").style.transform="";$("#chat").hidden=true;chatOpen=false;$("#chat-fab").classList.remove("hid")}
+function closeChat(){document.body.classList.remove("chat-open");$("#chat").style.removeProperty("--vvh");$("#chat").style.transform="";["top","bottom","height"].forEach(function(k){$("#chat").style[k]=""});$("#chat").hidden=true;chatOpen=false;$("#chat-fab").classList.remove("hid")}
 window.UNO_openChat=openChat;
 
 /* ---------- common behaviours ---------- */
