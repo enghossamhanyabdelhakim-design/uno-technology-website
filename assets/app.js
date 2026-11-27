@@ -780,13 +780,27 @@ function vlStart(done){
     ws.onclose=function(){if(!fin)fail();else if(VL.ok&&VC.on)vlFallback(vcT("انقطع الاتصال السريع، هكمل بالوضع التقليدي.","Fast connection dropped, continuing in standard mode."))}
   }).catch(fail)
 }
+/* ---- bot voice call robot face: lazy-loads robot-face.js/css, wired through vcState (state) and vaLevel (audio level) ---- */
+window.UNO_vcRobot=(function(){
+  var bot=null,st="think",hold=0,mv=null,tv=null,ld=null,MAP={listen:"listening",think:"thinking",speak:"speaking",connect:"thinking",idle:"idle",text:"idle"};
+  function load(){if(ld)return ld;ld=new Promise(function(ok,no){var l=document.createElement("link");l.rel="stylesheet";l.href="assets/robot-face.css?v=20261128o";document.head.appendChild(l);var j=document.createElement("script");j.src="assets/robot-face.js?v=20261128o";j.onload=ok;j.onerror=no;document.head.appendChild(j)});return ld}
+  function apply(k){if(!bot)return;var n=MAP[k]||"idle";if(st==="speak"&&k==="listen"){bot.setState("happy");clearTimeout(hold);hold=setTimeout(function(){if(bot&&st==="listen")bot.setState("listening")},1100);return}clearTimeout(hold);bot.setState(n);if(n!=="speaking")bot.setMouthLevel(0)}
+  return{
+    mount:function(el){if(!el||!window.UNO_ROBOT_ON)return;load().then(function(){if(!window.Robot||!document.body.contains(el))return;var vc=$("#vc");bot=window.Robot.mount(el,{state:MAP[st]||"thinking",theme:"dark",look:true});vc&&vc.classList.add("has-robot");
+      mv=function(e){var t=e.touches&&e.touches[0]||e;bot&&bot.lookAt(t.clientX,t.clientY)};tv=function(){bot&&bot.lookCenter()};
+      document.addEventListener("pointermove",mv,{passive:true});document.addEventListener("touchmove",mv,{passive:true});document.addEventListener("pointerleave",tv)}).catch(function(){})},
+    state:function(k){apply(k);st=k},
+    level:function(v){if(bot&&st==="speak")bot.setMouthLevel(v)},
+    destroy:function(){clearTimeout(hold);if(mv){document.removeEventListener("pointermove",mv);document.removeEventListener("touchmove",mv);document.removeEventListener("pointerleave",tv);mv=null}try{bot&&bot.destroy()}catch(e){}bot=null;st="think"}
+  }
+})();
 function vcStart(){
   if(VC.on)return;
   var day=new Date().toISOString().slice(0,10),n=0;try{var j=JSON.parse(localStorage.getItem("uno_vc2")||"{}");n=j.d===day?j.n:0;if(n>=VDAY&&!vcOwner()){alert(vcT("وصلت للحد اليومي للمكالمات الصوتية. ممكن تكتب في الشات أو تكلمنا على واتساب.","Daily voice call limit reached. You can use the text chat or WhatsApp."));return}localStorage.setItem("uno_vc2",JSON.stringify({d:day,n:n+1}))}catch(e){}
   if(chatOpen)closeChat();
   var ch=C.chatbot,SR=vcSR();
   document.body.insertAdjacentHTML("beforeend",'<div id="vc" role="dialog" aria-modal="true" aria-label="'+U(vcT("مكالمة صوتية مع أونو","Voice call with Uno"))+'" data-s="think"><div class="vc-top"><span id="vc-tm">00:00</span><span class="vc-live"></span></div><div class="vc-orb"><i></i><i></i><i></i><div id="vc-robot" class="vc-robot"></div><img src="'+U(ch.avatar)+'" alt="Uno"></div><h2>Uno</h2><p id="vc-st" class="vc-st" aria-live="polite"></p><div id="vc-cap" class="vc-cap" aria-live="polite"></div><div id="vc-act" class="vc-act"></div><div id="vc-chips" class="vc-chips"></div><p id="vc-note" class="vc-note"></p><form id="vc-tf" class="vc-tf" '+(SR?'hidden':'')+'><input id="vc-ti" type="text" autocomplete="off" maxlength="300" placeholder="'+U(vcT("اكتب سؤالك...","Type your question..."))+'"><button type="submit" aria-label="Send"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 20l18-8L3 4v6l11 2-11 2z"/></svg></button></form><div class="vc-btns"><button type="button" id="vc-mu" aria-pressed="false" aria-label="Mute"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/><path class="sl" d="M4 4l16 16"/></svg><span>'+vcT("كتم","Mute")+'</span></button><button type="button" id="vc-kb" aria-label="Keyboard"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg><span>'+vcT("كتابة","Type")+'</span></button><button type="button" id="vc-end" class="end" aria-label="End call"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 9c-3 0-5.700.8-8 2.400-.5.400-.6 1-.2 1.500l1.500 2c.3.400.9.500 1.300.2l2-1.200c.3-.2.500-.5.500-.9V12c1.600-.5 3.300-.5 4.900 0v1c0 .4.200.700.500.900l2 1.200c.400.300 1 .2 1.300-.2l1.500-2c.400-.5.300-1.100-.2-1.500C17.700 9.800 15 9 12 9z"/></svg><span>'+vcT("إنهاء","End")+'</span></button></div></div>');
-  document.body.classList.add("vc-open");try{if(window.UNO_vcRobot&&window.UNO_vcRobot.mount){window.UNO_vcRobot.mount($("#vc-robot"));$("#vc").classList.add("has-robot")}}catch(e){}VC.on=true;VC.fails=0;VC.mute=false;VC.turns=0;VC.busy=false;VC.t0=Date.now();VC.tick=setInterval(vcTimer,1000);
+  document.body.classList.add("vc-open");try{window.UNO_vcRobot.mount($("#vc-robot"))}catch(e){}VC.on=true;VC.fails=0;VC.mute=false;VC.turns=0;VC.busy=false;VC.t0=Date.now();VC.tick=setInterval(vcTimer,1000);
   $("#vc-end").onclick=vcEnd;
   $("#vc-mu").onclick=function(){VC.mute=!VC.mute;this.setAttribute("aria-pressed",VC.mute);this.classList.toggle("on",VC.mute);if(VC.mute){try{VC.rec&&VC.rec.abort()}catch(e){}vaStop();VA.rec=false;VA.buf=[];vcState("idle")}else{if(VC.mode==="cloud"){VA.st="listen";vcState("listen")}else vcListen()}};
   $("#vc-kb").onclick=function(){var f=$("#vc-tf");f.hidden=!f.hidden;if(!f.hidden)$("#vc-ti").focus()};
