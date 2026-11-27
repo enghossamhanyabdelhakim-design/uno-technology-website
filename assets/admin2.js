@@ -958,8 +958,8 @@ RENDER.ins=function(mn){
    docs.forEach(function(x){if(x.doc_date.slice(0,7)===mo)ms+=Number(x.total);rec+=Math.max(0,Number(x.total)-(pd[x.id]||0))});
    if(!docs.length){holder.innerHTML='<div class="card emp" style="grid-column:1/-1"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg><div><b style="font-size:16px;color:var(--ink)">'+bi("لا توجد مبيعات بعد","No sales yet")+'</b></div><div class="hint">'+bi("ستظهر هنا مؤشرات المبيعات والمستحقات بعد أول فاتورة.","Sales and receivables indicators appear here after the first invoice.")+"</div></div>";return}
    holder.innerHTML='<div class="card hr"><span>'+bi("مبيعات اليوم","Today's sales")+"</span><b>"+fm(td)+' <small style="font-size:14px">'+(window.UNO_LANG==="en"?"EGP":"ج.م")+'</small></b>'+dl(td,yd)+' <em style="font-size:12px;opacity:.8">'+bi("مقارنة بالأمس","vs yesterday")+"</em>"+spark(days)+'<div style="font-size:11px;opacity:.7">'+bi("آخر 14 يوم","Last 14 days")+"</div></div>"
-    +'<div class="card"><span>'+bi("مبيعات الشهر","Sales this month")+'</span><b dir="ltr">'+fm(ms)+"</b></div>"
-    +'<div class="card"><span>'+bi("مستحقات عند العملاء","Receivables")+'</span><b dir="ltr">'+fm(rec)+"</b></div>"}).catch(function(){holder.remove()})};
+    +'<div class="card"><span>'+bi("مبيعات الشهر","Sales this month")+'</span><b dir="ltr">'+fm(ms)+' <small style="font-size:12px">'+(window.UNO_LANG==="en"?"EGP":"ج.م")+"</small></b></div>"
+    +'<div class="card"><span>'+bi("مستحقات عند العملاء","Receivables")+'</span><b dir="ltr">'+fm(rec)+' <small style="font-size:12px">'+(window.UNO_LANG==="en"?"EGP":"ج.م")+"</small></b></div>"}).catch(function(){holder.remove()})};
 })();
 
 /* top bar: search button and notifications bell. Counts come from the same server data, filtered by the user's permissions. */
