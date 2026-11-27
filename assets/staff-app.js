@@ -9,7 +9,7 @@
     admin: ['audit', 'dashv', 'pos', 'log', 'content', 'store', 'orders', 'requests', 'core', 'chat'],
     store_manager: ['dashv', 'store', 'orders'], content_editor: ['dashv', 'content'], support: ['dashv', 'orders', 'requests', 'chat'], cashier: ['pos']
   };
-  var NAMES = { owner: ['المالك', 'Owner'], admin: ['مدير', 'Admin'], store_manager: ['مدير المتجر', 'Store manager'], content_editor: ['محرر المحتوى', 'Content editor'], support: ['الدعم', 'Support'], cashier: ['كاشير', 'Cashier'] };
+  var NAMES = { owner: ['المالك', 'Owner'], admin: ['مدير', 'Admin'], store_manager: ['مدير المتجر', 'Store manager'], content_editor: ['محرر المحتوى', 'Content editor'], support: ['الدعم', 'Support'], cashier: ['كاشير', 'Cashier'], technician: ['فني', 'Technician'], engineer: ['مهندس', 'Engineer'], sales: ['مبيعات', 'Sales'], hr_staff: ['موارد بشرية', 'HR'], stock_keeper: ['أمين مخزن', 'Stock keeper'] };
   var IC = {
     pos: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M16 15h0"/>',
     erp: '<path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/>',
@@ -81,8 +81,8 @@
   }
   function home(user, role, perms, roleName) {
     applyTheme(); window.UNO_SA.ctx = { user: user, role: role, perms: perms };
-    var rt = { '#jobs': 'jobs', '#hr': 'hr', '#crm': 'crm', '#offline': 'offline', '#overview': 'overview' }[location.hash]; if (rt && window.UNO_SA[rt]) return window.UNO_SA[rt]();
     var can = function (arr) { return role === 'owner' || arr.some(function (p) { return perms.indexOf(p) >= 0; }); };
+    var rt = { '#jobs': 'jobs', '#hr': 'hr', '#crm': 'crm', '#offline': 'offline', '#overview': 'overview' }[location.hash]; var tl = TILES.filter(function (x) { return x.h === location.hash; })[0]; if (rt && window.UNO_SA[rt] && tl && can(tl.p)) return window.UNO_SA[rt]();
     var secs = ['work', 'soon', 'admin'], html = '';
     secs.forEach(function (s) {
       var ts = TILES.filter(function (x) { return x.s === s && can(x.p); }); if (!ts.length) return;
