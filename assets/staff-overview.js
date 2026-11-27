@@ -13,7 +13,12 @@
     S.app.innerHTML = '<div class="wrap">' + S.shellTop() + '<div class="bar"><button class="sm" id="bk">' + T(['رجوع', 'Back']) + '</button><h1>' + T(['نظرة عامة', 'Overview']) + '</h1></div><div class="empty">' + T(['جارٍ التحميل...', 'Loading...']) + '</div></div>';
     S.wire(); document.getElementById('bk').onclick = S.home;
     S.api('POST', 'rpc/mgr_overview', {}).then(function (o) {
-      var h = '';
+      var h = '', kp = [];
+      if (o.jobs) kp.push([T(['مهام جارية', 'Active jobs']), o.jobs.active, '#jobs', o.jobs.unassigned > 0 ? n(o.jobs.unassigned) + ' ' + T(['غير معيّنة', 'unassigned']) : '']);
+      if (o.leads) kp.push([T(['عملاء مفتوحون', 'Open leads']), o.leads.open, '#crm', o.leads.follow_due > 0 ? n(o.leads.follow_due) + ' ' + T(['متابعة مستحقة', 'follow-ups due']) : '']);
+      if (o.attendance) kp.push([T(['داخل الآن', 'In now']), o.attendance.in, '#hr', '']);
+      if (o.stock) kp.push([T(['نواقص المخزون', 'Stock alerts']), Number(o.stock.out || 0) + Number(o.stock.low || 0), 'erp.html', o.stock.out > 0 ? n(o.stock.out) + ' ' + T(['نافد', 'out']) : '']);
+      if (kp.length) h += '<div class="kpis">' + kp.map(function (k) { return '<a class="kpi" href="' + k[2] + '"><small>' + k[0] + '</small><b>' + n(k[1]) + '</b>' + (k[3] ? '<span>' + k[3] + '</span>' : '') + '</a>'; }).join('') + '</div>';
       if (o.jobs) h += card(T(['أعمال الفنيين', 'Technician jobs']), '#jobs', [[T(['قيد التنفيذ', 'Active']), o.jobs.active], [T(['اليوم', 'Today']), o.jobs.today], [T(['غير معيّنة', 'Unassigned']), o.jobs.unassigned, o.jobs.unassigned > 0], [T(['بانتظار الاعتماد', 'To approve']), o.jobs.pending_approval, o.jobs.pending_approval > 0]]) +
         (o.jobs.urgent.length ? '<div class="panel"><h3>' + T(['عالية الأولوية', 'High priority']) + '</h3>' + o.jobs.urgent.map(function (j) { return '<div class="hist"><b>' + esc(j.job_no) + '</b> · ' + esc(j.title) + '</div>'; }).join('') + '</div>' : '');
       if (o.leads) h += card(T(['المبيعات', 'Sales']), '#crm', [[T(['عملاء محتملون مفتوحون', 'Open leads']), o.leads.open], [T(['متابعة مستحقة', 'Follow-ups due']), o.leads.follow_due, o.leads.follow_due > 0]]);
