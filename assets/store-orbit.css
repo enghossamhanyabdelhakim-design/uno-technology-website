@@ -42,3 +42,17 @@ html[lang=en] .us,html[lang=en] .us-drawer{font-family:"Alexandria","Poppins","S
 .us-drawer,.ud-modal,.ud-sheet,.us-sheet-head{border-radius:24px}
 .us-sticky{background:color-mix(in srgb,var(--s1) 92%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--bd)}
 @media(prefers-reduced-motion:reduce){.us-card,.us-btn{transition:none}}
+/* product page */
+.us-info .us-pr,.us-pdp .us-pr{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.us-info .us-pr b,.us-pdp .us-pr b{color:var(--oi,#C24300);font-size:clamp(1.7rem,4vw,2.3rem);font-weight:800}
+.us-info .us-pr s,.us-pdp .us-pr s{color:var(--mu);font-size:1rem}
+.us-gal{border-radius:24px;background:var(--s1);border-color:var(--bd);box-shadow:var(--sh);overflow:hidden}
+.us-info h1{font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.us-stock-ok{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(22,163,74,.1);color:var(--ok);font-weight:700;font-size:.85rem}
+.us-stock-no{display:inline-flex;padding:4px 12px;border-radius:999px;background:rgba(229,72,77,.1);color:var(--bad);font-weight:700;font-size:.85rem}
+.us-box{border-radius:18px;background:var(--s1);border-color:var(--bd);box-shadow:var(--sh)}
+.us-qty{border-radius:14px;background:var(--s1);border-color:var(--bd)}
+.us-tabbar{border-color:var(--bd)}
+.us-tabbar button[aria-selected=true],.us-tabbar .on{color:var(--oi);border-color:var(--or)}
+@media(max-width:700px){.us-pdp{gap:18px}.us-gal{border-radius:20px}}
+.us-info .big{color:var(--oi,#C24300);font-size:clamp(1.8rem,4vw,2.4rem);letter-spacing:-.01em}
