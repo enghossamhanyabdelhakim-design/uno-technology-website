@@ -1474,3 +1474,13 @@ body.is-display #appRoot, body.is-display #mBar, body.is-display .toasts { displ
 .gate .pin-dots i{border:2px solid var(--uno-line-strong,#b9b2aa);background:transparent;width:14px;height:14px}
 .gate .pin-dots i.on{background:var(--uno-brand);border-color:var(--uno-brand)}
 @media (max-width:640px){.sheet-foot{flex-wrap:wrap}.sheet-foot .btn{flex:1 1 auto;min-width:0}}
+
+/* order tabs */
+.tabstrip { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; padding: 8px 12px 0; overflow-x: auto; scrollbar-width: none; }
+.tabstrip::-webkit-scrollbar { display: none; }
+.tabx { display: inline-flex; align-items: center; flex: 0 0 auto; border: 1px solid var(--uno-line); border-radius: 999px; background: var(--uno-surface); color: var(--uno-text-2); }
+.tabx.on { background: var(--uno-brand-soft); border-color: rgba(246, 90, 0, .45); color: var(--uno-text); }
+.tabx button { height: 32px; padding-inline: 12px; font: inherit; font-size: 12.5px; color: inherit; background: none; border: 0; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.tabx .tn { min-width: 18px; height: 18px; padding-inline: 5px; border-radius: 9px; background: var(--uno-brand); color: var(--uno-on-brand); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.tabx .tc { padding-inline: 8px 10px; font-size: 11px; opacity: .7; }
+.tabadd { flex: 0 0 auto; width: 32px; height: 32px; border-radius: 50%; border: 1px dashed var(--uno-line-strong); background: none; color: var(--uno-text-2); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }

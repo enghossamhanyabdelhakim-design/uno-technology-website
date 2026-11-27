@@ -584,7 +584,7 @@ RENDER.cdoc=function(mn){
  var PH={tax_label_ar:"الرقم الضريبي",tax_label_en:"Tax No",thanks_ar:"شكراً لزيارتكم",thanks_en:"Thank you",footer_ar:"الاسترجاع خلال 14 يوم بالإيصال وحالة الصنف سليمة",footer_en:"Returns within 14 days with receipt and item in original condition"};
  function load(src){return new Promise(function(ok){if(document.querySelector('script[data-d="'+src+'"]'))return ok();var s=document.createElement("script");s.src=src;s.setAttribute("data-d",src);s.onload=ok;s.onerror=ok;document.head.appendChild(s)})}
  mn.innerHTML=empty("جارٍ التحميل...","Loading...");
- Promise.all([api("POST","rpc/doc_settings_get",{}),load("assets/uno-qr.js?v=20261128d"),load("assets/receipt-templates.js?v=20261129r7")]).then(function(rr){
+ Promise.all([api("POST","rpc/doc_settings_get",{}),load("assets/uno-qr.js?v=20261128d"),load("assets/receipt-templates.js?v=20261129r8")]).then(function(rr){
   var d=rr[0],cfg=d.cfg||{},co=d.company||{},sh=cfg.show||{},tx=cfg.text||{};
   var tax=String(co.tax_id||"").trim(),realTax=(!co.is_placeholder&&/[1-9]/.test(tax))?tax:"";
   var h='<h2>'+bi("الإيصالات والفواتير","Receipts and invoices")+'</h2><p class="hint" style="margin-bottom:12px">'+bi("اختار إيه يظهر على الإيصال والفاتورة وإيه الكلام المكتوب. المعاينة بتتغير مباشرة ببيانات تجريبية. الإعدادات تسري على كل الفروع.","Choose what prints on receipts and invoices and the wording. The preview updates live with sample data. Settings apply to all branches.")+'</p>';
