@@ -1,0 +1,33 @@
+<!doctype html><html lang="ar" dir="rtl" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>سياسات المتجر | Store policies - Uno</title><meta name="robots" content="noindex"><meta name="theme-color" content="#F65A00"><link rel="icon" href="assets/logo-tu.png">
+<style>
+:root{--bg:#15110e;--card:#201a16;--tx:#f6efe9;--mu:#b9aba0;--bd:#3a2f28;--or:#F65A00;--wr:#ffb020}
+html[data-theme=light]{--bg:#fffaf6;--card:#fff;--tx:#241a14;--mu:#6c5e54;--bd:#ecdccf}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:Cairo,Tajawal,system-ui,sans-serif;line-height:1.8}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--or);color:#fff;font-weight:800}
+.hd a,.hd button{color:#fff;text-decoration:none;background:rgba(255,255,255,.18);border:0;border-radius:10px;min-height:44px;padding:0 14px;font:inherit;font-weight:700;display:inline-flex;align-items:center;cursor:pointer}
+main{max-width:820px;margin:0 auto;padding:24px 16px 80px}h1{margin:0 0 6px;font-size:1.7rem}.sub{color:var(--mu);margin:0 0 22px}
+nav.t{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}nav.t a{color:var(--tx);border:1px solid var(--bd);border-radius:999px;padding:6px 14px;text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+section{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px 20px;margin-bottom:16px;scroll-margin-top:12px}h2{margin:0 0 8px;font-size:1.25rem}
+.ph{display:inline-block;background:var(--wr);color:#2a1d12;font-size:.78rem;font-weight:800;border-radius:8px;padding:1px 10px;margin-inline-start:8px;vertical-align:middle}p{margin:0}
+</style></head><body>
+<div class="hd"><span>UNO · أونو</span><span style="display:flex;gap:8px"><a href="store.html" id="bk">المتجر</a><button id="lg">English</button></span></div>
+<main><h1 id="t1"></h1><p class="sub" id="t2"></p><nav class="t" id="nv"></nav><div id="ps"></div></main>
+<script src="assets/config.js?v=20261128w"></script><script src="assets/store-rpc.js?v=20261128w"></script>
+<script>
+var T={ar:{h:'سياسات المتجر',s:'الاسترجاع والشحن والضمان والشروط.',ph:'نص مؤقت',bk:'المتجر',lg:'English',terms:'الشروط والأحكام',tt:'نص الشروط والأحكام قيد الإعداد من فريق أونو وسيُنشر هنا قريبًا.',err:'تعذّر تحميل السياسات. حاول مرة أخرى.'},
+en:{h:'Store policies',s:'Returns, shipping, warranty and terms.',ph:'Placeholder',bk:'Store',lg:'العربية',terms:'Terms and conditions',tt:'The terms and conditions text is being prepared by the Uno team and will be published here soon.',err:'Could not load the policies. Please try again.'}};
+var q=new URLSearchParams(location.search),lang=q.get('lang')||localStorage.getItem('uno_lang')||'ar',data=null;
+document.documentElement.dataset.theme=q.get('theme')||'dark';
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function draw(){var t=T[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+ t1.textContent=t.h;t2.textContent=t.s;bk.textContent=t.bk;lg.textContent=t.lg;
+ if(!data){ps.innerHTML='<p>'+esc(t.err)+'</p>';return}
+ var items=['returns','shipping','warranty'].filter(function(k){return data[k]}).map(function(k){var p=data[k];return{id:k,title:p.title[lang]||p.title.ar,body:p.body[lang]||p.body.ar,ph:!!p.placeholder}});
+ items.push({id:'terms',title:t.terms,body:t.tt,ph:true});
+ nv.innerHTML=items.map(function(i){return'<a href="#'+i.id+'">'+esc(i.title)+'</a>'}).join('');
+ ps.innerHTML=items.map(function(i){return'<section id="'+i.id+'"><h2>'+esc(i.title)+(i.ph?'<span class="ph">'+esc(t.ph)+'</span>':'')+'</h2><p>'+esc(i.body).replace(/\n/g,'<br>')+'</p></section>'}).join('');
+ if(location.hash){var e=document.getElementById(location.hash.slice(1));e&&e.scrollIntoView()}}
+lg.onclick=function(){lang=lang==='ar'?'en':'ar';localStorage.setItem('uno_lang',lang);draw()};
+draw();UNO_STORE_RPC('store_meta',{}).then(function(r){data=r.policies||{};draw()}).catch(function(){draw()});
+</script></body></html>
