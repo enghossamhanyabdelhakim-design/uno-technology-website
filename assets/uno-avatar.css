@@ -1,0 +1,356 @@
+/* Uno companion avatar — full body, layered SVG.
+   Everything is scoped under .ua so a host page cannot leak in.
+   Groups are rotated with transform-box: view-box, so origins are in
+   viewBox units and stay correct at any size. */
+.ua {
+  --ua-size: 132px;
+  --ua-mouth: 0;
+  --ua-lx: 0;
+  --ua-ly: 0;
+  --ua-blink: 0;
+  --ua-point: 20deg;
+  --ua-ink: #0b1015;
+  position: relative;
+  display: block;
+  width: var(--ua-size);
+  aspect-ratio: 200 / 272;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout style;
+}
+.ua-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.ua-svg g { transform-box: view-box; }
+
+/* joints */
+.ua-head   { transform-origin: 100px 120px; }
+.ua-torso  { transform-origin: 100px 180px; }
+.ua-arm-l  { transform-origin: 62px 136px; }
+.ua-arm-r  { transform-origin: 138px 136px; }
+.ua-fore-l { transform-origin: 62px 170px; }
+.ua-fore-r { transform-origin: 138px 170px; }
+.ua-hand-l { transform-origin: 62px 184px; }
+.ua-hand-r { transform-origin: 138px 184px; }
+.ua-leg-l  { transform-origin: 84px 184px; }
+.ua-leg-r  { transform-origin: 116px 184px; }
+.ua-shin-l { transform-origin: 84px 211px; }
+.ua-shin-r { transform-origin: 116px 211px; }
+
+/* face parts driven by JS variables */
+.ua-eyes { transform: translate(calc(var(--ua-lx) * 1px), calc(var(--ua-ly) * 1px)); transition: transform .18s ease-out; }
+.ua-eye, .ua-bloom { transform-box: fill-box; transform-origin: center; transform: scaleY(calc(1 - .92 * var(--ua-blink))); }
+.ua-round { opacity: 1; transition: opacity .18s ease; }
+.ua-arcs { opacity: 0; transition: opacity .18s ease; }
+.ua-mouth { transform: translate(calc(var(--ua-lx) * .5px), calc(var(--ua-ly) * .4px)); }
+.ua-smile { transform-box: fill-box; transform-origin: center; transition: opacity .15s ease, transform .15s ease; }
+.ua-open {
+  transform-box: fill-box; transform-origin: center;
+  opacity: 0;
+  transform: scale(calc(.75 + var(--ua-mouth) * .55), calc(.5 + var(--ua-mouth) * 4.6));
+  transition: opacity .1s ease;
+}
+.ua[data-state="speaking"] .ua-smile,
+.ua[data-mouth="1"] .ua-smile { opacity: 0; }
+.ua[data-state="speaking"] .ua-open { opacity: 1; }
+
+/* thumbs are hidden unless the thumbs-up gesture is on */
+.ua-thumb-l, .ua-thumb-r { opacity: 0; transition: opacity .12s ease; }
+
+/* ------------------------------------------------------------- idle life */
+@keyframes ua-breathe { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-1.4px) scaleY(1.012); } }
+@keyframes ua-sway { 0%, 100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
+@keyframes ua-arm-idle-l { 0%, 100% { transform: rotate(3deg); } 50% { transform: rotate(6deg); } }
+@keyframes ua-arm-idle-r { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(-6deg); } }
+.ua[data-state="idle"] .ua-torso, .ua[data-state="listening"] .ua-torso { animation: ua-breathe 3.6s ease-in-out infinite; }
+.ua[data-state="idle"] .ua-head, .ua[data-state="listening"] .ua-head { animation: ua-sway 5.4s ease-in-out infinite; }
+.ua[data-state="idle"] .ua-arm-l, .ua[data-state="listening"] .ua-arm-l { animation: ua-arm-idle-l 4.2s ease-in-out infinite; }
+.ua[data-state="idle"] .ua-arm-r, .ua[data-state="listening"] .ua-arm-r { animation: ua-arm-idle-r 4.2s ease-in-out infinite; }
+
+/* An explicit pose or gesture wins over the idle loops: CSS animations beat
+   normal declarations, so the idle animations have to stand down first. */
+.ua[data-emote]:not([data-emote="neutral"]) .ua-head,
+.ua[data-emote]:not([data-emote="neutral"]) .ua-torso,
+.ua[data-emote]:not([data-emote="neutral"]) .ua-arm-l,
+.ua[data-emote]:not([data-emote="neutral"]) .ua-arm-r,
+.ua[data-emote]:not([data-emote="neutral"]) .ua-fore-l,
+.ua[data-emote]:not([data-emote="neutral"]) .ua-fore-r,
+.ua[data-gesture] .ua-head,
+.ua[data-gesture] .ua-torso,
+.ua[data-gesture] .ua-arm-l,
+.ua[data-gesture] .ua-arm-r,
+.ua[data-gesture] .ua-fore-l,
+.ua[data-gesture] .ua-fore-r { animation: none; }
+
+/* listening: a touch brighter and still */
+.ua[data-state="listening"] .ua-eye { filter: none; }
+.ua[data-state="listening"] .ua-bloom { opacity: 1.0; }
+
+/* thinking: head tilt, eyes up, hand near the chin, small mouth */
+.ua[data-state="thinking"] .ua-head { transform: rotate(-5deg) translateY(1px); transition: transform .35s ease; }
+.ua[data-state="thinking"] .ua-smile { transform: scale(.6); }
+.ua[data-state="thinking"] .ua-eye { opacity: .8; }
+.ua[data-state="thinking"] .ua-arm-r { transform: rotate(104deg); transition: transform .4s ease; }
+.ua[data-state="thinking"] .ua-fore-r { transform: rotate(52deg); transition: transform .4s ease; }
+.ua[data-state="thinking"] .ua-arm-l { animation: none; transform: rotate(4deg); }
+
+/* speaking: mouth follows the level, body gives a small pulse per syllable */
+.ua[data-state="speaking"] .ua-head { animation: ua-speak-bob .42s ease-in-out infinite; }
+@keyframes ua-speak-bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-1.6px) rotate(.8deg); } }
+.ua[data-state="speaking"] .ua-torso { animation: ua-breathe 1.6s ease-in-out infinite; }
+
+/* celebrating: eyes become happy arcs, arms up, little hop */
+.ua[data-state="celebrating"] .ua-round { opacity: 0; }
+.ua[data-state="celebrating"] .ua-arcs { opacity: 1; }
+.ua[data-state="celebrating"] .ua-arm-l { transform: rotate(142deg); }
+.ua[data-state="celebrating"] .ua-arm-r { transform: rotate(-142deg); }
+.ua[data-state="celebrating"] .ua-torso { animation: ua-hop .5s ease-in-out infinite; }
+@keyframes ua-hop { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-8px); } }
+
+/* --------------------------------------------------------------- gestures */
+.ua[data-gesture="wave"] .ua-arm-r { transform: rotate(-150deg); transition: transform .3s ease; animation: ua-wave .42s ease-in-out 3; }
+.ua[data-gesture="wave"] .ua-fore-r { transform: rotate(-16deg); animation: ua-wave-fore .42s ease-in-out 3; }
+.ua[data-gesture="wave"] .ua-head { transform: rotate(5deg); transition: transform .3s ease; }
+.ua[data-gesture="wave"] .ua-hand-r { transform: scale(1.06); }
+@keyframes ua-wave { 0%, 100% { transform: rotate(-150deg); } 50% { transform: rotate(-128deg); } }
+@keyframes ua-wave-fore { 0%, 100% { transform: rotate(-16deg); } 50% { transform: rotate(18deg); } }
+
+.ua[data-gesture="point"] .ua-arm-r { transform: rotate(calc(-1 * var(--ua-point))); transition: transform .3s ease; }
+.ua[data-gesture="point"] .ua-fore-r { transform: rotate(calc(var(--ua-point) * -.35)); }
+.ua[data-gesture="point"] .ua-hand-r { transform: rotate(calc(var(--ua-point) * -.2)) scale(1.04); }
+.ua[data-gesture="point"] .ua-head { transform: rotate(calc(var(--ua-point) * .09)); transition: transform .3s ease; }
+.ua[data-gesture="point"] .ua-torso { transform: rotate(calc(var(--ua-point) * .04)); }
+
+.ua[data-gesture="nod"] .ua-head { animation: ua-nod .55s ease-in-out 2; }
+@keyframes ua-nod { 0%, 100% { transform: translateY(0) rotate(0); } 45% { transform: translateY(3px) rotate(-2deg); } }
+
+.ua[data-gesture="think"] .ua-head { transform: rotate(-6deg); transition: transform .35s ease; }
+.ua[data-gesture="think"] .ua-arm-r { transform: rotate(104deg); transition: transform .4s ease; }
+.ua[data-gesture="think"] .ua-fore-r { transform: rotate(52deg); transition: transform .4s ease; }
+.ua[data-gesture="think"] .ua-smile { transform: scale(.6); }
+
+.ua[data-gesture="celebrate"] .ua-round { opacity: 0; }
+.ua[data-gesture="celebrate"] .ua-arcs { opacity: 1; }
+.ua[data-gesture="celebrate"] .ua-arm-l { transform: rotate(142deg); animation: ua-cheer .5s ease-in-out 3; }
+.ua[data-gesture="celebrate"] .ua-arm-r { transform: rotate(-142deg); animation: ua-cheer-r .5s ease-in-out 3; }
+.ua[data-gesture="celebrate"] .ua-torso { animation: ua-hop .5s ease-in-out 3; }
+@keyframes ua-cheer { 0%, 100% { transform: rotate(142deg); } 50% { transform: rotate(126deg); } }
+@keyframes ua-cheer-r { 0%, 100% { transform: rotate(-142deg); } 50% { transform: rotate(-126deg); } }
+
+.ua[data-gesture="thumbsup"] .ua-arm-r { transform: rotate(-150deg); transition: transform .3s ease; }
+.ua[data-gesture="thumbsup"] .ua-fore-r { transform: none; }
+.ua[data-gesture="thumbsup"] .ua-hand-r { transform: scale(1.25); }
+.ua[data-gesture="thumbsup"] .ua-thumb-r { opacity: 1; }
+.ua[data-gesture="thumbsup"] .ua-head { transform: rotate(-3deg); }
+.ua[data-gesture="thumbsup"] .ua-smile { transform: scale(1.15); }
+
+.ua[data-gesture="shrug"] .ua-arm-l { transform: rotate(26deg); }
+.ua[data-gesture="shrug"] .ua-arm-r { transform: rotate(-26deg); }
+.ua[data-gesture="shrug"] .ua-head { transform: rotate(-4deg) translateY(2px); }
+.ua[data-gesture="shrug"] .ua-smile { transform: scale(.75); }
+
+/* walk in / out: legs alternate, body bobs, whole avatar travels */
+@keyframes ua-step-l { 0%, 100% { transform: rotate(-14deg); } 50% { transform: rotate(16deg); } }
+@keyframes ua-step-r { 0%, 100% { transform: rotate(16deg); } 50% { transform: rotate(-14deg); } }
+@keyframes ua-walk-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.ua[data-gesture="walkIn"] .ua-leg-l, .ua[data-gesture="walkOut"] .ua-leg-l { animation: ua-step-l .42s ease-in-out infinite; }
+.ua[data-gesture="walkIn"] .ua-leg-r, .ua[data-gesture="walkOut"] .ua-leg-r { animation: ua-step-r .42s ease-in-out infinite; }
+.ua[data-gesture="walkIn"] .ua-torso, .ua[data-gesture="walkOut"] .ua-torso { animation: ua-walk-bob .42s ease-in-out infinite; }
+.ua[data-gesture="walkIn"] .ua-arm-l { transform: rotate(14deg); }
+.ua[data-gesture="walkIn"] .ua-arm-r { transform: rotate(-14deg); }
+.ua[data-gesture="walkIn"] .ua-svg { animation: ua-arrive .9s ease-out; }
+@keyframes ua-arrive { from { transform: translateX(-28%); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ------------------------------------------------------- reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ua:not([data-reduced="0"]) * { animation: none !important; }
+  .ua:not([data-reduced="0"]) .ua-eyes { transition: none; }
+}
+.ua[data-reduced="1"] * { animation: none !important; }
+.ua[data-reduced="1"] .ua-eyes, .ua[data-reduced="1"] .ua-head, .ua[data-reduced="1"] .ua-torso { transition: none !important; }
+
+/* ===================================================== floating companion */
+.ua-companion {
+  position: fixed;
+  bottom: 18px;
+  z-index: 9990;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+  direction: inherit;
+  pointer-events: none;
+}
+.ua-companion[data-side="end"] { inset-inline-end: 18px; }
+.ua-companion[data-side="start"] { inset-inline-start: 18px; }
+.ua-companion > * { pointer-events: auto; }
+.ua-companion[data-side="start"] { flex-direction: row-reverse; }
+
+.ua-stage { position: relative; display: grid; place-items: end center; }
+.ua-stage .ua { filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .18)); }
+
+.ua-bubble {
+  max-width: 210px;
+  padding: 9px 12px;
+  border-radius: 14px;
+  background: #fff;
+  color: #101820;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .16), 0 0 0 1px rgba(0, 0, 0, .06);
+  opacity: 0;
+  transform: translateY(6px) scale(.96);
+  transition: opacity .22s ease, transform .22s ease;
+  pointer-events: none;
+  margin-bottom: 34px;
+  position: relative;
+}
+.ua-bubble[data-show="1"] { opacity: 1; transform: none; }
+.ua-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  inset-inline-start: 22px;
+  width: 12px; height: 12px;
+  background: inherit;
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+.ua-companion[data-theme="dark"] .ua-bubble { background: #141c24; color: #f2f5f8; box-shadow: 0 6px 22px rgba(0, 0, 0, .5), 0 0 0 1px rgba(255, 255, 255, .08); }
+
+.ua-min {
+  position: absolute;
+  top: 2px;
+  inset-inline-end: 2px;
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, .12);
+  background: rgba(255, 255, 255, .92);
+  color: #2a2a2a;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+.ua-companion:hover .ua-min, .ua-min:focus-visible { opacity: 1; }
+.ua-companion[data-theme="dark"] .ua-min { background: rgba(20, 28, 36, .92); color: #eef2f6; border-color: rgba(255, 255, 255, .14); }
+
+/* minimized: just the head in a small disc */
+.ua-companion[data-min="1"] { gap: 0; }
+.ua-companion[data-min="1"] .ua-stage {
+  width: 62px; height: 62px; border-radius: 50%; overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .22), 0 0 0 1px rgba(0, 0, 0, .06);
+  cursor: pointer;
+}
+.ua-companion[data-theme="dark"][data-min="1"] .ua-stage { background: #0f151b; box-shadow: 0 8px 22px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .1); }
+.ua-companion[data-min="1"] .ua-stage { position: relative; }
+.ua-companion[data-min="1"] .ua {
+  --ua-size: 118px;
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  margin-left: -59px;
+}
+.ua-companion[data-min="1"] .ua-svg { transform: none; }
+.ua-companion[data-min="1"] .ua-bubble { display: none; }
+
+@media (max-width: 480px) {
+  .ua-companion { bottom: 12px; }
+  .ua-companion[data-side="end"] { inset-inline-end: 12px; }
+  .ua-companion[data-side="start"] { inset-inline-start: 12px; }
+  .ua-bubble { max-width: 168px; font-size: 12.5px; }
+}
+
+/* ============================================================ emotions */
+/* An emotion sets the face and body pose. Gestures still work on top. */
+
+.ua[data-emote="happy"] .ua-round { opacity: 0; }
+.ua[data-emote="happy"] .ua-arcs { opacity: 1; }
+.ua[data-emote="happy"] .ua-smile { transform: scale(1.18); }
+.ua[data-emote="happy"] .ua-head { transform: rotate(-2deg); transition: transform .3s ease; }
+
+.ua[data-emote="laugh"] .ua-round { opacity: 0; }
+.ua[data-emote="laugh"] .ua-arcs { opacity: 1; }
+.ua[data-emote="laugh"] .ua-smile { opacity: 0; }
+.ua[data-emote="laugh"] .ua-open { opacity: 1; animation: ua-laugh-mouth .28s ease-in-out infinite; }
+.ua[data-emote="laugh"] .ua-head { animation: ua-laugh-head .56s ease-in-out infinite; }
+.ua[data-emote="laugh"] .ua-torso { animation: ua-laugh-body .28s ease-in-out infinite; }
+.ua[data-emote="laugh"] .ua-arm-l { transform: rotate(22deg); }
+.ua[data-emote="laugh"] .ua-arm-r { transform: rotate(-22deg); }
+@keyframes ua-laugh-mouth { 0%, 100% { transform: scale(.95, 3.2); } 50% { transform: scale(1.15, 5.4); } }
+@keyframes ua-laugh-head { 0%, 100% { transform: rotate(3deg) translateY(1px); } 50% { transform: rotate(7deg) translateY(-2px); } }
+@keyframes ua-laugh-body { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(2.5px); } }
+
+.ua[data-emote="smirk"] .ua-smile { transform: rotate(-9deg) scale(1.05); }
+.ua[data-emote="smirk"] .ua-eye-l { transform: scaleY(.55); }
+.ua[data-emote="smirk"] .ua-head { transform: rotate(5deg); transition: transform .3s ease; }
+
+.ua[data-emote="surprise"] .ua-eye { transform: scale(1.28); }
+.ua[data-emote="surprise"] .ua-smile { opacity: 0; }
+.ua[data-emote="surprise"] .ua-open { opacity: 1; transform: scale(.62, 1.5); }
+.ua[data-emote="surprise"] .ua-head { transform: translateY(-3px) rotate(-3deg); transition: transform .22s ease; }
+.ua[data-emote="surprise"] .ua-arm-l { transform: rotate(30deg); }
+.ua[data-emote="surprise"] .ua-arm-r { transform: rotate(-30deg); }
+
+.ua[data-emote="wink"] .ua-eye-r { transform: scaleY(.06); }
+.ua[data-emote="wink"] .ua-smile { transform: rotate(-6deg) scale(1.1); }
+.ua[data-emote="wink"] .ua-head { transform: rotate(-4deg); transition: transform .25s ease; }
+
+.ua[data-emote="empathy"] .ua-head { transform: rotate(-8deg) translateY(1px); transition: transform .35s ease; }
+.ua[data-emote="empathy"] .ua-smile { transform: scale(.8); }
+.ua[data-emote="empathy"] .ua-eye { transform: scaleY(.86); }
+.ua[data-emote="empathy"] .ua-arm-l { transform: rotate(-6deg); transition: transform .35s ease; }
+.ua[data-emote="empathy"] .ua-fore-l { transform: rotate(6deg); transition: transform .35s ease; }
+.ua[data-emote="empathy"] .ua-torso { transform: translateY(2px); transition: transform .35s ease; }
+
+.ua[data-emote="thinking"] .ua-head { transform: rotate(-5deg); transition: transform .3s ease; }
+.ua[data-emote="thinking"] .ua-smile { transform: scale(.6); }
+.ua[data-emote="thinking"] .ua-eye { opacity: .82; }
+.ua[data-emote="thinking"] .ua-arm-r { transform: rotate(104deg); transition: transform .35s ease; }
+.ua[data-emote="thinking"] .ua-fore-r { transform: rotate(52deg); transition: transform .35s ease; }
+
+.ua[data-emote="excited"] .ua-round { opacity: 0; }
+.ua[data-emote="excited"] .ua-arcs { opacity: 1; }
+.ua[data-emote="excited"] .ua-torso { animation: ua-hop .46s ease-in-out infinite; }
+.ua[data-emote="excited"] .ua-arm-l { transform: rotate(120deg); }
+.ua[data-emote="excited"] .ua-arm-r { transform: rotate(-120deg); }
+.ua[data-emote="excited"] .ua-smile { transform: scale(1.2); }
+
+.ua[data-emote="sleepy"] .ua-eye { transform: scaleY(.35); }
+.ua[data-emote="sleepy"] .ua-smile { transform: scale(.55); }
+.ua[data-emote="sleepy"] .ua-head { animation: ua-doze 4.2s ease-in-out infinite; }
+.ua[data-emote="sleepy"] .ua-torso { animation: ua-breathe 4.8s ease-in-out infinite; }
+@keyframes ua-doze { 0%, 100% { transform: rotate(-2deg) translateY(0); } 50% { transform: rotate(-6deg) translateY(3px); } }
+
+.ua[data-emote="confused"] .ua-head { transform: rotate(-7deg); transition: transform .3s ease; }
+.ua[data-emote="confused"] .ua-eye-l { transform: scaleY(.6); }
+.ua[data-emote="confused"] .ua-smile { transform: rotate(6deg) scale(.7); }
+.ua[data-emote="confused"] .ua-arm-l { transform: rotate(18deg); }
+
+.ua[data-emote="proud"] .ua-arm-r { transform: rotate(-150deg); }
+.ua[data-emote="proud"] .ua-fore-r { transform: none; }
+.ua[data-emote="proud"] .ua-hand-r { transform: scale(1.25); }
+.ua[data-emote="proud"] .ua-thumb-r { opacity: 1; }
+.ua[data-emote="proud"] .ua-head { transform: rotate(-3deg) translateY(-1px); }
+.ua[data-emote="proud"] .ua-smile { transform: scale(1.2); }
+
+/* ------------------------------------------------- micro-expressions */
+.ua[data-mx="blinkTwice"] .ua-eye { animation: ua-mx-blink .16s ease-in-out 2; }
+@keyframes ua-mx-blink { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.05); } }
+
+.ua[data-mx="squint"] .ua-eye { transform: scaleY(.5); }
+.ua[data-mx="lookAway"] .ua-eyes { transform: translate(9px, -2px); }
+.ua[data-mx="eyeRoll"] .ua-eyes { animation: ua-mx-roll .6s ease-in-out; }
+@keyframes ua-mx-roll { 0% { transform: translate(0, 0); } 40% { transform: translate(0, -5px); } 100% { transform: translate(0, 0); } }
+.ua[data-mx="headShake"] .ua-head { animation: ua-mx-shake .5s ease-in-out; }
+@keyframes ua-mx-shake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(4deg); } 75% { transform: rotate(-4deg); } }
+.ua[data-mx="browFlash"] .ua-head { animation: ua-mx-flash .4s ease-out; }
+@keyframes ua-mx-flash { 0% { transform: translateY(0); } 40% { transform: translateY(-3px); } 100% { transform: translateY(0); } }
+.ua[data-mx="mouthPurse"] .ua-smile { transform: scale(.55); }
+.ua[data-mx="tilt"] .ua-head { animation: ua-mx-tilt .9s ease-in-out; }
+@keyframes ua-mx-tilt { 0%, 100% { transform: rotate(0); } 45% { transform: rotate(7deg); } }
+
+/* reduced motion keeps the pose, drops the movement */
+@media (prefers-reduced-motion: reduce) {
+  .ua:not([data-reduced="0"]) * { animation-duration: .001s !important; animation-iteration-count: 1 !important; }
+}
+
+/* site integration: hidden while the chat or the voice call is open */
+body.chat-open .ua-companion, body.vc-open .ua-companion { display: none !important; }
