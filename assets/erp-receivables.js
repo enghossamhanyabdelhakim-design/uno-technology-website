@@ -140,7 +140,8 @@
       ui.table({ cols: cols, rows: d.rows, rowId: function (r) { return r.id; }, rowAct: 'r-open', empty: ui.empty({ title: t('app.empty'), hint: t('app.emptyHint'), icon: 'users' }) }) + '</section>';
   }
 
-  function loadOne(ctx) { return U.api.call('erp_customer_get', { id: ctx.params.id }); }
+  var SEEN = {}; /* customers returned by the server (live mode); the demo list is only used in demo mode */
+  function loadOne(ctx) { return U.api.call('erp_customer_get', { id: ctx.params.id }).then(function (d) { if (d && d.customer) SEEN[d.customer.id] = d.customer; return d; }); }
   function viewOne(ctx, d) {
     var c = d.customer, tip = c.over_limit ? ui.banner({ tone: 'warn', icon: 'alert', title: AR('تجاوز حد الائتمان', 'Over credit limit'), text: AR('الرصيد ' + fmt.money(c.balance) + ' ج.م والحد ' + fmt.money(c.limit) + ' ج.م.', 'Balance ' + fmt.money(c.balance) + ' EGP against a limit of ' + fmt.money(c.limit) + ' EGP.') }) : '';
     var back = '<button data-act="r-list">' + esc(AR('العملاء', 'Customers')) + '</button>';
@@ -157,7 +158,7 @@
       ui.kpi({ label: AR('الرصيد المستحق', 'Balance due'), value: fmt.money(c.balance), cur: true }) +
       ui.kpi({ label: AR('إجمالي المبيعات', 'Total sales'), value: fmt.money(c.sales), cur: true }) +
       ui.kpi({ label: AR('إجمالي المحصّل', 'Collected'), value: fmt.money(c.paid), cur: true }) +
-      ui.kpi({ label: AR('حد الائتمان', 'Credit limit'), value: c.limit ? fmt.money(c.limit) : '—', cur: !!c.limit, note: c.terms ? AR('مدة السداد ' + c.terms + ' يوم', 'Terms ' + c.terms + ' days') : AR('بيع نقدي', 'Cash sale') }) + '</div>' +
+      ui.kpi({ label: AR('حد الائتمان', 'Credit limit'), value: c.limit ? fmt.money(c.limit) : '—', cur: !!c.limit, note: c.terms ? AR('مدة السداد ' + c.terms + ' يوم', 'Terms ' + c.terms + ' days') : (U.config.demo ? AR('بيع نقدي', 'Cash sale') : '') }) + '</div>' +
       ui.card({ title: AR('أعمار الدين', 'Aging'), body: agingBlock(d.aging) }) +
       ui.card({ title: AR('كشف الحساب', 'Statement'), sub: AR('الأحدث أولًا', 'Newest first'), flush: true,
         body: ui.table({ cols: cols, rows: d.statement, empty: ui.empty({ title: t('app.empty'), hint: t('app.emptyHint'), icon: 'doc' }) }) });
@@ -166,7 +167,7 @@
   function collectSheet(ctx, id) {
     var root = document.querySelector('.uerp');
     if (root.querySelector('[data-ovl="vch"]')) return;
-    var c = custById(id), body = '<div class="form-grid">' +
+    var c = SEEN[id] || custById(id), body = '<div class="form-grid">' +
       '<div class="span2">' + ui.field({ label: AR('العميل', 'Customer'), type: 'text', id: 'r-cust', value: nm(c), disabled: true }) + '</div>' +
       '<div>' + ui.field({ label: AR('المبلغ', 'Amount'), type: 'number', id: 'r-amt', step: '0.01', min: '0', unit: cur() }) + '</div>' +
       '<div>' + ui.field({ label: AR('الخزينة', 'Treasury'), type: 'select', id: 'r-tr', options: U.state.meta.treasuries.map(function (x) { return { value: x.id, label: U.L(x) }; }) }) + '</div>' +
