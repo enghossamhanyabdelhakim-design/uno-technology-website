@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark" data-density="comfortable">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1318">
+<meta name="color-scheme" content="dark light">
+<title>UNO POS — الكاشير</title>
+<link rel="stylesheet" href="assets/pos.css">
+</head>
+<body>
+
+<!-- ============================================================ cashier app -->
+<div class="app" id="appRoot">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">U</div>
+      <div class="brand-text">
+        <span class="brand-name" id="brandName">أونو تكنولوجي</span>
+        <span class="brand-sub" id="brandSub">فرشوط · FAR</span>
+      </div>
+      <span class="demo-flag" id="demoFlag">وضع تجريبي</span>
+    </div>
+
+    <div class="search">
+      <span class="ico" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
+      </span>
+      <input id="searchInput" type="search" autocomplete="off" spellcheck="false"
+             placeholder="ابحث بالاسم أو امسح باركود…" aria-label="بحث عن صنف">
+      <kbd>/</kbd>
+    </div>
+
+    <div class="top-meta">
+      <button class="pill btn" id="connPill" data-act="offline-toggle" title="محاكاة حالة الاتصال">
+        <span class="dot"></span><span>متصل</span>
+      </button>
+      <button class="pill btn" id="shiftPill" data-act="go" data-id="shift"><span>وردية</span></button>
+      <span class="pill" id="outboxPill" style="display:none"><span class="dot"></span><span>0</span></span>
+      <div class="pill is-optional">
+        <span class="avatar" id="cashierAvatar" aria-hidden="true">ح</span>
+        <span style="display:flex;flex-direction:column;line-height:1.15">
+          <strong id="cashierName">حسام</strong>
+          <span style="font-size:10.5px" id="cashierRole">كاشير</span>
+        </span>
+      </div>
+      <span class="pill" id="clockPill"><span class="num" id="clock">--:--</span></span>
+      <button class="icon-btn" data-act="go" data-id="help" aria-label="المساعدة">?</button>
+    </div>
+  </header>
+
+  <nav class="rail" id="rail" aria-label="فئات الأصناف"></nav>
+
+  <main class="stage">
+    <div class="grid-head">
+      <div class="grid-title" id="gridTitle">الكل</div>
+      <div class="chips" id="filterChips"></div>
+    </div>
+    <div class="grid-scroll">
+      <div class="grid" id="grid" role="list"></div>
+    </div>
+  </main>
+
+  <aside class="cart" id="cart" aria-label="الفاتورة">
+    <div class="cart-head" id="cartHead">
+      <div>
+        <div class="inv-no"><span id="invLabel">الفاتورة</span> <b class="num" id="invNo">FAR-1042</b></div>
+      </div>
+      <button class="cust" id="custBtn" data-act="go" data-id="customer">
+        <span>عميل نقدي</span>
+      </button>
+      <button class="cart-close" data-act="toggle-cart" aria-label="إغلاق الفاتورة">✕</button>
+    </div>
+
+    <div class="cart-lines" id="cartLines" role="list" aria-live="polite"></div>
+    <button class="cart-note" id="cartNote">+ إضافة ملاحظة على الفاتورة…</button>
+    <div class="cart-totals" id="cartTotals"></div>
+
+    <div class="dock">
+      <div class="dock-actions">
+        <button id="holdBtn" data-act="hold"></button>
+        <button id="discBtn" data-act="go" data-id="discount"></button>
+        <button id="custDockBtn" data-act="go" data-id="customer"></button>
+        <button id="moreBtn" data-act="go" data-id="more"></button>
+      </div>
+      <button class="btn-pay" id="payBtn" data-act="pay-confirm-open">
+        <span><span class="amt num">0.00</span> <i class="cur">ج.م</i></span>
+        <span class="lbl"><kbd>F2</kbd><span id="payLbl">دفع</span></span>
+      </button>
+    </div>
+  </aside>
+</div>
+
+<!-- ========================================================= mobile cart bar -->
+<div class="mbar" id="mBar">
+  <button class="btn-pay" id="payBtnM" data-act="pay-confirm-open">
+    <span><span class="amt num" id="mbPayAmt">0.00</span></span>
+    <span class="lbl"><span id="payLblM">دفع</span></span>
+  </button>
+  <button class="mb-info" data-act="toggle-cart" aria-label="فتح الفاتورة">
+    <span class="mb-l" id="mbCount">0 أصناف</span>
+    <span class="mb-t" id="mbTotal">0.00</span>
+  </button>
+</div>
+
+<!-- ================================================================ sheets -->
+<div class="scrim" id="scrim"></div>
+<div id="sheetHost"></div>
+
+<!-- =============================================================== success -->
+<div id="success" role="status" aria-live="polite"></div>
+
+<!-- ================================================================ toasts -->
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="sr-only" id="cartLive" aria-live="polite"></div>
+
+<!-- ====================================================== customer display -->
+<div id="displayRoot" class="display" style="display:none"></div>
+
+<script src="assets/config.js"></script>
+<script src="assets/cloud.js"></script>
+<script src="assets/pos-live.js"></script>
+<script src="assets/pos.js"></script>
+</body>
+</html>
