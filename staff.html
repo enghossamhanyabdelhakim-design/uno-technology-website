@@ -147,7 +147,7 @@ var IC={inbox:'<svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l
 function $(i){return document.getElementById(i)}function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function hap(n){try{if(navigator.vibrate)navigator.vibrate(n||12)}catch(e){}if(window.UnoApp&&UnoApp.haptic)try{UnoApp.haptic()}catch(e){}}
 function toast(m){var d=document.createElement("div");d.className="toast";d.textContent=m;document.body.appendChild(d);setTimeout(function(){d.remove()},2400)}
-function applyP(){var dk=P.theme==="dark"||(P.theme==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.classList.toggle("dk",dk);document.documentElement.lang=P.lang;document.documentElement.dir=P.lang==="ar"?"rtl":"ltr";document.querySelector("meta[name=theme-color]").content=dk?"#0E1318":"#F65A00"}
+function applyP(){var dk=P.theme==="dark";document.documentElement.classList.toggle("dk",dk);document.documentElement.lang=P.lang;document.documentElement.dir=P.lang==="ar"?"rtl":"ltr";document.querySelector("meta[name=theme-color]").content=dk?"#0E1318":"#F65A00"}
 function isDk(){return document.documentElement.classList.contains("dk")}
 var COL=["#F65A00","#2563EB","#16A34A","#9333EA","#DB2777","#0891B2","#CA8A04","#475569"];
 function av(n,cls,photo,dot){n=String(n||"?").trim();var h=0;for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))%997;var c=COL[h%COL.length];var ini=(n[0]||"?").toUpperCase();return '<span class="av '+(cls||"")+'" style="background:'+(photo?"url("+esc(photo)+")":"linear-gradient(135deg,"+c+","+c+"cc)")+';background-size:cover">'+(photo?"":esc(ini))+(dot?'<i class="dot"></i>':"")+"</span>"}
@@ -324,7 +324,7 @@ html.dk .top .t b{letter-spacing:.2px}
 #sp .bar{width:200px;margin-top:10px}
 `;document.head.appendChild(st);
 /* dark by default once */
-if(!localStorage.getItem("uno_sf1")){localStorage.setItem("uno_sf1","1");P.theme="dark";sp()}
+if(!localStorage.getItem("uno_sf2")){localStorage.setItem("uno_sf2","1");P.theme="light";sp()}
 applyP();
 /* splash content */
 var sp0=document.getElementById("sp");
