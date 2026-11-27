@@ -730,14 +730,14 @@ function renderGrid() {
   }
   grid.innerHTML = list.map((p) => {
     const inCart = state.cart.lines.filter((l) => l.productId === p.id).reduce((s, l) => s + l.qty, 0);
-    const low = p.stock <= 10;
+    const low = p.weighted ? p.stock <= 5000 : p.stock <= 10;
     return `<button class="tile${p.stock <= 0 ? ' is-oos' : ''}${inCart ? ' is-selected' : ''}"
       data-act="add" data-id="${p.id}" aria-label="${esc(p[LANG])} ${money(p.price)} ${cur()}">
       <span class="mono" aria-hidden="true">${esc(p.mono)}</span>
       <span class="t-name">${esc(p[LANG])}</span>
       <span class="t-foot"><span class="t-price">${money(p.price)}</span><i class="t-cur">${cur()}</i></span>
-      <span class="t-stock${low ? ' is-low' : ''}">${p.weighted ? T('بالوزن', 'weight') : p.stock}</span>
-      ${inCart ? `<span class="t-badge num">${inCart}</span>` : ''}
+      <span class="t-stock${low ? ' is-low' : ''}">${p.weighted ? nf(p.stock / 1000, 3) + ' ' + (LANG === 'ar' ? p.unitAr : p.unitEn) : p.stock}</span>
+      ${inCart ? `<span class="t-badge num">${p.weighted ? nf(inCart / 1000, 3) : inCart}</span>` : ''}
       ${p.weighted ? `<span class="t-flag is-w">${ico('scale', 14)}</span>` : ''}
       ${p.blocked ? '<span class="t-flag">ممنوع</span>' : ''}
     </button>`;
@@ -2217,7 +2217,7 @@ SHEETS.weight = function () {
   const list = state.products.filter((p) => p.weighted);
   const picked = state.ui.weightProduct || (list[0] && list[0].id);
   const p = state.products.find((x) => x.id === picked);
-  const grams = state.ui.weightGrams || 250;
+  const grams = p ? snapQty(p.id, state.ui.weightGrams || 250) : 250;
   const amountV = p ? round(p.price * grams / 1000) : 0;
   return {
     title: T('إدخال بالوزن', 'Enter by weight'),
@@ -2234,7 +2234,7 @@ SHEETS.weight = function () {
         <input class="input num" id="grams" inputmode="decimal" value="${state.ui.weightRaw != null ? esc(state.ui.weightRaw) : nf(grams / 1000, 3)}" data-act="weight-input">
       </div>
       <div class="paid-box"><span class="lbl">${T('الإجمالي', 'Total')}</span><span class="val">${money(amountV)}</span></div>
-      <div class="hint">${T('باركود الميزان بادئة 21/22: أول 5 أرقام بعد البادئة وزن بالجرام.', 'Scale barcode prefix 21/22: the 5 digits after the prefix are grams.')}</div>`,
+      <div class="hint">${p ? T('أقل خطوة', 'Smallest step') + ' ' + nf(stepOf(p.id) / 1000, 3) + ' ' + uLab(p.id) + ' · ' + T('الكمية بتتقرب لأقرب خطوة: ', 'Rounded to the nearest step: ') + nf(grams / 1000, 3) : ''}</div>`,
     foot: `<button class="btn is-ghost" data-act="close-sheet">${T('إلغاء', 'Cancel')}</button>
       <div class="grow"></div>
       <button class="btn is-primary" data-act="weight-add">${T('إضافة للفاتورة', 'Add to invoice')} · ${money(amountV)}</button>`

@@ -170,7 +170,7 @@
           var take = Math.min(left, lineCap(inv, l)); if (take > 0) { lines.push({ line_id: l.line_id, qty: isMeasured(l.product_id) ? take / 1000 : take, uiqty: take, restock: rl.restock === false ? 'damaged' : 'stock' }); left -= take; }
         });
       });
-      return rpc('pos_return', { p: { idem: p.idempotency_key, doc_id: inv.id, reason: p.reason, refund_method: p.refund_method, lines: lines, manager_token: p.manager_token || undefined } }).then(function (r) {
+      return rpc('pos_return', { p: { idem: p.idempotency_key, doc_id: inv.id, reason: p.reason, refund_method: p.refund_method, lines: lines.map(function (x) { return { line_id: x.line_id, qty: x.qty, restock: x.restock }; }), manager_token: p.manager_token || undefined } }).then(function (r) {
         return get('core_sales_docs?id=eq.' + inv.id + '&select=*').then(loadDocs).then(function () {
           state.returns = state.returns.filter(function (x) { return x.id !== r.id; });
           var ret = { id: r.id, number: r.number, invoice_id: inv.id, invoice_number: inv.number, created_at: Date.now(), shift_id: state.shift && state.shift.id, customer_id: inv.customer_id, amount: P(r.total), reason: p.reason, refund_method: p.refund_method, status: 'posted',
