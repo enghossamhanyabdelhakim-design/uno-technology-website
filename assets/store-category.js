@@ -54,7 +54,7 @@
     }
     function card(p) {
       const oos = p.stock <= 0, pc = p.compare_at && p.compare_at > p.price ? Math.round((1 - p.price / p.compare_at) * 100) : 0;
-      return h('article', { class: 'us-card' }, (oos || pc > 0) && h('span', { class: 'us-tag' + (oos ? ' oos' : '') }, oos ? I.t('out_of_stock') : I.t('off', { p: I.num(pc) })),
+      return h('article', { class: 'us-card' }, p.demo && h('span', { class: 'us-tag us-dtag' }, I.t('demo_short')), (oos || pc > 0) && h('span', { class: 'us-tag' + (oos ? ' oos' : '') }, oos ? I.t('out_of_stock') : I.t('off', { p: I.num(pc) })),
         h('a', { class: 'im', href: opts.productUrl(p.id), 'aria-label': I.pick(p.name) }, h('img', { src: p.image, alt: I.pick(p.name), loading: 'lazy' })),
         h('div', { class: 'bd' }, h('div', { class: 'br' }, I.pick(p.brand)), h('a', { class: 'nm', href: opts.productUrl(p.id) }, I.pick(p.name)),
           p.reviews_count > 0 && h('div', { class: 'us-stars' }, '★ ' + I.num(+p.rating_avg.toFixed(1)) + ' (' + I.t('reviews_n', { n: I.num(p.reviews_count) }) + ')'),

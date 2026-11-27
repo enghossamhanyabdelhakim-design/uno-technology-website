@@ -148,3 +148,5 @@ html[data-theme=light] .us-drawer{--bg:#fffaf6;--s1:#fff;--s2:#fbf1e8;--bd:#ecd9
 }
 @media(prefers-reduced-motion:reduce){.us *,.us-drawer{transition:none!important;animation:none!important}}
 .us-side .us-fbtn.pri{position:sticky;inset-block-end:0}
+
+.us-tag.us-dtag{inset-inline-start:auto;inset-inline-end:10px;background:var(--warn);color:#2a1d12}

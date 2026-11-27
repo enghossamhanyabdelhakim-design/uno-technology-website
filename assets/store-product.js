@@ -50,7 +50,7 @@
         ['reviews', 'tab_reviews', () => (p.reviews && p.reviews.length) ? p.reviews.map(r => h('div', { class: 'us-box' }, h('div', { class: 'us-stars' }, '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating)), h('div', {}, r.text), r.verified && h('small', { style: 'color:var(--ok)' }, '✔ ' + I.t('verified')))) : h('div', { class: 'us-empty' }, I.t('no_reviews'))]];
       const tabs = h('div', { class: 'us-tabs' }, h('div', { class: 'us-tabbar', role: 'tablist' }, TABS.map(t => h('button', { role: 'tab', 'aria-selected': st.tab === t[0], onclick: () => { st.tab = t[0]; draw(); } }, I.t(t[1]) + (t[0] === 'reviews' && p.reviews_count ? ' (' + I.num(p.reviews_count) + ')' : '')))), h('div', { class: 'us-tabp', role: 'tabpanel' }, TABS.find(t => t[0] === st.tab)[2]()));
       const sticky = h('div', { class: 'us-sticky' }, h('b', {}, I.money(priceOf(v))), h('button', { class: 'us-btn pri', disabled: stock <= 0, onclick: doAdd }, stock > 0 ? I.t('add_to_cart') : I.t('out_of_stock')));
-      const keepScroll = scrollY; root.replaceChildren(...[API.mock && h('span', { class: 'us-demo' }, I.t('demo')), h('div', { class: 'us-pdp' }, gal, info), fbt, tabs, sticky].filter(Boolean)); scrollTo(0, keepScroll);
+      const keepScroll = scrollY; root.replaceChildren(...[(API.mock || p.demo) && h('span', { class: 'us-demo' }, I.t('demo')), h('div', { class: 'us-pdp' }, gal, info), fbt, tabs, sticky].filter(Boolean)); scrollTo(0, keepScroll);
     }
     function lightbox(src) {
       const img = h('img', { src, alt: '', onclick: () => img.classList.toggle('z') }), lb = h('div', { class: 'us-lb', role: 'dialog', 'aria-modal': 'true' }, img, h('button', { class: 'x', 'aria-label': I.t('close'), onclick: () => lb.remove() }, '✕'));
