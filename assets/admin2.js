@@ -62,6 +62,7 @@ var MODS=[
  {id:"bk",g:"الفريق / Team",p:"users",ic:"kb",l:"نسخة احتياطية / Backup"},
  {id:"log",g:"الفريق / Team",p:"log",ic:"log",l:"سجل النشاط / Activity log"},
  {id:"aud",g:"الفريق / Team",p:"audit",ic:"log",l:"سجل التدقيق / Audit trail"},
+ {id:"cset",g:"النظام الداخلي / UNO Core",p:"core",ic:"kb",l:"إعدادات النظام / System settings"},
  {id:"cco",g:"النظام الداخلي / UNO Core",p:"core",ic:"kb",l:"بيانات الشركة / Company"},
  {id:"cdoc",g:"النظام الداخلي / UNO Core",p:"core",ic:"kb",l:"الإيصالات والفواتير / Receipts and invoices"},
  {id:"cbr",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"الفروع والمخازن / Branches and warehouses"},
@@ -77,7 +78,7 @@ var MODS=[
  {id:"cin",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"المخزون / Inventory"}
 ];
 var GR={ov:"نظرة عامة / Overview",sl:"المبيعات / Sales",pu:"المشتريات / Purchases",iv:"المخزون / Inventory",ac:"الحسابات / Accounting",cr:"العملاء / CRM",rp:"التقارير / Reports",st:"المتجر الإلكتروني / Online store",wb:"الموقع / Website",se:"الإعدادات / Settings"};
-var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",pay:"st",cpn:"st",pol:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
+var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",pay:"st",cpn:"st",pol:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
 MODS.forEach(function(m,i){m.gk=GM[m.id]||"se";m.g=GR[m.gk];m.o=i});
 MODS.sort(function(a,b){return GO.indexOf(a.gk)-GO.indexOf(b.gk)||a.o-b.o});
 var GOPEN={};try{GOPEN=JSON.parse(localStorage.getItem("uno_gopen")||"{}")}catch(e){}
@@ -602,6 +603,41 @@ RENDER.cdoc=function(mn){
    var i=$("#dc-pi");i.innerHTML=window.UnoReceipt.render(sample(),ctx);var w=Math.min(mn.querySelector("#dc-pv").clientWidth-24,tt.w==="210mm"?9999:9999);var el=i.firstChild,nat=el.offsetWidth||320,sc=Math.min(1,w/nat);i.style.transform="scale("+sc+")";i.style.width=nat+"px";i.parentNode.style.height=(el.offsetHeight*sc+24)+"px"}
   mn.addEventListener("input",draw);mn.addEventListener("change",draw);draw();
   $("#dc-sv").onclick=function(){$("#dc-er").textContent="";api("POST","rpc/doc_settings_save",{p_cfg:build()}).then(function(){status("تم الحفظ ✓ / Saved ✓")}).catch(function(e){$("#dc-er").textContent=String(e.message||e).replace(/^.*?:\s*/,"")})};
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+};
+RENDER.cset=function(mn){
+ mn.innerHTML=empty("جارٍ التحميل...","Loading...");
+ Promise.all([api("GET","core_company?id=eq.1&select=name_ar,name_en,phone,tax_id,is_placeholder,address").catch(function(){return[]}),api("GET","core_branches?select=id,kind&active=eq.true").catch(function(){return[]}),api("POST","rpc/pos_policy_get",{}).catch(function(){return null})]).then(function(r){
+  var co=(r[0]&&r[0][0])||{},br=r[1]||[],pp=r[2]||{return_window_days:14,max_disc_pct:10,pin_set:false};
+  var tax=String(co.tax_id||"").trim(),realTax=(!co.is_placeholder&&/[1-9]/.test(tax));
+  var nb=br.filter(function(b){return b.kind==="branch"}).length,nw=br.filter(function(b){return b.kind==="warehouse"}).length;
+  function st(ok,a,e){return '<span class="pill '+(ok?"g":"r")+'">'+bi(a,e)+'</span>'}
+  var C=[
+   ["cco","kb","بيانات الشركة","Company",st(!!co.phone,co.phone?"الهاتف مُدخل":"الهاتف فاضي",co.phone?"Phone set":"No phone")+" "+st(realTax,realTax?"الرقم الضريبي مُدخل":"الرقم الضريبي لم يُدخل",realTax?"Tax number set":"Tax number not entered")],
+   ["cdoc","kb","الإيصالات والفواتير","Receipts and invoices",'<span class="hint">'+bi("إظهار وإخفاء الحقول والنصوص مع معاينة","Show/hide fields and wording with preview")+"</span>"],
+   ["cbr","box","الفروع والمخازن","Branches and warehouses",'<span class="hint">'+bi("فروع: "+nb+" · مخازن: "+nw,"Branches: "+nb+" · Warehouses: "+nw)+"</span>"],
+   ["users","users","المستخدمون والصلاحيات","Users and roles",'<span class="hint">'+bi("الأدوار والصلاحيات التفصيلية","Roles and detailed permissions")+"</span>"],
+   ["cun","tag","وحدات القياس","Units",""],
+   ["tax","kb","الضرائب","Tax",'<span class="hint">'+bi("إعدادات الضريبة (محاسبة: للمراجعة فقط)","Tax settings (accounting)")+"</span>"],
+   ["bk","kb","نسخة احتياطية","Backup",""],
+   ["aud","log","سجل التدقيق","Audit trail",""]
+  ].filter(function(c){var m=MODS.filter(function(x){return x.id===c[0]})[0];return m&&can(m.p)});
+  var h='<h2>'+bi("إعدادات النظام","System settings")+'</h2><p class="hint" style="margin-bottom:14px">'+bi("كل ما يتحكم في النظام في مكان واحد. اضغط على أي بطاقة لفتح الإعداد.","Everything that controls the system in one place. Open a card to change its settings.")+'</p>';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:18px">'+C.map(function(c){return '<button type="button" class="card cset-c" data-g="'+c[0]+'" style="text-align:start;padding:14px;cursor:pointer;display:flex;flex-direction:column;gap:8px;font:inherit;color:inherit"><span style="display:flex;gap:8px;align-items:center;font-weight:700">'+ic(c[1])+bi(c[2],c[3])+"</span><span>"+c[4]+"</span></button>"}).join("")+"</div>";
+  h+='<div class="card" style="padding:14px;max-width:560px;margin-bottom:12px"><b>'+bi("سياسة نقطة البيع","POS policy")+'</b><p class="hint" style="margin:4px 0 10px">'+bi("السيرفر يطبّق الحدود دي على الكاشير وقت البيع والمرتجع.","The server enforces these limits on every sale and return.")+'</p>'
+   +'<label class="f"><span>'+bi("مدة الاسترجاع (أيام)","Return window (days)")+'</span><input type="number" id="pp-d" min="0" max="365" step="1" dir="ltr"></label>'
+   +'<label class="f"><span>'+bi("أقصى خصم للكاشير (%)","Max cashier discount (%)")+'</span><input type="number" id="pp-p" min="0" max="100" step="0.5" dir="ltr"></label>'
+   +'<p id="pp-er" class="dirty"></p><div class="tb"><button id="pp-sv" type="button">'+bi("حفظ","Save")+'</button></div></div>';
+  h+='<div class="card" style="padding:14px;max-width:560px"><b>'+bi("رمز المدير","Manager PIN")+'</b> '+st(!!pp.pin_set,pp.pin_set?"معيّن":"غير معيّن",pp.pin_set?"Set":"Not set")+'<p class="hint" style="margin:4px 0 10px">'+bi("الرمز بيوافق على الخصم الزائد والإلغاء في الكاشير. 4 إلى 8 أرقام. لا يمكن عرضه بعد الحفظ.","Approves extra discounts and voids at the till. 4 to 8 digits. It cannot be shown after saving.")+'</p>'
+   +'<label class="f"><span>'+bi("رمز جديد","New PIN")+'</span><input type="password" id="mp-n" inputmode="numeric" autocomplete="new-password" maxlength="8" dir="ltr"></label><p id="mp-er" class="dirty"></p><div class="tb"><button id="mp-sv" type="button">'+bi("تغيير الرمز","Change PIN")+'</button></div></div>';
+  mn.innerHTML=h;
+  $("#pp-d").value=pp.return_window_days;$("#pp-p").value=pp.max_disc_pct;
+  [].forEach.call(mn.querySelectorAll(".cset-c"),function(b){b.onclick=function(){setMod(b.dataset.g,true)}});
+  function er(e){return String(e.message||e).replace(/^.*?:\s*/,"")}
+  $("#pp-sv").onclick=function(){$("#pp-er").textContent="";var d=parseInt($("#pp-d").value,10),p=parseFloat($("#pp-p").value);if(isNaN(d)||isNaN(p)){$("#pp-er").textContent="أدخل رقمين صحيحين / Enter valid numbers";return}
+   api("POST","rpc/pos_policy_save",{p_days:d,p_disc:p}).then(function(){status("تم الحفظ ✓ / Saved ✓")}).catch(function(e){$("#pp-er").textContent=er(e)})};
+  $("#mp-sv").onclick=function(){$("#mp-er").textContent="";var v=$("#mp-n").value.trim();if(!/^[0-9]{4,8}$/.test(v)){$("#mp-er").textContent="الرمز من 4 إلى 8 أرقام / PIN must be 4 to 8 digits";return}
+   api("POST","rpc/set_manager_pin",{p_pin:v}).then(function(){$("#mp-n").value="";status("تم تغيير الرمز ✓ / PIN changed ✓");RENDER.cset($("#main"))}).catch(function(e){$("#mp-er").textContent=er(e)})};
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
 RENDER.cco=function(mn){
