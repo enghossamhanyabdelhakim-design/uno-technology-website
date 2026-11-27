@@ -702,7 +702,7 @@
     }
     var weightNote = U.el('p', { class: 'uo-summary__note' });
     weightNote.textContent = t('co.weight_note', { w: new Intl.NumberFormat('ar-EG-u-nu-latn').format(weight()), unit: t('common.gram') });
-    body.appendChild(weightNote);
+    /* 20261128f: shipping is a flat rate per governorate (store_shipping_rates); the weight note contradicted it. */
 
     var codNote = U.el('p', { class: 'uo-summary__cod' });
     codNote.innerHTML = icon('cash') + '<span>' + U.escapeHtml(t('co.cod_note_summary', { amount: U.money(total()) })) + '</span>';
