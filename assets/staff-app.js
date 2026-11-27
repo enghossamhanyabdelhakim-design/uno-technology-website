@@ -36,6 +36,7 @@
     { s: 'work', ic: 'form', t: ['طلبات الخدمة', 'Service requests'], d: ['طلبات العملاء الواردة', 'Incoming requests'], p: ['requests'], h: 'admin.html#requests' },
     { s: 'work', ic: 'shop', t: ['إدارة المتجر', 'Store'], d: ['منتجات وأسعار وشحن', 'Products, prices, shipping'], p: ['store'], h: 'admin.html#store' },
     { s: 'work', ic: 'edit', t: ['المحتوى', 'Content'], d: ['نصوص وصور الموقع', 'Site text and images'], p: ['content'], h: 'admin.html#content' },
+    { s: 'admin', ic: 'pos', t: ['مبيعات أوفلاين', 'Offline sales'], d: ['مراجعة الفواتير المحفوظة بدون إنترنت', 'Review sales made offline'], p: ['core', 'pos.manager'], h: '#offline' },
     { s: 'work', ic: 'dash', t: ['لوحة المتابعة', 'Dashboard'], d: ['أرقام اليوم', 'Today at a glance'], p: ['dashv'], h: 'admin.html' },
     { s: 'work', ic: 'wrench', t: ['أعمال الفنيين', 'Technician jobs'], d: ['مهام الزيارات والتقارير', 'Visits, checklists, reports'], p: ['jobs.view', 'jobs.work', 'jobs.assign'], h: '#jobs' },
     { s: 'work', ic: 'crm', t: ['المبيعات والعملاء', 'Sales and CRM'], d: ['عملاء محتملون ومتابعة', 'Leads and follow-up'], p: ['crm.view', 'crm.edit'], h: '#crm' },
@@ -79,7 +80,7 @@
   }
   function home(user, role, perms, roleName) {
     applyTheme(); window.UNO_SA.ctx = { user: user, role: role, perms: perms };
-    var rt = { '#jobs': 'jobs', '#hr': 'hr', '#crm': 'crm' }[location.hash]; if (rt && window.UNO_SA[rt]) return window.UNO_SA[rt]();
+    var rt = { '#jobs': 'jobs', '#hr': 'hr', '#crm': 'crm', '#offline': 'offline' }[location.hash]; if (rt && window.UNO_SA[rt]) return window.UNO_SA[rt]();
     var can = function (arr) { return role === 'owner' || arr.some(function (p) { return perms.indexOf(p) >= 0; }); };
     var secs = ['work', 'soon', 'admin'], html = '';
     secs.forEach(function (s) {
