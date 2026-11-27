@@ -253,8 +253,7 @@
       '<header class="uo-head">' +
         '<div class="uo-head__in">' +
           '<a class="uo-brand" href="' + U.escapeHtml(U.config.storeHome) + '">' +
-            '<span class="uo-brand__mark" aria-hidden="true"></span>' +
-            '<span class="uo-brand__text">أونو<em>Uno</em></span>' +
+            '<img class="uo-brand__logo" src="assets/logo-uno-technology.png" alt="Uno Technology" height="34">' +
           '</a>' +
           '<div class="uo-head__meta">' +
             '<span class="uo-chip uo-chip--secure">' + icon('lock') + t('co.secure') + '</span>' +
@@ -975,13 +974,32 @@
     els.layout.setAttribute('data-empty', 'true');
     els.form.innerHTML = '' +
       '<div class="uo-empty">' +
-        '<div class="uo-empty__art">' + icon('store') + '</div>' +
+        '<div class="uo-empty__art uo-empty__art--big"><svg viewBox="0 0 160 120" width="160" height="120" aria-hidden="true"><ellipse cx="80" cy="108" rx="52" ry="7" fill="currentColor" opacity=".12"/><path d="M34 38h14l10 40h48l9-30H52" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="64" cy="94" r="7" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="104" cy="94" r="7" fill="none" stroke="currentColor" stroke-width="5"/><path d="M76 22l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#F65A00"/><circle cx="110" cy="26" r="4" fill="#FF9E4A"/><circle cx="46" cy="22" r="3" fill="#FF9E4A" opacity=".7"/></svg></div>' +
         '<h2>' + U.escapeHtml(t('co.empty')) + '</h2>' +
         '<p>' + U.escapeHtml(t('co.empty_note')) + '</p>' +
         '<a class="uo-btn uo-btn--primary" href="' + U.escapeHtml(U.config.storeHome) + '">' + U.escapeHtml(t('co.browse')) + '</a>' +
+      '<div class="uo-sugg" hidden></div>' +
       '</div>';
     els.summary.innerHTML = '';
     els.bar.hidden = true;
+    suggest();
+  }
+
+  function suggest() {
+    var cfg = window.UNO_CFG; if (!cfg || !window.fetch) return;
+    var ar = (U.config.lang || 'ar') === 'ar';
+    fetch(cfg.url + '/rest/v1/products?select=id,name_ar,name_en,price,images,is_demo&active=eq.true&stock=gt.0&order=created_at.desc&limit=3', { headers: { apikey: cfg.key, Authorization: 'Bearer ' + cfg.key } })
+      .then(function (r) { return r.ok ? r.json() : []; }).then(function (ps) {
+        var box = els.form.querySelector('.uo-sugg'); if (!box || !ps || !ps.length) return;
+        var cur = ar ? 'ج.م' : 'EGP';
+        box.innerHTML = '<h3>' + (ar ? 'ممكن يعجبك' : 'You may like') + '</h3><div class="uo-sugg__row">' + ps.map(function (p) {
+          var img = (p.images && p.images[0]) || 'assets/pimg-acc.svg';
+          var nm = (ar ? p.name_ar : p.name_en) || p.name_ar || '';
+          var price = Number(p.price).toLocaleString(ar ? 'ar-EG' : 'en-US');
+          return '<a class="uo-sugg__card" href="store.html?page=product&id=' + encodeURIComponent(p.id) + '"><span class="uo-sugg__img"><img src="' + U.escapeHtml(img) + '" alt="" loading="lazy"></span><b>' + U.escapeHtml(nm) + '</b><i>' + price + ' ' + cur + '</i>' + (p.is_demo ? '<em>' + (ar ? 'تجريبي' : 'Sample') + '</em>' : '') + '</a>';
+        }).join('') + '</div>';
+        box.hidden = false;
+      }).catch(function () {});
   }
 
   /* ------------------------------------------------------------------ */
