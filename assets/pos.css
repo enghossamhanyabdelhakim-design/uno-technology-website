@@ -1451,3 +1451,11 @@ body.is-display #appRoot, body.is-display #mBar, body.is-display .toasts { displ
 .rc-preview .rc{box-shadow:0 6px 24px rgba(0,0,0,.35);flex:none}
 .rc-preview.is-a4 .rc-inner{zoom:.62}
 @media (max-width:480px){.rc-preview.is-a4 .rc-inner{zoom:.4}.rc-preview{padding:8px}}
+
+/* narrow phones: keep the quantity badge and the stock flag from touching on small tiles */
+@media (max-width: 480px) {
+  .tile .t-badge { top: 6px; inset-inline-start: 6px; height: 20px; min-width: 20px; padding-inline: 5px; font-size: 10.5px; }
+  .tile .t-flag { top: 6px; inset-inline-end: 6px; font-size: 9px; padding: 1px 4px; max-width: calc(100% - 70px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+/* when a quantity badge is showing, the weighted/blocked flag sits just below it instead of on top of it */
+.tile .t-badge ~ .t-flag { top: 32px; }
