@@ -783,7 +783,7 @@ function vlStart(done){
 /* ---- bot voice call robot face: lazy-loads robot-face.js/css, wired through vcState (state) and vaLevel (audio level) ---- */
 window.UNO_vcRobot=(function(){
   var bot=null,st="think",hold=0,mv=null,tv=null,ld=null,MAP={listen:"listening",think:"thinking",speak:"speaking",connect:"thinking",idle:"idle",text:"idle"};
-  function load(){if(ld)return ld;ld=new Promise(function(ok,no){var l=document.createElement("link");l.rel="stylesheet";l.href="assets/robot-face.css?v=20261128o";document.head.appendChild(l);var j=document.createElement("script");j.src="assets/robot-face.js?v=20261128o";j.onload=ok;j.onerror=no;document.head.appendChild(j)});return ld}
+  function load(){if(ld)return ld;ld=new Promise(function(ok,no){var l=document.createElement("link");l.rel="stylesheet";l.href="assets/robot-mascot.css?v=20261128x";document.head.appendChild(l);var j=document.createElement("script");j.src="assets/robot-mascot.js?v=20261128x";j.onload=ok;j.onerror=no;document.head.appendChild(j)});return ld}
   function apply(k){if(!bot)return;var n=MAP[k]||"idle";if(st==="speak"&&k==="listen"){bot.setState("happy");clearTimeout(hold);hold=setTimeout(function(){if(bot&&st==="listen")bot.setState("listening")},1100);return}clearTimeout(hold);bot.setState(n);if(n!=="speaking")bot.setMouthLevel(0)}
   return{
     mount:function(el){if(!el||!window.UNO_ROBOT_ON)return;load().then(function(){if(!window.Robot||!document.body.contains(el))return;var vc=$("#vc");bot=window.Robot.mount(el,{state:MAP[st]||"thinking",theme:"dark",look:true});vc&&vc.classList.add("has-robot");

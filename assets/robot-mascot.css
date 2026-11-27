@@ -1,0 +1,208 @@
+/* ==========================================================================
+   Uno mascot face — overlay layer styles
+   Load after the base art is available. Everything is scoped under .rm.
+   ========================================================================== */
+
+.rm {
+  --rm-ink: #0b0f14;
+  --rm-led: #ffc63c;
+  --rm-led-warm: #ff7a1a;
+  --rm-glow: 0.35;
+  --rm-blink: 0;
+  --rm-mouth: 0;
+  --rm-lx: 0;
+  --rm-ly: 0;
+  --rm-bob: 0;
+  --rm-tilt: 0;
+  --rm-zoom: 1;
+  position: relative;
+  overflow: hidden;
+  display: block;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* soft orange halo behind the robot, as if the visor lights the room */
+.rm-glow {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 122, 26, 0.55), rgba(255, 122, 26, 0.16) 55%, rgba(255, 122, 26, 0) 72%);
+  opacity: var(--rm-glow);
+  transform: scale(1.06);
+  transition: opacity .35s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.rm[data-theme="light"] .rm-glow { opacity: calc(var(--rm-glow) * .8); }
+.rm[data-state="listening"] .rm-glow { animation: rm-pulse 2.2s ease-in-out infinite; }
+.rm[data-state="speaking"] .rm-glow { animation: rm-pulse 1.1s ease-in-out infinite; }
+@keyframes rm-pulse {
+  0%, 100% { transform: scale(1.04); }
+  50% { transform: scale(1.12); }
+}
+
+.rm-body {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform: scale(var(--rm-zoom)) rotate(calc((var(--rm-tilt) + var(--rm-lean, 0)) * 1deg)) translateY(calc(var(--rm-bob) * 1px));
+  transform-origin: 50% 42%;
+  will-change: transform;
+  z-index: 1;
+}
+
+/* host pages often style generic `img` (the site's .vc-orb img does), so these
+   rules are two classes deep on purpose: they must win without !important */
+.rm .rm-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  background: #fff;
+  border-radius: inherit;
+  box-shadow: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+.rm { border-radius: 50%; }
+.rm[data-shape="squircle"] { border-radius: 28%; }
+
+/* On a dark page the art's white background is a hard glare, so the disc gets
+   a dark ring and a soft outer halo. The art itself is never knocked out or
+   recoloured: the ring sits outside the disc, the inner rim is a shadow on top
+   of it. Nothing is drawn here on light pages. */
+.rm[data-theme="dark"]:not([data-shape="none"]) {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.10),
+    0 0 0 6px rgba(3, 6, 10, 0.34),
+    0 0 0 7px rgba(255, 255, 255, 0.05),
+    0 10px 30px rgba(0, 0, 0, 0.50),
+    0 0 34px rgba(255, 122, 26, 0.14);
+}
+.rm[data-theme="dark"]:not([data-shape="none"])::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 0 16px rgba(0, 0, 0, 0.22);
+}
+@media (prefers-color-scheme: dark) {
+  .rm[data-theme="auto"]:not([data-shape="none"]) {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.10),
+      0 0 0 6px rgba(3, 6, 10, 0.34),
+      0 0 0 7px rgba(255, 255, 255, 0.05),
+      0 10px 30px rgba(0, 0, 0, 0.50),
+      0 0 34px rgba(255, 122, 26, 0.14);
+  }
+  .rm[data-theme="auto"]:not([data-shape="none"])::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 5;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+      inset 0 0 16px rgba(0, 0, 0, 0.22);
+  }
+}
+.rm[data-shape="none"] { border-radius: 0; overflow: visible; }
+.rm[data-shape="none"] .rm-art { background: transparent; }
+.rm[data-shape="squircle"] .rm-art { border-radius: 28%; }
+
+.rm-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* --------------------------------------------------------------- eyes */
+.rm-round { transition: opacity .22s ease; }
+.rm-arcs { opacity: 0; transition: opacity .22s ease; }
+
+.rm-eye { fill: url(#rm-eyefill); }
+.rm-dots { fill: url(#rm-leds); opacity: .55; }
+.rm-bloom { fill: var(--rm-led-warm); opacity: .8; filter: url(#rm-bloom); }
+.rm-spill { fill: url(#rm-spill); opacity: .9; }
+
+.rm-eye, .rm-bloom, .rm-dots {
+  transform: scaleY(calc(1 - 0.93 * var(--rm-blink)));
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.rm-eyes {
+  transform: translate(calc(var(--rm-lx) * 1px), calc(var(--rm-ly) * 1px));
+  transition: transform .18s ease-out;
+}
+
+.rm-arc {
+  fill: none;
+  stroke: url(#rm-eyefill);
+  stroke-width: 5.4;
+  stroke-linecap: round;
+}
+.rm-arcs .rm-bloom { fill: none; stroke: var(--rm-led-warm); stroke-width: 5.4; stroke-linecap: round; filter: url(#rm-bloom); opacity: .9; }
+
+/* -------------------------------------------------------------- mouth */
+.rm-smile {
+  fill: none;
+  stroke: var(--rm-led);
+  stroke-width: 3.8;
+  stroke-linecap: round;
+  transition: opacity .2s ease, transform .2s ease;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.rm-open {
+  fill: var(--rm-led);
+  opacity: 0;
+  transform: scaleY(calc(1 + var(--rm-mouth) * 3.2));
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity .16s ease;
+}
+.rm-mouth { transform: translate(calc(var(--rm-lx) * 0.45px), calc(var(--rm-ly) * 0.45px)); }
+
+/* --------------------------------------------------------- expressions */
+.rm[data-state="happy"] .rm-round { opacity: 0; }
+.rm[data-state="happy"] .rm-arcs { opacity: 1; }
+.rm[data-state="happy"] .rm-smile { transform: scale(1.12); }
+
+.rm[data-state="listening"] .rm-smile { transform: scale(.86); }
+.rm[data-state="thinking"] .rm-smile { transform: scale(.62) translateY(1px); }
+.rm[data-state="thinking"] .rm-eye { opacity: .82; }
+
+.rm[data-state="speaking"] .rm-smile { opacity: 0; }
+.rm[data-state="speaking"] .rm-open { opacity: 1; }
+.rm[data-state="speaking"] .rm-eye { transform: scale(0.94) scaleY(calc(1 - 0.93 * var(--rm-blink))); }
+
+/* ------------------------------------------------------ reduced motion */
+.rm[data-reduced="1"] .rm-glow { animation: none !important; }
+.rm[data-reduced="1"] .rm-eyes,
+.rm[data-reduced="1"] .rm-smile,
+.rm[data-reduced="1"] .rm-round,
+.rm[data-reduced="1"] .rm-arcs { transition: none !important; }
+.rm[data-reduced="1"] .rm-body { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rm:not([data-reduced="0"]) .rm-glow { animation: none !important; }
+  .rm:not([data-reduced="0"]) .rm-eyes { transition: none !important; }
+}
