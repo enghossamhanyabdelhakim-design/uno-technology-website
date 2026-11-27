@@ -512,7 +512,7 @@ function ptnLoad(){var el=$("#ptn"),c=window.UNO_CFG;if(!el||!c||!window.fetch)r
 function wire(){ptnLoad();
   var T0=$("#theme");
   T0.onclick=function(){setTheme(h.dataset.theme==="dark"?"light":"dark")};
-  $("#lang").onclick=function(){setLang(h.lang==="ar"?"en":"ar");if(projOpen)projRoute();$("#ch-i")&&($("#ch-i").placeholder=L(C.chatbot.placeholder))};
+  $("#lang").onclick=function(){setLang(h.lang==="ar"?"en":"ar");[["header .nav>a[href='index.html']",{ar:"الرئيسية",en:"Home"}],["#acct",{ar:"حسابي",en:"My account"}],["#theme",{ar:"تبديل الوضع الليلي",en:"Toggle dark mode"}],["#menu",{ar:"القائمة",en:"Menu"}]].forEach(function(x){var e=document.querySelector(x[0]);if(e)e.setAttribute("aria-label",L(x[1]))});if(projOpen)projRoute();$("#ch-i")&&($("#ch-i").placeholder=L(C.chatbot.placeholder))};
   var nv=$("nav");$("#menu").onclick=function(){nv.classList.toggle("open")};nv.onclick=function(){nv.classList.remove("open")};
   document.body.insertAdjacentHTML("beforeend",'<button id="top-btn" aria-label="Top">\u2191</button>');
   var tb=$("#top-btn");tb.onclick=function(){scrollTo({top:0,behavior:"smooth"})};
