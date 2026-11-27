@@ -1,6 +1,6 @@
 /* mascot preview switch: ?robot=1 turns it on for this device only, ?robot=0 clears it */
 try{var _rq=new URLSearchParams(location.search).get('robot');if(_rq==='1')localStorage.setItem('uno_robot','1');if(_rq==='0')localStorage.removeItem('uno_robot');if(localStorage.getItem('uno_robot')==='1')window.UNO_ROBOT_ON=true}catch(e){}
-if(window.UNO_ROBOT_ON){var _av=document.createElement("script");_av.src="assets/avatar-loader.js?v=20261128a";document.head.appendChild(_av)}
+if(window.UNO_ROBOT_ON){var _av=document.createElement("script");_av.src="assets/avatar-loader.js?v=20261128b";document.head.appendChild(_av)}
 /* Loads published content from Supabase (falls back to assets/content.js), then starts the site. */
 (function(){
 var c=window.UNO_CFG,done=false,t;
