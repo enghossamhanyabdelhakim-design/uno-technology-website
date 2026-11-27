@@ -346,13 +346,15 @@ RENDER.req=function(mn){
 
 /* users and roles */
 RENDER.users=function(mn){
+ loadRoles().then(function(){RENDER.users0(mn)})};
+RENDER.users0=function(mn){
  fn({mode:"adm",action:"list"}).then(function(r){
   if(!r||!r.users)throw new Error((r&&r.error)||"failed");
   mn.innerHTML='<h2>'+bi("المستخدمون والصلاحيات","Users and roles")+'</h2><p class="hint" style="margin-bottom:8px">'+bi("الصلاحيات بتتطبق على قاعدة البيانات نفسها، فمفيش مستخدم يقدر يتخطاها حتى لو كلم الـ API مباشرة.","Permissions are enforced by the database itself, so no user can bypass them even by calling the API directly.")+'</p><div class="tb"><button id="add" type="button">+ '+bi("مستخدم جديد","New user")+"</button></div>"+tbl([bi("المستخدم","User"),bi("الدور","Role"),bi("الحالة","Status"),""],r.users.map(function(u){var me=u.user_id===(USER&&USER.id);return [esc(u.name||"")+"<br><small class=\"hint\">"+esc(u.email||"")+"</small>",me?pill(ROLES[u.role]||u.role,"o"):'<select data-r="'+u.user_id+'">'+Object.keys(ROLES).map(function(k){return '<option value="'+k+'"'+(k===u.role?" selected":"")+">"+esc(ROLES[k])+"</option>"}).join("")+"</select>",u.active?pill("نشط / Active","g"):pill("موقوف / Disabled","r"),me?"":'<button class="sec sm" data-t="'+u.user_id+'" data-a="'+(u.active?0:1)+'" type="button">'+(u.active?bi("إيقاف","Disable"):bi("تفعيل","Enable"))+'</button> <button class="sec sm" data-p="'+u.user_id+'" type="button">'+bi("كلمة سر جديدة","Reset password")+'</button> <button class="dg sm" data-x="'+u.user_id+'" type="button">'+bi("حذف","Delete")+"</button>"]}));
   function reload(){RENDER.users(mn)}
   staffExtras(mn,r.users);
   $("#add").onclick=userForm;
-  [].forEach.call(mn.querySelectorAll("[data-r]"),function(s){s.onchange=function(){fn({mode:"adm",action:"set_role",user_id:s.dataset.r,role:s.value}).then(function(x){status(x.ok?"تم ✓ / Done ✓":(x.error||"failed"),!x.ok);reload()})}});
+  [].forEach.call(mn.querySelectorAll("[data-r]"),function(s){s.onchange=function(){api("POST","rpc/staff_set_role",{p_user:s.dataset.r,p_role:s.value}).then(function(){status("تم ✓ / Done ✓")}).catch(function(e){status(String(e.message).replace(/^[A-Z]+: /,""),1)}).then(reload)}});
   [].forEach.call(mn.querySelectorAll("[data-t]"),function(b){b.onclick=function(){fn({mode:"adm",action:"set_active",user_id:b.dataset.t,active:b.dataset.a==="1"}).then(reload)}});
   [].forEach.call(mn.querySelectorAll("[data-p]"),function(b){b.onclick=function(){if(confirm("إنشاء كلمة سر جديدة؟ / Create a new password?"))fn({mode:"adm",action:"reset_password",user_id:b.dataset.p}).then(function(x){if(x.password)pwDlg(x.password);else status(x.error||"failed",1)})}});
   [].forEach.call(mn.querySelectorAll("[data-x]"),function(b){b.onclick=function(){if(confirm("حذف المستخدم نهائيًا؟ / Delete this user permanently?"))fn({mode:"adm",action:"delete",user_id:b.dataset.x}).then(reload)}});
@@ -367,17 +369,39 @@ var PGROUPS=[
  {g:["النظام","System"],p:[["core","نظام UNO Core","UNO Core access"],["log","سجل النشاط","Activity log"],["audit","سجل التدقيق","Audit trail"]]}
 ];
 var MROLES=["owner","admin","store_manager","content_editor","support","cashier"];
-function ago(x){if(!x)return "-";var m=Math.round((Date.now()-new Date(x).getTime())/60000);if(m<1)return "الآن / now";if(m<60)return m+" د / min";if(m<1440)return Math.round(m/60)+" س / h";return Math.round(m/1440)+" يوم / d"}
+function ago(x){if(!x)return "-";var m=Math.round((Date.now()-new Date(x).getTime())/60000);if(m<1)return bi("الآن","now");if(m<60)return bi(m+" د",m+" min");if(m<1440){var h=Math.round(m/60);return bi(h+" س",h+" h")}var d=Math.round(m/1440);return bi(d+" يوم",d+" d")}
+var STAT={on:["متصل","Online","g"],off:["غير متصل","Offline",""],busy:["مشغول","Busy","o"],away:["بعيد","Away",""]};
+function stPill(v){var t=STAT[v];return t?'<span class="pill '+t[2]+'">'+bi(t[0],t[1])+"</span>":pill(v,"")}
+var CUSTOM=[];
+function loadRoles(){return api("GET","staff_roles?select=key,name_ar,name_en,system&order=created_at.asc").then(function(r){CUSTOM=[];(r||[]).forEach(function(x){if(!ROLES[x.key]){ROLES[x.key]=x.name_ar+" / "+x.name_en}if(!x.system)CUSTOM.push(x);if(MROLES.indexOf(x.key)<0)MROLES.push(x.key)})}).catch(function(){})}
 function staffExtras(mn,users){
  var box=document.createElement("div");box.style.marginTop="24px";mn.appendChild(box);
  Promise.all([api("GET","perm_registry?select=role,perm").catch(function(){return null}),api("GET","staff_profiles?select=user_id,display_name,status,last_seen").catch(function(){return []})]).then(function(r){
   var reg=r[0],sp={};(r[1]||[]).forEach(function(x){sp[x.user_id]=x});
-  var h='<h2>'+bi("حالة الفريق","Team status")+'</h2>'+tbl([bi("المستخدم","User"),bi("الدور","Role"),bi("الحالة","Status"),bi("آخر ظهور","Last seen")],users.map(function(u){var q=sp[u.user_id]||{};return [esc(u.name||u.email||""),esc(ROLES[u.role]||u.role),u.active?(q.status?pill(q.status,q.status==="on"?"g":""):pill("-","")):pill("موقوف / Disabled","r"),esc(ago(q.last_seen))]}));
+  var h='<h2>'+bi("حالة الفريق","Team status")+'</h2>'+tbl([bi("المستخدم","User"),bi("الدور","Role"),bi("الحالة","Status"),bi("آخر ظهور","Last seen")],users.map(function(u){var q=sp[u.user_id]||{};return [esc(u.name||u.email||""),esc(ROLES[u.role]||u.role),u.active?(q.status?stPill(q.status):pill("-","")):pill("موقوف / Disabled","r"),ago(q.last_seen)]}));
   if(reg){var has={};reg.forEach(function(x){has[x.role+"|"+x.perm]=1});
    var rows=[];PGROUPS.forEach(function(g){rows.push(['<b>'+bi(g.g[0],g.g[1])+'</b>'].concat(MROLES.map(function(){return ""})));g.p.forEach(function(q){rows.push([bi(q[1],q[2])].concat(MROLES.map(function(ro){var ok=ro==="owner"||has[ro+"|"+q[0]];return ok?'<span style="color:#1a9a55;font-weight:700">✓</span>':'<span class="hint">-</span>'})))})});
    rows.push([bi("إدارة المستخدمين","Manage users")].concat(MROLES.map(function(ro){return ro==="owner"?'<span style="color:#1a9a55;font-weight:700">✓</span>':'<span class="hint">-</span>'})));
    h+='<h2 style="margin-top:22px">'+bi("الأدوار والصلاحيات","Roles and permissions")+'</h2><p class="hint" style="margin-bottom:8px">'+bi("للعرض فقط. المالك يقدر على كل حاجة. إدارة المستخدمين للمالك فقط.","Read-only. The owner can do everything. Managing users is owner-only.")+'</p>'+tbl([bi("الصلاحية","Permission")].concat(MROLES.map(function(ro){return esc(ROLES[ro]||ro)})),rows)}
-  box.innerHTML=h}).catch(function(e){box.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+  box.innerHTML=h;if(USER&&USER.role==="owner"||true)roleMgr(box)}).catch(function(e){box.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
+}
+function roleMgr(box){
+ api("POST","rpc/staff_roles_list",{}).then(function(d){
+  var cu=d.roles.filter(function(r){return !r.system});
+  var w=document.createElement("div");w.style.marginTop="22px";
+  w.innerHTML='<h2>'+bi("أدوار مخصصة","Custom roles")+'</h2><p class="hint" style="margin-bottom:8px">'+bi("الأدوار الأساسية الستة ثابتة. هنا تقدر تعمل دور جديد بصلاحيات تختارها. صلاحية إدارة المستخدمين للمالك فقط ومش بتتمنح. كل تغيير بيتسجل في سجل التدقيق.","The six built-in roles are fixed. Create a new role with chosen permissions here. Managing users is owner-only and cannot be granted. Every change is written to the audit trail.")+'</p><div class="tb"><button id="rl-add" type="button">+ '+bi("دور جديد","New role")+"</button></div>"+(cu.length?tbl([bi("الدور","Role"),bi("الصلاحيات","Permissions"),bi("المستخدمون","Users"),""],cu.map(function(r){return ["<b>"+esc(r.name_ar)+" / "+esc(r.name_en)+"</b><br><small class=\"hint\" dir=\"ltr\">"+esc(r.key)+"</small>",r.perms.length,r.members,'<button class="sec sm" data-re="'+r.key+'" type="button">'+bi("تعديل","Edit")+'</button> <button class="dg sm" data-rd="'+r.key+'" type="button">'+bi("حذف","Delete")+"</button>"]})):'<p class="hint">'+bi("مفيش أدوار مخصصة بعد.","No custom roles yet.")+"</p>")+(cu.some(function(r){return r.key==="accountant"})?'<p class="hint" style="margin-top:8px">'+bi("دور المحاسب مقترح فقط ولسه مش متعين لأي حد. المحاسب هيأكد قائمة الصلاحيات.","The Accountant role is a suggestion only and is not assigned to anyone. The accountant should confirm its permission list.")+"</p>":"");
+  box.appendChild(w);
+  function dlg(r){
+   var has={};(r?r.perms:[]).forEach(function(k){has[k]=1});
+   var g=PGROUPS.map(function(x){return '<fieldset style="border:1px solid rgba(128,128,140,.3);border-radius:10px;margin:0 0 8px;padding:8px 10px"><legend><b>'+bi(x.g[0],x.g[1])+"</b></legend>"+x.p.map(function(q){return '<label style="display:flex;gap:8px;align-items:center;padding:3px 0"><input type="checkbox" data-pk="'+q[0]+'"'+(has[q[0]]?" checked":"")+'> <span>'+bi(q[1],q[2])+"</span></label>"}).join("")+"</fieldset>"}).join("");
+   openDlg('<h2>'+(r?bi("تعديل الدور","Edit role"):bi("دور جديد","New role"))+'</h2><label class="f"><span>'+bi("المعرف (إنجليزي صغير)","Key (lowercase)")+'</span><input type="text" id="rl-k" dir="ltr" maxlength="30"'+(r?' value="'+esc(r.key)+'" disabled':"")+'></label><label class="f"><span>'+bi("الاسم بالعربي","Arabic name")+'</span><input type="text" id="rl-a" value="'+esc(r?r.name_ar:"")+'"></label><label class="f"><span>'+bi("الاسم بالإنجليزي","English name")+'</span><input type="text" id="rl-e" dir="ltr" value="'+esc(r?r.name_en:"")+'"></label><div style="max-height:40vh;overflow:auto;margin:8px 0">'+g+'</div><p id="rl-er" class="dirty"></p><div class="tb"><button id="rl-sv" type="button">'+bi("حفظ","Save")+'</button><button class="sec" id="rl-cx" type="button">'+bi("إلغاء","Cancel")+"</button></div>");
+   $("#rl-cx").onclick=closeDlg;
+   $("#rl-sv").onclick=function(){var b=this;b.disabled=true;var pk=[].map.call(document.querySelectorAll("#dbx [data-pk]:checked"),function(i){return i.dataset.pk});
+    api("POST","rpc/staff_role_save",{p:{key:r?r.key:$("#rl-k").value,name_ar:$("#rl-a").value,name_en:$("#rl-e").value,perms:pk}}).then(function(){closeDlg();status("تم ✓ / Done ✓");RENDER.users($("#main"))}).catch(function(e){$("#rl-er").textContent=String(e.message).replace(/^[A-Z]+: /,"");b.disabled=false})}}
+  $("#rl-add").onclick=function(){dlg(null)};
+  [].forEach.call(w.querySelectorAll("[data-re]"),function(b){b.onclick=function(){dlg(cu.filter(function(r){return r.key===b.dataset.re})[0])}});
+  [].forEach.call(w.querySelectorAll("[data-rd]"),function(b){b.onclick=function(){if(confirm("حذف الدور؟ / Delete this role?"))api("POST","rpc/staff_role_delete",{p_key:b.dataset.rd}).then(function(){status("تم ✓ / Done ✓");RENDER.users($("#main"))}).catch(function(e){status(String(e.message).replace(/^[A-Z]+: /,""),1)})}});
+ }).catch(function(){})
 }
 function pwDlg(pw){openDlg('<h2>'+bi("كلمة السر","Password")+'</h2><p class="hint">'+bi("بتظهر مرة واحدة بس. ابعتها للمستخدم بشكل آمن (مش في جروب). مش هقدر أعرضها تاني.","Shown once only. Share it with the user privately. It cannot be shown again.")+'</p><div class="pw">'+esc(pw)+'</div><div class="tb" style="margin-top:12px"><button id="f-cx" type="button">'+bi("تم","Done")+"</button></div>");$("#f-cx").onclick=closeDlg}
 function userForm(){
