@@ -149,7 +149,13 @@
       var totals = cartTotals(state.cart);
       var args = { idem: p.idempotency_key, items: items, discount: E(totals.invoiceDiscount), payments: p.payments.map(function (x) { return { method: x.method, amount: E(x.amount) }; }), customer_id: p.customer_id || undefined, manager_token: p.manager_token || undefined, device_id: CFG.deviceId };
       if (p.customer_id) { var c = state.customers.filter(function (x) { return x.id === p.customer_id; })[0]; if (c) args.customer_name = c.ar; }
-      return rpc('pos_sale', { p: args }).then(function (r) {
+      var OFF = window.UNO_OFFLINE, cashOnly = p.payments.every(function (x) { return x.method === 'cash'; });
+      var run = (navigator.onLine === false && OFF) ? Promise.reject(perr('NETWORK', 'offline')) : rpc('pos_sale', { p: args });
+      return run.catch(function (e) {
+        if (e && e.code === 'NETWORK' && OFF) { if (!cashOnly) throw perr('OFFLINE_METHOD', 'أوفلاين الكاش بس. شيل سطور البطاقة/المحفظة/الآجل أو رجّع الاتصال.'); return OFF.enqueue(args, p, cart, totals); }
+        throw e;
+      }).then(function (r) {
+        if (r && r.__offline) return r.result;
         return get('core_sales_docs?id=eq.' + r.id + '&select=*').then(function (d) { return loadDocs(d); }).then(function (o) {
           var inv = o[0];
           inv.lines.forEach(function (ln, i) { var cl = cart[i]; var prod = cl && state.products.filter(function (x) { return x.id === cl.productId; })[0]; if (prod) { ln.name_ar = prod.ar; ln.name_en = prod.en; ln.mono = prod.mono; prod.stock = Math.max(0, prod.stock - cl.qty); } });
@@ -220,5 +226,6 @@
   function verifyPin(pin) { return rpc('verify_manager_pin', { p_pin: pin }).then(function (r) { return r && r.token; }); }
 
   window.UnoLive = { init: init, loadHolds: loadHolds, findInvoices: findInvoices, verifyPin: verifyPin, rpc: rpc, state: L };
+  window.UNO_RPC_RAW = rpc;
   window.unoRpc = function (name, payload) { if (!API[name]) return Promise.reject(perr('NO_RPC', 'عملية غير معروفة')); return API[name](payload || {}); };
 })();
