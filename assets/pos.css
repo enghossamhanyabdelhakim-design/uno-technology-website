@@ -1466,3 +1466,10 @@ body.is-display #appRoot, body.is-display #mBar, body.is-display .toasts { displ
 [data-theme="light"] .btn.is-primary { background: linear-gradient(135deg, #F65A00 0%, #FF7A1F 55%, #FF9E4A 100%); box-shadow: 0 10px 26px -10px rgba(246, 90, 0, .45); }
 [data-theme="light"] .btn.is-primary:active { box-shadow: none; }
 .num, .price, [class*="total"] { font-variant-numeric: tabular-nums; }
+/* wave 3: manager gate polish */
+.gate .pin-pad button{display:grid;place-items:center;font-weight:700;font-variant-numeric:tabular-nums}
+.gate .pin-pad button:active{transform:scale(.96)}
+.gate .pin-pad [data-act=gate-ok]{background:var(--uno-brand);border-color:var(--uno-brand);color:#fff}
+.gate .pin-dots{gap:14px;margin:10px 0 6px}
+.gate .pin-dots i{border:2px solid var(--uno-line-strong,#b9b2aa);background:transparent;width:14px;height:14px}
+.gate .pin-dots i.on{background:var(--uno-brand);border-color:var(--uno-brand)}
