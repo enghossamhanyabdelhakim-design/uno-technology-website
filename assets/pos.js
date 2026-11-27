@@ -1474,7 +1474,7 @@ function printReceipt() {
   if (area) {
     area.innerHTML = receiptHtml(inv);
     rcPage(rcTpl());
-    window.print();
+    try { window.print(); } catch (e) { toast(T('الطباعة مش متاحة دلوقتي. الفاتورة اتحفظت.', 'Printing is unavailable. The invoice is saved.'), 'bad'); }
   } else {
     const w = window.open('', '_blank', 'width=380,height=700');
     if (!w) return;
@@ -1487,8 +1487,7 @@ function printReceipt() {
       .r-center{text-align:center}
     </style></head><body>${receiptHtml(inv)}</body></html>`);
     w.document.close();
-    w.focus();
-    w.print();
+    try { w.focus(); w.print(); } catch (e) { toast(T('الطباعة مش متاحة دلوقتي. الفاتورة اتحفظت.', 'Printing is unavailable. The invoice is saved.'), 'bad'); }
   }
 }
 
