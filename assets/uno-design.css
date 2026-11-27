@@ -30,7 +30,7 @@
   --u-orange-soft: #FFF1E8;           /* tinted fills */
   --u-orange-softer: #FFF8F2;
   --u-on-orange: #FFFFFF;
-  --u-grad-spark: linear-gradient(135deg, #F65A00 0%, #FF7A1F 55%, #FF9E4A 100%);
+  --u-grad-spark: linear-gradient(135deg, #C74600 0%, #E05200 100%); /* light: 4.88:1 with white (approved button token) */
 
   /* warm neutrals (light theme, the default) */
   --u-bg: #FAF9F7;
@@ -81,6 +81,7 @@
 
 /* dark theme — optional, still warm charcoal, never pure black */
 [data-theme="dark"] {
+  --u-grad-spark: linear-gradient(135deg, #F65A00 0%, #FF7A1F 55%, #FF9E4A 100%);
   --u-bg: #17181D;
   --u-surface: #1F2128;
   --u-surface-2: #262931;
