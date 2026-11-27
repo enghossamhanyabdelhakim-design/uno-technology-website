@@ -1443,3 +1443,11 @@ body.is-display #appRoot, body.is-display #mBar, body.is-display .toasts { displ
 .display { justify-content: center; }
 .display-lines { flex: 0 1 auto; max-height: 62vh; }
 .d-total { margin-block-start: 0; }
+
+/* receipt template picker and preview */
+.rc-picker{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;justify-content:center}
+.rc-picker .reason{flex:0 1 auto;font-size:12px;padding:6px 10px;min-height:34px}
+.rc-preview{display:flex;justify-content:center;background:var(--bg-2,#0d1117);border-radius:12px;padding:12px;overflow:auto;max-height:52vh}
+.rc-preview .rc{box-shadow:0 6px 24px rgba(0,0,0,.35);flex:none}
+.rc-preview.is-a4 .rc-inner{zoom:.62}
+@media (max-width:480px){.rc-preview.is-a4 .rc-inner{zoom:.4}.rc-preview{padding:8px}}

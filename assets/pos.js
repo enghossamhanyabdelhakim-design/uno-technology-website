@@ -1434,9 +1434,10 @@ SHEETS.receipt = function (opts) {
     title: T('الإيصال', 'Receipt'),
     sub: `${T('فاتورة', 'Invoice')} ${esc(inv.number)} · ${fmtDateTime(inv.created_at)}`,
     body: `<div id="printArea" class="print-area">${receiptHtml(inv)}</div>
-      <div style="display:flex;justify-content:center">${receiptHtml(inv)}</div>
-      <div class="hint" style="text-align:center">${T('80 مم · نفس أرقام الشاشة بالحرف', '80 mm · same figures as the screen')}</div>`,
-    center: true, width: 520,
+      <div class="rc-picker" role="radiogroup" aria-label="${T('شكل الإيصال', 'Receipt layout')}">${window.UnoReceipt.TEMPLATES.map((x) => `<button class="reason${rcTpl() === x.id ? ' is-on' : ''}" data-act="rc-tpl" data-id="${x.id}" title="${esc(x[LANG === 'ar' ? 'ar2' : 'en2'])}">${esc(x[LANG])}</button>`).join('')}</div>
+      <div class="rc-preview${rcTpl() === 'a4' ? ' is-a4' : ''}"><div class="rc-inner">${receiptHtml(inv)}</div></div>
+      <div class="hint" style="text-align:center">${T('الشكل ده بيتحفظ كافتراضي على الجهاز ده · نفس أرقام الشاشة بالحرف', 'This layout is saved as the default on this device · same figures as the screen')}</div>`,
+    center: true, width: rcTpl() === 'a4' ? 640 : 560,
     foot: `<button class="btn is-ghost" data-act="close-sheet">${T('إغلاق', 'Close')}</button>
       <div class="grow"></div>
       <button class="btn" data-act="print-receipt">${ico('printer', 16)} ${T('طباعة', 'Print')}</button>
@@ -1445,44 +1446,25 @@ SHEETS.receipt = function (opts) {
   };
 };
 
-function receiptHtml(inv) {
-  const t = {
-    subtotal: inv.subtotal, disc: inv.invoice_discount + inv.lines.reduce((s, l) => s + (l.discount || 0), 0),
-    tax: inv.tax, total: inv.total
-  };
+/* Receipt templates: UnoReceipt (receipt-templates.js). The chosen template is a per-device default. */
+function rcTpl() { try { const t = localStorage.getItem('uno_rc_tpl'); if (t && window.UnoReceipt.TEMPLATES.some((x) => x.id === t)) return t; } catch (e) {} return 'th80'; }
+function rcEnsureCss() { if (!document.getElementById('rcCss')) { const st = document.createElement('style'); st.id = 'rcCss'; st.textContent = window.UnoReceipt.CSS; document.head.appendChild(st); } }
+function rcPage(tpl) {
+  let st = document.getElementById('rcPage');
+  if (!st) { st = document.createElement('style'); st.id = 'rcPage'; document.head.appendChild(st); }
+  const t = window.UnoReceipt.TEMPLATES.find((x) => x.id === tpl) || {};
+  st.textContent = '@media print{@page{size:' + (t.w === '210mm' ? 'A4' : (t.w || '80mm') + ' auto') + ';margin:' + (t.w === '210mm' ? '0' : '0') + '}}';
+}
+function receiptHtml(inv, tplOverride) {
+  rcEnsureCss();
   const cust = inv.customer_id ? state.customers.find((c) => c.id === inv.customer_id) : null;
-  return `<div class="receipt-wrap" dir="${isRTL() ? 'rtl' : 'ltr'}">
-    <h3>${esc(CFG.company[LANG === 'ar' ? 'nameAr' : 'nameEn'])}</h3>
-    <div class="r-center" style="font-size:10.5px;line-height:1.6">
-      ${T('فرشوط · قنا', 'Farshout · Qena')}<br>
-      ${T('هاتف', 'Tel')} <span class="num">01505946321</span><br>
-      ${T('الرقم الضريبي', 'Tax No')} <span class="num">${CFG.company.taxNo}</span>
-    </div>
-    <div class="r-sep"></div>
-    <table>
-      <tr><td>${T('فاتورة', 'Invoice')}</td><td class="r num">${esc(inv.number)}</td></tr>
-      <tr><td>${T('التاريخ', 'Date')}</td><td class="r num">${fmtDateTime(inv.created_at)}</td></tr>
-      <tr><td>${T('الكاشير', 'Cashier')}</td><td class="r">${esc(ROLES[(state.shift && state.shift.cashierRole) || 'cashier'][LANG])}</td></tr>
-      ${cust ? `<tr><td>${T('العميل', 'Customer')}</td><td class="r">${esc(cust[LANG])}</td></tr>` : ''}
-    </table>
-    <div class="r-sep"></div>
-    <table>
-      ${inv.lines.map((l) => `<tr>
-        <td>${esc(l[LANG === 'ar' ? 'name_ar' : 'name_en'])}<br><span style="font-size:9.5px;color:#555">${l.qty_kind === 'weight' ? nf(l.qty / 1000, 3) + ' ' + uLab(l.product_id) : l.qty + ' × ' + money(l.unit_price)}</span></td>
-        <td class="r num">${money(l.amount)}</td></tr>`).join('')}
-    </table>
-    <div class="r-sep"></div>
-    <table>
-      <tr><td>${T('الإجمالي الفرعي', 'Subtotal')}</td><td class="r num">${money(t.subtotal)}</td></tr>
-      ${t.disc ? `<tr><td>${T('الخصم', 'Discount')}</td><td class="r num">−${money(t.disc)}</td></tr>` : ''}
-      <tr><td>${T('ض.ق.م 14% (مشمولة)', 'VAT 14% (incl.)')}</td><td class="r num">${money(t.tax)}</td></tr>
-      <tr class="r-total"><td>${T('الإجمالي', 'Total')}</td><td class="r num">${money(t.total)}</td></tr>
-      ${inv.payments.map((p) => `<tr><td>${methodName(p.method)}</td><td class="r num">${money(p.amount)}</td></tr>`).join('')}
-      <tr><td>${T('الباقي', 'Change')}</td><td class="r num">${money(inv.change_due)}</td></tr>
-    </table>
-    <div class="qr" aria-hidden="true"></div>
-    <div class="r-center" style="font-size:10px">${T('شكراً لزيارتكم · الاسترجاع خلال 14 يوم بالإيصال', 'Thank you · returns within 14 days with receipt')}</div>
-  </div>`;
+  return window.UnoReceipt.render(inv, {
+    tpl: tplOverride || rcTpl(), lang: LANG,
+    co: { nameAr: CFG.company.nameAr, nameEn: CFG.company.nameEn, taxNo: CFG.company.taxNo, phone: '01505946321', addrAr: 'فرشوط · قنا', addrEn: 'Farshout · Qena' },
+    money, nf, method: methodName, dt: fmtDateTime(inv.created_at),
+    cashier: ROLES[(state.shift && state.shift.cashierRole) || 'cashier'][LANG], customer: cust ? cust[LANG] : (inv.customer_name || ''),
+    unitLabel: (l) => uLab(l.product_id)
+  });
 }
 
 function printReceipt() {
@@ -1491,6 +1473,7 @@ function printReceipt() {
   const area = el('printArea');
   if (area) {
     area.innerHTML = receiptHtml(inv);
+    rcPage(rcTpl());
     window.print();
   } else {
     const w = window.open('', '_blank', 'width=380,height=700');
@@ -2545,6 +2528,7 @@ function onAction(act, node) {
     /* receipt */
     case 'print-receipt': printReceipt(); break;
     case 'wa-receipt': toast(T('رابط الإيصال جاهز للإرسال على واتساب (تجريبي).', 'Receipt link ready for WhatsApp (demo).'), 'ok'); break;
+    case 'rc-tpl': try { localStorage.setItem('uno_rc_tpl', id); } catch (e) {} refreshSheet(); break;
     case 'new-sale': closeSheet(); renderAll(); break;
     /* returns */
     case 'ret-search': state.ui.ret.query = node.value; refreshSheet(); break;
