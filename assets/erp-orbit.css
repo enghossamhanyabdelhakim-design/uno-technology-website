@@ -1,0 +1,4 @@
+/* Orbit tokens for the ERP (light). Token-level only: no layout or logic change. Dark theme untouched. */
+html:not([data-theme=dark]){--canvas:#FAF9F7;--surface:#FFFFFF;--surface-2:#F8F6F3;--surface-3:#F0EDE8;--line:#ECE8E1;--line-soft:#F2EFEA;--line-strong:#D9D4CB;--ink:#191A1E;--ink-2:#5D6168;--ink-3:#7A7E86;--brand:#F65A00;--brand-ink:#C24300;--brand-soft:#FFF1E8;--brand-soft-2:#FFE4D1;--ok-ink:#12803A;--ok-soft:#E6F6EC;--warn-ink:#9A5B00;--warn-soft:#FFF3DC;--bad-ink:#B4232A;--bad-soft:#FDECEC;--r-sm:10px;--r-md:14px;--r-lg:18px;--r-xl:24px;--font:"Alexandria","Noto Sans Arabic","IBM Plex Sans Arabic","Cairo",Inter,system-ui,sans-serif}
+html:not([data-theme=dark]) body{font-variant-numeric:tabular-nums}
+html:not([data-theme=dark]) button:active{transform:scale(.98)}
