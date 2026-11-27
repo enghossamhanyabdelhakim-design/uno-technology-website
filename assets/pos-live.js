@@ -26,7 +26,7 @@
   function login() {
     return new Promise(function (resolve) {
       var o = document.createElement('div');
-      o.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#0E1318;font-family:inherit;color:#fff;padding:16px';
+      o.style.cssText = 'visibility:visible;position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#0E1318;font-family:inherit;color:#fff;padding:16px';
       o.innerHTML = '<form style="width:100%;max-width:360px;background:#161d25;border:1px solid #2a3440;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:12px"><div style="font-size:20px;font-weight:700">UNO POS</div><div style="font-size:13px;opacity:.7">سجّل الدخول بحساب الكاشير أو المدير</div><input id="plE" type="email" autocomplete="username" placeholder="البريد" style="padding:12px;border-radius:10px;border:1px solid #2a3440;background:#0E1318;color:#fff"><input id="plP" type="password" autocomplete="current-password" placeholder="كلمة المرور" style="padding:12px;border-radius:10px;border:1px solid #2a3440;background:#0E1318;color:#fff"><button style="padding:12px;border-radius:10px;border:0;background:#F65A00;color:#fff;font-weight:700">دخول</button><div id="plM" style="font-size:12.5px;color:#ff8a80;min-height:16px"></div></form>';
       document.body.appendChild(o);
       o.querySelector('form').onsubmit = function (ev) {
