@@ -304,6 +304,10 @@ body.proj-open{overflow:hidden}
 /* voice call */
 #ch-call{background:rgba(255,255,255,.2);border:0;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;margin-inline-start:auto}
 .ch-h #ch-call+#ch-x{margin-inline-start:6px}
+#ch-hcall{display:none;background:#10b981;border:0;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;align-items:center;justify-content:center;margin-inline-start:6px}
+#chat.human #ch-call{display:none}
+#chat.human #ch-hcall{display:inline-flex;margin-inline-start:auto}
+#chat.human #ch-hcall+#ch-x{margin-inline-start:6px}
 body.vc-open{overflow:hidden}
 #vc{position:fixed;inset:0;z-index:120;height:100dvh;background:radial-gradient(circle at 50% 30%,#ff7a2b 0,#F65A00 45%,#8a2f00 100%);color:#fff;display:flex;flex-direction:column;align-items:center;padding:calc(20px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));text-align:center;animation:pjf .25s}
 .vc-top{display:flex;gap:8px;align-items:center;font-variant-numeric:tabular-nums;font-weight:700;opacity:.95}
