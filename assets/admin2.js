@@ -59,6 +59,7 @@ var MODS=[
  {id:"sup",g:"العملاء / Customers",p:"chat",ic:"inbox",l:"الدعم المباشر / Live support"},
  {id:"req",g:"العملاء / Customers",p:"requests",ic:"inbox",l:"الطلبات والمحادثات / Requests and chats"},
  {id:"users",g:"الفريق / Team",p:"users",ic:"users",l:"المستخدمون والصلاحيات / Users and roles"},
+ {id:"rmx",g:"الفريق / Team",p:"users",ic:"users",l:"مصفوفة الأدوار / Role matrix"},
  {id:"bk",g:"الفريق / Team",p:"users",ic:"kb",l:"نسخة احتياطية / Backup"},
  {id:"log",g:"الفريق / Team",p:"log",ic:"log",l:"سجل النشاط / Activity log"},
  {id:"aud",g:"الفريق / Team",p:"audit",ic:"log",l:"سجل التدقيق / Audit trail"},
@@ -78,7 +79,7 @@ var MODS=[
  {id:"cin",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"المخزون / Inventory"}
 ];
 var GR={ov:"نظرة عامة / Overview",sl:"المبيعات / Sales",pu:"المشتريات / Purchases",iv:"المخزون / Inventory",ac:"الحسابات / Accounting",cr:"العملاء / CRM",rp:"التقارير / Reports",st:"المتجر الإلكتروني / Online store",wb:"الموقع / Website",se:"الإعدادات / Settings"};
-var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",pay:"st",cpn:"st",pol:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
+var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",pay:"st",cpn:"st",pol:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",rmx:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
 MODS.forEach(function(m,i){m.gk=GM[m.id]||"se";m.g=GR[m.gk];m.o=i});
 MODS.sort(function(a,b){return GO.indexOf(a.gk)-GO.indexOf(b.gk)||a.o-b.o});
 var GOPEN={};try{GOPEN=JSON.parse(localStorage.getItem("uno_gopen")||"{}")}catch(e){}
@@ -606,6 +607,24 @@ RENDER.cdoc=function(mn){
   $("#dc-sv").onclick=function(){$("#dc-er").textContent="";api("POST","rpc/doc_settings_save",{p_cfg:build()}).then(function(){window.UNOINV_CFG=build();status("تم الحفظ ✓ / Saved ✓")}).catch(function(e){$("#dc-er").textContent=String(e.message||e).replace(/^.*?:\s*/,"")})};
  }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(e.message)+"</p>"});
 };
+RENDER.rmx=function(mn){
+ mn.innerHTML=empty("جارٍ التحميل...","Loading...");
+ api("POST","rpc/staff_roles_list",{}).then(function(d){
+  var R=d.roles||[],cat=d.catalog||[],known={};
+  var G=PGROUPS.map(function(g){return {g:g.g,p:g.p.slice()}});
+  G.forEach(function(g){g.p.forEach(function(q){known[q[0]]=1})});
+  var extra=cat.filter(function(k){return !known[k]}).map(function(k){return [k,k,k]});
+  if(extra.length)G.push({g:["أخرى","Other"],p:extra});
+  var sets=R.map(function(r){var o={};(r.perms||[]).forEach(function(k){o[k]=1});return o});
+  var h='<h2>'+bi("مصفوفة الأدوار والصلاحيات","Role and permission matrix")+'</h2><p class="hint" style="margin-bottom:12px">'+bi("عرض فقط. بيوضح كل دور بيقدر يعمل إيه حاليًا. التعديل من شاشة المستخدمين والصلاحيات (الأدوار المخصصة فقط).","Read only. Shows what each role can do today. Change custom roles in Users and roles.")+'</p>';
+  h+='<div class="tw rmx"><table><thead><tr><th class="rmx-p">'+bi("الصلاحية","Permission")+"</th>"+R.map(function(r){return '<th class="rmx-r"><b>'+esc(r.name_ar)+"</b><br><small>"+esc(r.name_en)+'</small><br><span class="hint">'+bi(r.members+" مستخدم",r.members+" users")+(r.system?"":" · "+bi("مخصص","custom"))+"</span></th>"}).join("")+"</tr></thead><tbody>";
+  G.forEach(function(g){h+='<tr class="rmx-g"><td colspan="'+(R.length+1)+'"><b>'+bi(g.g[0],g.g[1])+"</b></td></tr>";
+   g.p.forEach(function(q){h+='<tr><td class="rmx-p">'+bi(q[1],q[2])+"</td>"+sets.map(function(o){return '<td class="rmx-c">'+(o[q[0]]?'<span class="rmx-y" aria-label="yes">✓</span>':'<span class="rmx-n" aria-label="no">–</span>')+"</td>"}).join("")+"</tr>"})});
+  h+="</tbody></table></div>";
+  h+='<style>.rmx{overflow:auto;max-height:70vh}.rmx table{border-collapse:separate;border-spacing:0;min-width:100%}.rmx th,.rmx td{padding:8px 10px;border-bottom:1px solid rgba(128,128,140,.2);text-align:center;font-size:13px}.rmx .rmx-p{text-align:start;position:sticky;inset-inline-start:0;background:var(--card,#fff);z-index:1;min-width:150px}.rmx thead th{position:sticky;top:0;background:var(--card,#fff);z-index:2}.rmx thead .rmx-p{z-index:3}.rmx-g td{background:rgba(246,90,0,.08);text-align:start}.rmx-y{color:#16a34a;font-weight:800;font-size:17px}.rmx-n{opacity:.35}</style>';
+  mn.innerHTML=h;
+ }).catch(function(e){mn.innerHTML='<p class="dirty">'+esc(String(e.message||e))+"</p>"});
+};
 RENDER.cset=function(mn){
  mn.innerHTML=empty("جارٍ التحميل...","Loading...");
  Promise.all([api("GET","core_company?id=eq.1&select=name_ar,name_en,phone,tax_id,is_placeholder,address").catch(function(){return[]}),api("GET","core_branches?select=id,kind&active=eq.true").catch(function(){return[]}),api("POST","rpc/pos_policy_get",{}).catch(function(){return null})]).then(function(r){
@@ -617,6 +636,7 @@ RENDER.cset=function(mn){
    ["cco","kb","بيانات الشركة","Company",st(!!co.phone,co.phone?"الهاتف مُدخل":"الهاتف فاضي",co.phone?"Phone set":"No phone")+" "+st(realTax,realTax?"الرقم الضريبي مُدخل":"الرقم الضريبي لم يُدخل",realTax?"Tax number set":"Tax number not entered")],
    ["cdoc","kb","الإيصالات والفواتير","Receipts and invoices",'<span class="hint">'+bi("إظهار وإخفاء الحقول والنصوص مع معاينة","Show/hide fields and wording with preview")+"</span>"],
    ["cbr","box","الفروع والمخازن","Branches and warehouses",'<span class="hint">'+bi("فروع: "+nb+" · مخازن: "+nw,"Branches: "+nb+" · Warehouses: "+nw)+"</span>"],
+   ["rmx","users","مصفوفة الأدوار","Role matrix",'<span class="hint">'+bi("من يقدر يعمل إيه (عرض فقط)","Who can do what (read only)")+"</span>"],
    ["users","users","المستخدمون والصلاحيات","Users and roles",'<span class="hint">'+bi("الأدوار والصلاحيات التفصيلية","Roles and detailed permissions")+"</span>"],
    ["cun","tag","وحدات القياس","Units",""],
    ["tax","kb","الضرائب","Tax",'<span class="hint">'+bi("إعدادات الضريبة (محاسبة: للمراجعة فقط)","Tax settings (accounting)")+"</span>"],
