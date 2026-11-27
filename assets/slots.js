@@ -24,6 +24,6 @@ function run(){
  var sx=0;try{sx=sessionStorage.getItem("uno_sticky_x")}catch(e){}
  if(!sx&&window.matchMedia("(max-width:720px)").matches)fill("mobile_sticky",document.body,"in");
 }
-run();
+run();window.UNO_SLOTS={scan:run};
 new MutationObserver(function(m){m.forEach(function(r){if(r.attributeName==="lang"){[].forEach.call(document.querySelectorAll(".uslot"),function(e){e.remove()});document.body.classList.remove("has-sticky-ad");gen++;pend={};run()}})}).observe(document.documentElement,{attributes:true});
 })();

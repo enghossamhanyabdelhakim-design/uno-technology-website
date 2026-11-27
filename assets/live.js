@@ -3,7 +3,7 @@ try{var _rq=new URLSearchParams(location.search).get('robot');if(_rq==='1')local
 /* Loads published content from Supabase (falls back to assets/content.js), then starts the site. */
 (function(){
 var c=window.UNO_CFG,done=false,t;
-function go(){if(done)return;done=true;clearTimeout(t);var s=document.createElement("script");s.src="assets/app.js?v=20261128y";document.body.appendChild(s)}
+function go(){if(done)return;done=true;clearTimeout(t);var s=document.createElement("script");s.src="assets/app.js?v=20261128z";document.body.appendChild(s)}
 try{
  t=setTimeout(go,2500);
  fetch(c.url+"/rest/v1/site_content?id=eq.1&select=data",{headers:{apikey:c.key}}).then(function(r){return r.json()}).then(function(r){
@@ -12,4 +12,4 @@ try{
  }).catch(function(){}).then(go);
 }catch(e){go()}
 })();
-;(function(){function ld(){var s=document.createElement("script");s.src="assets/slots.js?v=20261128s";document.body.appendChild(s)}if(document.readyState==="complete")setTimeout(ld,600);else window.addEventListener("load",function(){setTimeout(ld,600)})})();
+;(function(){function ld(){var s=document.createElement("script");s.src="assets/slots.js?v=20261128z";document.body.appendChild(s)}if(document.readyState==="complete")setTimeout(ld,600);else window.addEventListener("load",function(){setTimeout(ld,600)})})();
