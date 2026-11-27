@@ -369,12 +369,12 @@
   d.addEventListener('uno:card', function (e) { fillSlot(e.detail.slot, e.detail.product, false); });
   d.addEventListener('uno:product', function (e) { var p = e.detail.product; merge([p]); trackView(p.id); fillSlot(e.detail.slot, p, true); });
 
-  w.UnoStore = {
+  w.UnoStore = Object.assign(w.UnoStore || {}, {
     setLang: function (l) { lang = l === 'en' ? 'en' : 'ar'; if (w.UnoI18n) w.UnoI18n.setLang(lang); else { d.documentElement.lang = lang; d.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; } },
-    t: t, norm: norm, rank: rank, ready: ensureCache, getProduct: byId, addToCart: addToCart, products: function () { return cache.slice(); },
+    norm: norm, rank: rank, ready: ensureCache, getProduct: byId, addToCart: addToCart, products: function () { return cache.slice(); },
     wishlist: wish, compare: cmp, trackView: trackView, toast: toast,
     cardHTML: cardHTML, mountGrid: mountGrid, openQuick: openQuick,
     mountSearch: mountSearch, related: related, mountWishlistPanel: mountWishlistPanel, mountWishlistPage: mountWishlistPage,
     mountComparePage: mountComparePage, mountCompareTray: mountCompareTray, mountRecent: mountRecent
-  };
+  });
 })(window, document);
