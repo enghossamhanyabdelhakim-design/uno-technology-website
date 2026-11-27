@@ -684,11 +684,11 @@ RENDER.pos=function(mn){
   $("#pos-go").onclick=function(){var er=$("#pos-er");er.textContent="";if(!cart.length){er.textContent="السلة فارغة / Cart is empty";return}
    var wh=$("#pos-w").value||null,k=calc(),btn=this;
    if(window.POS2&&!window.__posold){POS2.pay({total:Math.round(k.total*100)/100,cart:cart,wh:wh,disc:k.disc,name:$("#pos-n").value.trim(),done:function(r,pm){
-     status("تم: "+r.number+" ✓ / Done: "+r.number+" ✓"+(Number(r.change)>0?" · الباقي / Change "+f(r.change):""));var S={};try{S=JSON.parse(localStorage.getItem("uno_inv")||"{}")}catch(e){}
+     try{status("تم: "+r.number+" ✓ / Done: "+r.number+" ✓"+(Number(r.change)>0?" · الباقي / Change "+f(r.change):""));var S={};try{S=JSON.parse(localStorage.getItem("uno_inv")||"{}")}catch(e){}
      var items=cart.map(function(l){return{n:l.n,q:l.q,p:l.p,vat:"inherit"}}),dd={no:r.number,date:new Date().toISOString().slice(0,10),type:"invoice",customer:{name:$("#pos-n").value.trim()||"عميل نقدي / Walk-in",phone:""},items:items,discount:k.disc,notes:"",vatMode:"inherit"};
      var o={lang:S.lang||"ar",color:S.color||"#F65A00",taxOn:!!TX.vat_enabled,taxRate:TX.vat_rate==null?14:TX.vat_rate,pricesIncl:!!TX.prices_include_vat,logo:S.logo!==false,footer:S.footer||"",company:CO,base:location.href.replace(/[^\/]*$/,""),sample:false};
      function pr(){var w=window.open("","_blank");if(!w)return;w.document.open();w.document.write(window.UNOINV.render("t80",dd,o));w.document.close();setTimeout(function(){w.focus();w.print()},900)}
-     uiConfirm("طباعة الإيصال؟ / Print the receipt?").then(function(ok){if(!ok)return;if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128c";x.onload=pr;document.body.appendChild(x)}});
+     uiConfirm("طباعة الإيصال؟ / Print the receipt?").then(function(ok){if(!ok)return;if(window.UNOINV)pr();else{var x=document.createElement("script");x.src="assets/invoice.js?v=20261128c";x.onload=pr;document.body.appendChild(x)}})}catch(e){try{status("تم الحفظ، لكن تعذر تجهيز الطباعة / Saved, but print is unavailable")}catch(_){}}
      cart=[];RENDER.pos($("#main"))}});return}
    if(!window.__posok){uiConfirm("تحصيل "+f(k.total)+" وإصدار الفاتورة؟ / Charge "+f(k.total)+" and issue the invoice?").then(function(ok){if(ok){window.__posok=1;btn.click()}});return}window.__posok=0;btn.disabled=true;
    var doc={kind:"invoice",customer_name:$("#pos-n").value.trim()||"عميل نقدي / Walk-in",vat_mode:"inherit",discount:k.disc,notes:"POS"},did;
