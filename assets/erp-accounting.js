@@ -511,6 +511,36 @@
   var RG = Object.assign({}, A, { 'l-range': function (ctx, el) { ctx.filters.range = el.getAttribute('data-id'); ctx.reload(); }, 'v-range': function (ctx, el) { ctx.filters.range = el.getAttribute('data-id'); ctx.reload(); } });
   U.i2 = { journal: journal };
 
+
+  /* chart of accounts and fiscal years: read-only, live tables only (no demo data, no writes) */
+  function loadChart() { return U.api.call('erp_chart_list', {}); }
+  function viewChart(ctx, d) {
+    var rows = d.rows || [];
+    var TY = { asset: AR('أصول', 'Asset'), liability: AR('التزامات', 'Liability'), equity: AR('حقوق ملكية', 'Equity'), income: AR('إيرادات', 'Income'), cogs: AR('تكلفة', 'Cost'), expense: AR('مصروفات', 'Expense') };
+    var cols = [
+      { key: 'c', label: AR('الحساب', 'Account'), cell: function (r) { return '<span style="padding-inline-start:' + (Math.max(0, (r.level || 1) - 1) * 14) + 'px"><span class="doc-no">' + esc(r.code) + '</span> <span class="acct-n">' + esc(U.state.lang === 'ar' ? r.ar : (r.en || r.ar)) + '</span></span>'; } },
+      { key: 'ty', label: AR('النوع', 'Type'), cell: function (r) { return '<span class="faint">' + esc(TY[r.type] || r.type || '') + '</span>'; } },
+      { key: 'po', label: AR('يقبل قيود', 'Postable'), cell: function (r) { return r.postable ? ui.pill(AR('نعم', 'Yes'), 'ok') : '<span class="faint">' + esc(AR('تجميعي', 'Group')) + '</span>'; } },
+      { key: 'st', label: AR('الحالة', 'Status'), cell: function (r) { return r.active ? ui.pill(AR('نشط', 'Active'), 'ok') : ui.pill(AR('موقوف', 'Inactive'), 'warn'); } }
+    ];
+    return head(AR('دليل الحسابات', 'Chart of accounts'), AR('دليل الحسابات', 'Chart of accounts'), AR('عرض فقط. لا يوجد ترحيل ولا تعديل من هذه الشاشة.', 'View only. No posting or editing from this screen.')) +
+      ui.banner({ tone: 'info', icon: 'info', text: AR('هذه بيانات الدفاتر الفعلية. الترحيل التلقائي غير مفعّل.', 'This is the live books data. Automatic posting is off.') }) +
+      '<section class="card">' + (!rows.length ? '<div class="tbl-wrap">' + ui.empty({ title: AR('دليل الحسابات لم يُجهَّز بعد', 'The chart of accounts is not set up yet'), hint: AR('لا توجد حسابات في الدفاتر حاليًا. يُجهَّز الدليل مع باقي إعداد المحاسبة بعد اعتماد المحاسب.', 'There are no accounts in the books yet. The chart is set up with the rest of the accounting setup once the accountant signs off.'), icon: 'doc' }) + '</div>' : ui.table({ cols: cols, rows: rows, rowId: function (r) { return r.id; } }) + ui.totalsStrip([{ label: AR('الحسابات', 'Accounts'), value: fmt.num(rows.length) }], '')) + '</section>';
+  }
+  function loadFY() { return U.api.call('erp_fiscal_years_list', {}); }
+  function viewFY(ctx, d) {
+    var rows = d.rows || [];
+    var cols = [
+      { key: 'n', label: AR('السنة المالية', 'Fiscal year'), cell: function (r) { return '<span class="doc-no">' + esc(r.name) + '</span>'; } },
+      { key: 'f', label: AR('من', 'From'), cell: function (r) { return '<span class="num">' + esc(fmt.date(r.start)) + '</span>'; } },
+      { key: 't', label: AR('إلى', 'To'), cell: function (r) { return '<span class="num">' + esc(fmt.date(r.end)) + '</span>'; } },
+      { key: 'p', label: AR('الفترات', 'Periods'), cell: function (r) { return '<span class="num">' + esc(fmt.num((r.periods || []).length)) + '</span>'; } },
+      { key: 's', label: AR('الحالة', 'Status'), cell: function (r) { return r.status === 'open' ? ui.pill(AR('مفتوحة', 'Open'), 'ok') : ui.pill(AR('مغلقة', 'Closed'), 'warn'); } }
+    ];
+    return head(AR('السنوات المالية', 'Fiscal years'), AR('السنوات المالية', 'Fiscal years'), AR('عرض فقط. لا يمكن فتح أو إغلاق فترات من هذه الشاشة.', 'View only. Periods cannot be opened or closed from this screen.')) +
+      '<section class="card">' + (!rows.length ? '<div class="tbl-wrap">' + ui.empty({ title: AR('لا توجد سنوات مالية بعد', 'No fiscal years yet'), hint: AR('تُحدَّد السنة المالية وإقفال الفترات مع المحاسب. لا شيء يُنشأ تلقائيًا.', 'The fiscal year and period close are set with the accountant. Nothing is created automatically.'), icon: 'doc' }) + '</div>' : ui.table({ cols: cols, rows: rows, rowId: function (r) { return r.id; } })) + '</section>';
+  }
+
   var TT = { ar: 'الخزائن والبنوك', en: 'Treasuries' };
   U.registerModule({
     id: 'accounting', group: 'accounting',
@@ -520,7 +550,9 @@
       { group: 'accounting', screen: 'accounting.journal', label: { ar: 'دفتر اليومية', en: 'Journal' }, icon: 'doc', order: 30 },
       { group: 'accounting', screen: 'accounting.trial', label: { ar: 'ميزان المراجعة', en: 'Trial balance' }, icon: 'sliders', order: 40 },
       { group: 'accounting', screen: 'accounting.pnl', label: { ar: 'الأرباح والخسائر', en: 'Profit and loss' }, icon: 'chart', order: 50 },
-      { group: 'accounting', screen: 'accounting.vat', label: { ar: 'ضريبة القيمة المضافة', en: 'VAT' }, icon: 'shield', order: 60 }
+      { group: 'accounting', screen: 'accounting.vat', label: { ar: 'ضريبة القيمة المضافة', en: 'VAT' }, icon: 'shield', order: 60 },
+      { group: 'accounting', screen: 'accounting.chart', label: { ar: 'دليل الحسابات', en: 'Chart of accounts' }, icon: 'doc', order: 70 },
+      { group: 'accounting', screen: 'accounting.fiscal', label: { ar: 'السنوات المالية', en: 'Fiscal years' }, icon: 'doc', order: 80 }
     ],
     screens: [
       { id: 'accounting.treasuries', title: TT, load: load, view: view, actions: A },
@@ -528,7 +560,9 @@
       { id: 'accounting.journal', title: { ar: 'دفتر اليومية', en: 'Journal' }, load: loadJ, view: viewJ, actions: J },
       { id: 'accounting.trial', title: { ar: 'ميزان المراجعة', en: 'Trial balance' }, load: loadTB, view: viewTB, actions: A },
       { id: 'accounting.pnl', title: { ar: 'الأرباح والخسائر', en: 'Profit and loss' }, load: loadPL, view: viewPL, actions: RG },
-      { id: 'accounting.vat', title: { ar: 'ضريبة القيمة المضافة', en: 'VAT' }, load: loadVat, view: viewVat, actions: RG }
+      { id: 'accounting.vat', title: { ar: 'ضريبة القيمة المضافة', en: 'VAT' }, load: loadVat, view: viewVat, actions: RG },
+      { id: 'accounting.chart', title: { ar: 'دليل الحسابات', en: 'Chart of accounts' }, load: loadChart, view: viewChart, actions: A },
+      { id: 'accounting.fiscal', title: { ar: 'السنوات المالية', en: 'Fiscal years' }, load: loadFY, view: viewFY, actions: A }
     ]
   });
 })();

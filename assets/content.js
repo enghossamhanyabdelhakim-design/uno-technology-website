@@ -390,10 +390,6 @@ window.UNO={
     {
      "ar": "أنظمة التحكم في الدخول",
      "en": "Access control systems"
-    },
-    {
-     "ar": "للمنازل والمحلات والشركات",
-     "en": "For homes, shops and companies"
     }
    ]
   },
@@ -680,8 +676,8 @@ window.UNO={
      "en": "Better internet coverage"
     },
     {
-     "ar": "اتصال إنترنت مستقر",
-     "en": "Reliable internet connectivity"
+     "ar": "تحسين استقرار الاتصال",
+     "en": "Improving connection stability"
     }
    ]
   },
