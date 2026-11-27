@@ -77,7 +77,7 @@
       var o = mapOrder({ display_number: r.display_number, number: r.number, status: r.status, totals: r.totals, items: r.items, governorate: p.delivery && p.delivery.governorate, city: p.delivery && p.delivery.city, created_at: new Date().toISOString(), timeline: [] }, p.customer && p.customer.phone);
       o.customer = p.customer; o.is_test = !!r.is_test;
       return o;
-    }).catch(function (e) { if (!e.userMessage) e.userMessage = e.message; throw e; });
+    }).catch(function (e) { if (/invalid_phone/.test(e.message)) { e.code = 'INVALID_PHONE'; e.userMessage = document.documentElement.lang === 'en' ? 'The phone number is not valid. Enter an Egyptian mobile number like 01012345678.' : 'رقم الموبايل مش صحيح. اكتب رقم مصري صحيح، مثلا 01012345678.'; } if (!e.userMessage) e.userMessage = e.message; throw e; });
   }
 
   var lastPhone = '';
