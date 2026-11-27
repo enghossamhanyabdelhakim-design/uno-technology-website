@@ -14,12 +14,36 @@
   function digits(p) { return String(p || '').replace(/\D/g, '').replace(/^0/, '20'); }
   function page(inner, root) {
     S.applyTheme();
-    S.app.innerHTML = '<div class="wrap">' + S.shellTop() + '<div class="bar"><button class="sm" id="bk">' + T(['رجوع', 'Back']) + '</button><h1>' + T(['المبيعات والعملاء', 'Sales and CRM']) + '</h1>' + (root && can('crm.edit') ? '<button class="sm pr" id="nw">+ ' + T(['عميل', 'Lead']) + '</button>' : '') + '</div>' + inner + '</div>';
+    S.app.innerHTML = '<div class="wrap">' + S.shellTop() + '<div class="bar"><button class="sm" id="bk">' + T(['رجوع', 'Back']) + '</button><h1>' + T(['المبيعات والعملاء', 'Sales and CRM']) + '</h1>' + (root ? '<button class="sm" id="qa0">' + T(['عروض الأسعار', 'Quotes']) + '</button>' : '') + (root && can('crm.edit') ? '<button class="sm pr" id="nw">+ ' + T(['عميل', 'Lead']) + '</button>' : '') + '</div>' + inner + '</div>';
     S.wire(); document.getElementById('bk').onclick = root ? S.home : list;
+  }
+  var qFlt = 'all', qTxt = '';
+  function quotesAll() {
+    S.applyTheme();
+    S.app.innerHTML = '<div class="wrap">' + S.shellTop() + '<div class="bar"><button class="sm" id="bk">' + T(['رجوع', 'Back']) + '</button><h1>' + T(['عروض الأسعار', 'Quotes']) + '</h1></div><div class="empty">' + T(['جارٍ التحميل...', 'Loading...']) + '</div></div>';
+    S.wire(); document.getElementById('bk').onclick = list;
+    rpc('crm_quotes_all', {}).then(function (rows) {
+      var cnt = function (st) { return rows.filter(function (r) { return st === 'all' || r.status === st; }).length; };
+      var sent = rows.filter(function (r) { return r.status === 'sent'; }), openV = sent.reduce(function (t, r) { return t + Number(r.total || 0); }, 0);
+      var acc = cnt('accepted'), dec = acc + cnt('rejected');
+      var h = '<div class="jst"><div><b>' + money(openV) + '</b><small>' + T(['قيمة المرسل (ج.م)', 'Sent value (EGP)']) + '</small></div><div><b>' + sent.length + '</b><small>' + T(['بانتظار الرد', 'Awaiting reply']) + '</small></div><div><b>' + (dec ? Math.round(100 * acc / dec) + '%' : '-') + '</b><small>' + T(['نسبة القبول', 'Acceptance']) + '</small></div></div>';
+      h += '<div class="chips">' + [['all', ['الكل', 'All']], ['draft', QS.draft], ['sent', QS.sent], ['accepted', QS.accepted], ['rejected', QS.rejected]].map(function (c) { return '<button class="sm' + (qFlt === c[0] ? ' on' : '') + '" data-qf="' + c[0] + '">' + T(c[1]) + ' (' + cnt(c[0]) + ')</button>'; }).join('') + '</div>';
+      h += '<input id="qsr" style="width:100%;box-sizing:border-box;padding:12px 14px;margin:0 0 12px;border:1px solid var(--bd,#e3e3e3);border-radius:12px;font:inherit;background:var(--card,#fff);color:inherit" placeholder="' + T(['ابحث برقم العرض أو اسم العميل', 'Search quote no. or customer']) + '" value="' + esc(qTxt) + '">';
+      var shown = rows.filter(function (r) { var t = qTxt.trim().toLowerCase(); return (qFlt === 'all' || r.status === qFlt) && (!t || String(r.no).toLowerCase().indexOf(t) >= 0 || String(r.name || '').toLowerCase().indexOf(t) >= 0); });
+      h += '<div id="ql2">' + (shown.length ? shown.map(function (q) {
+        return '<div class="job"><div class="r"><b>' + esc(q.name || '') + '</b><span class="st s-' + (q.status === 'accepted' ? 'approved' : q.status === 'rejected' ? 'cancelled' : q.status === 'sent' ? 'assigned' : 'new') + '">' + T(QS[q.status]) + '</span></div><small>#' + esc(String(q.no)) + ' · ' + q.lines.map(function (x) { return esc(x.name) + ' × ' + x.qty; }).join(' · ') + '</small><div class="r" style="margin-top:8px"><b>' + money(q.total) + ' ' + T(['ج.م', 'EGP']) + '</b><span><button class="sm" data-pdf2="' + q.id + '">PDF</button> <button class="sm" data-open="' + q.lead_id + '">' + T(['فتح العميل', 'Open lead']) + '</button></span></div></div>';
+      }).join('') : '<div class="empty">' + T(['لا توجد عروض هنا.', 'No quotes here.']) + '</div>') + '</div>';
+      document.querySelector('.wrap .empty').outerHTML = h;
+      [].forEach.call(document.querySelectorAll('[data-qf]'), function (b) { b.onclick = function () { qFlt = b.getAttribute('data-qf'); quotesAll(); }; });
+      var sr = document.getElementById('qsr'); if (sr) sr.onchange = function () { qTxt = sr.value; quotesAll(); };
+      [].forEach.call(document.querySelectorAll('[data-pdf2]'), function (b) { b.onclick = function () { var q = rows.filter(function (z) { return z.id === b.getAttribute('data-pdf2'); })[0]; if (q) quotePdf(q, { name: q.name, phone: q.phone }); }; });
+      [].forEach.call(document.querySelectorAll('[data-open]'), function (b) { b.onclick = function () { detail(b.getAttribute('data-open')); }; });
+    }).catch(function (e) { document.querySelector('.wrap .empty').textContent = errmsg(e); });
   }
   function list() {
     page('<div class="empty">' + T(['جارٍ التحميل...', 'Loading...']) + '</div>', true);
     var nw = document.getElementById('nw'); if (nw) nw.onclick = function () { form(); };
+    var q0 = document.getElementById('qa0'); if (q0) q0.onclick = quotesAll;
     rpc('crm_leads_list', {}).then(function (rows) {
       var f = { open: function (r) { return r.stage !== 'won' && r.stage !== 'lost'; }, won: function (r) { return r.stage === 'won'; }, lost: function (r) { return r.stage === 'lost'; } };
       var ch = [['open', ['المفتوحة', 'Open']], ['won', ['تم البيع', 'Won']], ['lost', ['الخسارة', 'Lost']]];
