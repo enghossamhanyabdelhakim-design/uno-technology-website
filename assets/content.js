@@ -151,7 +151,7 @@ window.UNO={
  },
  "why": [
   {
-   "img": "assets/pose-thumbs.jpg",
+   "img": "assets/uno-pose-thumbs.webp",
    "t": {
     "ar": "حلول متكاملة",
     "en": "All-in-one"
@@ -162,7 +162,7 @@ window.UNO={
    }
   },
   {
-   "img": "assets/pose-bulb.jpg",
+   "img": "assets/uno-pose-bulb.webp",
    "t": {
     "ar": "عملية وحديثة",
     "en": "Practical & modern"
@@ -173,7 +173,7 @@ window.UNO={
    }
   },
   {
-   "img": "assets/pose-wrench.jpg",
+   "img": "assets/uno-pose-wrench.webp",
    "t": {
     "ar": "دعم وصيانة",
     "en": "Support & care"
@@ -202,7 +202,7 @@ window.UNO={
     "ar": "جرّب أداة الكاميرات",
     "en": "Try the CCTV planner"
    },
-   "img": "assets/pose-shield.jpg",
+   "img": "assets/uno-pose-shield.webp",
    "link": "tools.html#cctv"
   },
   {
@@ -222,7 +222,7 @@ window.UNO={
     "ar": "شوف الخدمات",
     "en": "See services"
    },
-   "img": "assets/pose-laptop.jpg",
+   "img": "assets/uno-pose-laptop.webp",
    "link": "index.html#services"
   },
   {
@@ -242,7 +242,7 @@ window.UNO={
     "ar": "احسب مواصفاتك",
     "en": "Find your specs"
    },
-   "img": "assets/pose-thumbs.jpg",
+   "img": "assets/uno-pose-thumbs.webp",
    "link": "tools.html#pc"
   },
   {
@@ -262,7 +262,7 @@ window.UNO={
     "ar": "افتح المدونة",
     "en": "Open the blog"
    },
-   "img": "assets/pose-support.jpg",
+   "img": "assets/uno-pose-support.webp",
    "link": "blog.html"
   }
  ],
@@ -780,10 +780,10 @@ window.UNO={
   }
  ],
  "poses": [
-  "assets/pose-laptop.jpg",
-  "assets/pose-shield.jpg",
-  "assets/pose-support.jpg",
-  "assets/pose-bulb.jpg"
+  "assets/uno-pose-laptop.webp",
+  "assets/uno-pose-shield.webp",
+  "assets/uno-pose-support.webp",
+  "assets/uno-pose-bulb.webp"
  ],
  "portfolioSoon": {
   "ar": "صور المشروع قريبًا",
