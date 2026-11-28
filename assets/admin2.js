@@ -82,10 +82,11 @@ var MODS=[
  {id:"an_sl",g:"التحليلات / Analytics",p:"analytics",ic:"cart",l:"المبيعات / Sales"},
  {id:"an_pc",g:"التحليلات / Analytics",p:"analytics",ic:"tag",l:"نقطة البيع والنقدية / POS and cash"},
  {id:"an_iv",g:"التحليلات / Analytics",p:"analytics",ic:"box",l:"المخزون / Inventory"},
- {id:"an_br",g:"التحليلات / Analytics",p:"analytics",ic:"users",l:"مقارنة الفروع / Branch comparison"}
+ {id:"an_br",g:"التحليلات / Analytics",p:"analytics",ic:"users",l:"مقارنة الفروع / Branch comparison"},
+ {id:"sw",g:"الإعدادات / Settings",p:"core",ic:"tag",l:"الخيارات المدفوعة / Paid options"}
 ];
 var GR={ov:"نظرة عامة / Overview",sl:"المبيعات / Sales",pu:"المشتريات / Purchases",iv:"المخزون / Inventory",ac:"الحسابات / Accounting",cr:"العملاء / CRM",rp:"التقارير / Reports",an:"التحليلات / Analytics",st:"المتجر الإلكتروني / Online store",wb:"الموقع / Website",se:"الإعدادات / Settings"};
-var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",an_ov:"an",an_sl:"an",an_pc:"an",an_iv:"an",an_br:"an",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",paym:"st",cpn:"st",pol:"st",sset:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",rmx:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
+var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",an_ov:"an",an_sl:"an",an_pc:"an",an_iv:"an",an_br:"an",sw:"se",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",paym:"st",cpn:"st",pol:"st",sset:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",rmx:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
 MODS.forEach(function(m,i){m.gk=GM[m.id]||"se";m.g=GR[m.gk];m.o=i});
 MODS.sort(function(a,b){return GO.indexOf(a.gk)-GO.indexOf(b.gk)||a.o-b.o});
 var GOPEN={};try{GOPEN=JSON.parse(localStorage.getItem("uno_gopen")||"{}")}catch(e){}
@@ -1159,5 +1160,28 @@ RENDER.ins=function(mn){
    $("#an-body").innerHTML=h+'<p class="hint" style="margin-top:14px">'+T("الفاتورة تُنسب للفرع من مخزن أول سطر لها. الفواتير بدون مخزن تظهر تحت (غير مرتبط بفرع).","An invoice is assigned to the branch of its first line's warehouse. Invoices with no warehouse show under (Not linked to a branch).")+"</p>"}).catch(fail)})};
 
  var s=document.createElement("style");s.textContent=".an-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:16px}.an-bar label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)}.an-bar input,.an-bar select{padding:8px 10px;border-radius:10px;border:1px solid rgba(128,128,140,.35);background:var(--card,#fff);color:inherit;font:inherit}";document.head.appendChild(s);
+})();
+/* Paid options: switches, all OFF by default. A switch costs nothing by itself; paid code must check the switch and a key added through a vault link. */
+(function(){
+ var T=function(a,e){return window.UNO_LANG==="en"?e:a};
+ var INFO={
+  ai_assistant:[T("مساعد أونو بالذكاء الاصطناعي (Gemini)","Uno AI assistant (Gemini)"),T("يرد على العملاء بمفتاح Google AI Studio. التكلفة: حسب استخدام المفتاح وخطة جوجل، وقد تكون مجانية حتى حد معين ثم مدفوعة.","Answers customers using a Google AI Studio key. Cost: depends on key usage and Google's plan, free up to a limit and paid beyond it.")],
+  ai_insights:[T("ملخص التحليلات بالذكاء الاصطناعي","AI summary of analytics"),T("يكتب ملخصًا بالكلام العادي لأرقام التحليلات. يحتاج مفتاح ذكاء اصطناعي، والتكلفة حسب الاستخدام.","Writes a plain-words summary of the analytics numbers. Needs an AI key. Cost is per use.")],
+  whatsapp_send:[T("إرسال واتساب لكل رسالة","WhatsApp per-message sending"),T("تقرير يومي وتنبيهات المخزون على واتساب. كل رسالة مرسلة تُحسب برسوم من مزود واتساب.","Daily report and stock alerts on WhatsApp. Each message sent is charged by the WhatsApp provider.")],
+  email_digest:[T("ملخص بالبريد","Email digest"),T("ملخص دوري بالبريد. مجاني مع بريد مجاني، ومدفوع إذا اخترت مزودًا مدفوعًا.","Periodic email summary. Free with a free mailbox, paid if you pick a paid provider.")],
+  sms_alerts:[T("تنبيهات SMS","SMS alerts"),T("تنبيهات نصية (فرق وردية، مرتجع كبير). كل رسالة تُحسب برسوم المزود.","Text alerts (shift difference, large refund). Each message is charged by the provider.")]
+ };
+ RENDER.sw=function(mn){
+  function draw(){api("POST","rpc/sw_list",{}).then(function(o){
+   var h='<p class="hint" style="margin-bottom:12px">'+T("كل الخيارات المدفوعة مغلقة افتراضيًا ولا تكلف شيئًا حتى يشغّلها المالك. المفاتيح لا تُكتب هنا أبدًا: تُضاف فقط عبر رابط خزنة آمن.","Every paid option is OFF by default and costs nothing until the owner turns it on. Keys are never typed here: they are added only through a secure vault link.")+"</p>";
+   h+='<div class="tw"><table><thead><tr><th>'+T("الخيار","Option")+"</th><th>"+T("التكلفة والملاحظة","Cost note")+"</th><th>"+T("الحالة","Status")+"</th></tr></thead><tbody>"+o.switches.map(function(s){var i=INFO[s.key]||[s.key,""];
+    return "<tr><td><b>"+esc(i[0])+"</b></td><td>"+esc(i[1])+"</td><td>"+(o.owner?'<button class="btn" type="button" data-k="'+esc(s.key)+'" data-on="'+(s.enabled?0:1)+'">'+(s.enabled?T("مفعّل، اضغط للإيقاف","ON, press to turn off"):T("مغلق، اضغط للتشغيل","OFF, press to turn on"))+"</button>":(s.enabled?T("مفعّل","ON"):T("مغلق","OFF")))+"</td></tr>"}).join("")+"</tbody></table></div>";
+   if(!o.owner)h+='<p class="hint" style="margin-top:12px">'+T("التشغيل والإيقاف للمالك فقط.","Only the owner can turn options on or off.")+"</p>";
+   mn.innerHTML=h;
+   [].forEach.call(mn.querySelectorAll("button[data-k]"),function(b){b.onclick=function(){var on=b.dataset.on==="1";
+    var go=function(){b.disabled=true;api("POST","rpc/sw_set",{p_key:b.dataset.k,p_on:on}).then(draw).catch(function(e){b.disabled=false;status(e.message,1)})};
+    if(on)uiConfirm(T("هذا الخيار قد يكلف مالًا عند الاستخدام ولن يعمل قبل إضافة المفتاح عبر رابط الخزنة. تشغيله؟","This option can cost money when used and does nothing until its key is added through a vault link. Turn it on?")).then(function(y){if(y)go()});else go()}});
+  }).catch(function(e){mn.innerHTML='<p class="hint" style="padding:18px">'+esc(e.message)+"</p>"})}
+  draw()};
 })();
 })();
