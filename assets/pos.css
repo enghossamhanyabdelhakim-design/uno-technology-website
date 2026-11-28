@@ -1489,3 +1489,14 @@ body.is-display #appRoot, body.is-display #mBar, body.is-display .toasts { displ
 @media (max-width: 1023px) {
   .toasts { inset-block-end: calc(88px + env(safe-area-inset-bottom)); inset-inline: 12px; width: auto; }
 }
+
+/* r11: 390 register header and toast placement */
+@media (max-width: 799px) {
+  .top-meta { min-width: max-content; }
+  .search { flex: 1 1 0; }
+  .toasts { inset-block-end: auto; inset-block-start: calc(var(--topbar-h, 54px) + 8px); inset-inline: 12px; width: auto; }
+}
+@media (max-width: 420px) {
+  #shiftPill .txt-long { display: inline; }
+  #shiftPill .shift-dur { display: none; }
+}

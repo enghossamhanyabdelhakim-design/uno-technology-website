@@ -674,7 +674,7 @@ function renderTopbar() {
   shiftPill.className = 'pill btn' + (openShift ? '' : ' is-bad');
   shiftPill.title = (openShift && state.shift.label) ? T('الجلسة', 'Session') + ': ' + state.shift.label : '';
   shiftPill.innerHTML = openShift
-    ? `<span class="txt-long">${T('وردية', 'Shift')} <strong class="num">#${String(state.shift.id).slice(-2)}</strong> · ${fmtDuration(Date.now() - state.shift.openedAt)}</span>`
+    ? `<span class="txt-long">${T('وردية', 'Shift')} <strong class="num">#${String(state.shift.id).slice(-2)}</strong><span class="shift-dur"> · ${fmtDuration(Date.now() - state.shift.openedAt)}</span></span>`
     : `<span class="txt-long">${T('مفيش وردية', 'No shift')}</span>`;
 
   const cashier = state.shift ? ROLES[state.shift.cashierRole || 'cashier'] : ROLES.cashier;
