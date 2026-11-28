@@ -103,3 +103,25 @@ html[data-theme=dark] .us-chk small{background:rgba(255,138,61,.16);color:#FF8A3
 .us-rel-c b{font-size:.92rem;line-height:1.4}
 .us-rel-c i{font-style:normal;font-weight:800;color:var(--or2,#C94700)}
 @media(max-width:860px){.us-rel-g{grid-template-columns:repeat(2,1fr)}}
+
+/* r12: designer B pack 2, mobile store chrome (ad rule dropped) */
+/* Designer B pack 2 (additive, load LAST on store.html, mobile only).
+   Goal: products start higher. Live store at 390px stacks: header, search, [favorites][cart] pills, breadcrumb,
+   a SECOND search input + filter button, then count/sort/view row. Changes:
+   - one search only (hide the duplicate .us-in search inside .us-bar; the header search .ud-search stays)
+   - favorites + cart pills share one row with search is not possible at 390, so shrink them to compact icon-size chips
+   - breadcrumb hidden on mobile (back is the tab bar)
+   - filter button, count, sort, view toggle collapse into one row */
+@media (max-width:899px){
+  #app .us-tools{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
+  .us-tools .ud-search{grid-column:1/-1}
+  .us-tbtn{min-height:40px;padding:0 14px;font-size:.85rem}
+  #app .us-wrap .us-crumbs{display:none}
+  .us-bar .us-in[type=search]{display:none}
+  #app .us-wrap>div>.us-bar:first-child{margin:0}
+  #app .us-wrap>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+  #app .us-wrap>div>.us-bar{margin:0}
+  #app .us-wrap>div>.us-bar:first-child{order:1}
+  #app .us-wrap>div>.us-bar:last-child{order:2;flex:1}
+  .us-bar .grow{font-size:.8rem;opacity:.75}
+}
