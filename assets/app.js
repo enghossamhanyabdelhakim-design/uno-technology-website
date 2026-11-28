@@ -333,7 +333,7 @@ T.quote={
 function tools(){
   var order=[["pc",bi("لابتوب / كمبيوتر","Laptop / PC")],["phone",bi("موبايل","Phone")],["cctv",bi("كاميرات مراقبة","CCTV planner")],["stor",bi("تخزين الكاميرات","CCTV storage")],["net",bi("سرعة الإنترنت","Internet speed")],["ups",bi("حجم UPS","UPS sizing")],["fix",bi("دليل الأعطال","Troubleshooting")],["quote",bi("طلب عرض سعر","Quote request")]];
   var cur=(location.hash||"#pc").replace("#",""); if(!T[cur])cur="pc";
-  $("#app").innerHTML='<section><div class="wrap"><h2>'+B(C.sections.tools.t)+'</h2><p class="sub">'+B(C.sections.tools.d)+'</p><div class="chips" id="tabs">'+order.map(function(o){return '<button class="chip'+(o[0]===cur?' on':'')+'" data-t="'+o[0]+'">'+ico({pc:"💻",phone:"📱",cctv:"📹",stor:"💾",net:"📶",ups:"🔋",fix:"🛠",quote:"📝"}[o[0]])+B(o[1])+'</button>'}).join("")+'</div><div class="tool"><form id="tf" class="tform"></form><div id="tout" class="tout"></div></div></div></section>';
+  $("#app").innerHTML='<section><div class="wrap"><h1 class="pgh">'+B(C.sections.tools.t)+'</h1><p class="sub">'+B(C.sections.tools.d)+'</p><div class="chips" id="tabs">'+order.map(function(o){return '<button class="chip'+(o[0]===cur?' on':'')+'" data-t="'+o[0]+'">'+ico({pc:"💻",phone:"📱",cctv:"📹",stor:"💾",net:"📶",ups:"🔋",fix:"🛠",quote:"📝"}[o[0]])+B(o[1])+'</button>'}).join("")+'</div><div class="tool"><form id="tf" class="tform"></form><div id="tout" class="tout"></div></div></div></section>';
   function show(k){
     cur=k;$$("#tabs .chip").forEach(function(c){c.classList.toggle("on",c.dataset.t===k)});
     $("#tf").innerHTML=T[k].form()+'<button class="btn" type="submit">'+B(bi("احسب","Calculate"))+'</button>';
