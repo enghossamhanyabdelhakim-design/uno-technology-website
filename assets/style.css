@@ -247,8 +247,6 @@ h1,h2,h3,p,li,a{overflow-wrap:anywhere}
 .grid,.pgrid,.pgrid3,.why,.steps,.about,.hg{min-width:0}.grid>*,.pgrid>*,.why>*,.steps>*,.hg>*{min-width:0}
 
 /* ===== v4.3 app-like mobile ===== */
-@view-transition{navigation:auto}
-::view-transition-old(root),::view-transition-new(root){animation-duration:.22s}
 html{overscroll-behavior-y:none}
 header{position:sticky;top:0;z-index:50;padding-top:env(safe-area-inset-top)}
 .soon{text-align:center;padding:48px 0 32px;max-width:520px;margin-inline:auto}.soon .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px}
