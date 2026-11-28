@@ -1473,6 +1473,16 @@ function rcDoc() {
   return { cfg: d ? d.cfg : { text: { phone: '01505946321' }, tax_fallback_phone: true }, tax: realTax, phone: co.phone || '' };
 }
 function receiptHtml(inv, tplOverride) {
+  return receiptHtml0(inv, tplOverride) + secondLine(inv);
+}
+/* second currency line: display only, shown only when the admin switch is on and a rate exists */
+function secondLine(inv) {
+  const sc = window.UNO_SECOND;
+  if (!sc || !(sc.rate > 0) || !(Number(inv.total) > 0)) return '';
+  const v = (Number(inv.total) * sc.rate).toFixed(2);
+  return `<div class="rc-second" style="text-align:center;font-size:11px;margin:4px 0">${T('تقريبًا بـ', 'About')} ${v} ${sc.code} (${T('سعر يدوي بتاريخ', 'manual rate set on')} ${sc.at})</div>`;
+}
+function receiptHtml0(inv, tplOverride) {
   rcEnsureCss();
   const cust = inv.customer_id ? state.customers.find((c) => c.id === inv.customer_id) : null;
   return window.UnoReceipt.render(inv, {
