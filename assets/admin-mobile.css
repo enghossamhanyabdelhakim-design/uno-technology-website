@@ -9,20 +9,23 @@
  #main .tb{flex-wrap:wrap}
  #main .tb>*{flex:1 1 140px}
  /* tables become stacked cards */
- #main .tw{overflow:visible}
- #main .tw table{display:block;width:100%;border:0;background:transparent}
- #main .tw thead{display:none}
- #main .tw tbody{display:block}
- #main .tw tr{display:block;margin:0 0 10px;padding:6px 12px;border:1px solid var(--bd,rgba(128,128,128,.35));border-radius:12px}
- #main .tw td{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 0;border:0;border-bottom:1px dashed rgba(128,128,128,.28);white-space:normal;text-align:end;width:auto}
- #main .tw td:last-child{border-bottom:0}
- #main .tw td::before{content:attr(data-l);flex:0 0 36%;max-width:44%;text-align:start;font-size:12px;font-weight:600;opacity:.72}
- #main .tw td[data-l=""]::before,#main .tw td:not([data-l])::before{display:none}
- #main .tw td:empty{display:none}
- #main .tw td[colspan]{display:block;text-align:center}
- #main .tw td input[type=checkbox]{width:24px;height:24px}
- #main .tw td img{max-width:64px;height:auto}
- #main .tw td .btn,#main .tw td button{min-height:44px}
+ #main .tw:not(.keep){overflow:visible}
+ #main .tw:not(.keep) table{display:block;width:100%;border:0;background:transparent}
+ #main .tw:not(.keep) thead{display:none}
+ #main .tw:not(.keep) tbody{display:block}
+ #main .tw:not(.keep) tr{display:block;margin:0 0 10px;padding:6px 12px;border:1px solid var(--bd,rgba(128,128,128,.35));border-radius:12px}
+ #main .tw:not(.keep) td{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 0;border:0;border-bottom:1px dashed rgba(128,128,128,.28);white-space:normal;text-align:end;width:auto}
+ #main .tw:not(.keep) td:last-child{border-bottom:0}
+ #main .tw:not(.keep) td{flex-wrap:wrap}
+ #main .tw:not(.keep) td>input:not([type=checkbox]),#main .tw:not(.keep) td>select,#main .tw:not(.keep) td>textarea{flex:1 1 55%}
+ #main .tw:not(.keep) td button,#main .tw:not(.keep) td .btn,#main .tw:not(.keep) td label{position:static;flex:0 0 auto;max-width:100%}
+ #main .tw:not(.keep) td::before{content:attr(data-l);flex:0 0 36%;max-width:44%;text-align:start;font-size:12px;font-weight:600;opacity:.72}
+ #main .tw:not(.keep) td[data-l=""]::before,#main .tw:not(.keep) td:not([data-l])::before{display:none}
+ #main .tw:not(.keep) td:empty{display:none}
+ #main .tw:not(.keep) td[colspan]{display:block;text-align:center}
+ #main .tw:not(.keep) td input[type=checkbox]{width:24px;height:24px}
+ #main .tw:not(.keep) td img{max-width:64px;height:auto}
+ #main .tw:not(.keep) td .btn,#main .tw:not(.keep) td button{min-height:44px}
  /* dialogs */
  #dlg{align-items:flex-start;overflow:auto;padding:12px}
  #dbx{max-height:none;width:100%;max-width:100%;box-sizing:border-box}
@@ -30,5 +33,6 @@
  /* products bulk bar: never covers content, controls fully visible */
  #bk-bar{max-height:46vh;overflow:auto;padding:10px 12px calc(10px + env(safe-area-inset-bottom))!important;box-sizing:border-box}
  #bk-bar>b,#bk-bar>strong,#bk-bar>span:first-child{flex:1 1 100%}
- #bk-bar select,#bk-bar input,#bk-bar button{flex:1 1 42%;min-height:44px;font-size:16px;max-width:100%}
+ #bk-bar select,#bk-bar input{flex:1 1 100%;min-height:44px;font-size:16px;max-width:100%}
+ #bk-bar button{flex:1 1 42%;min-height:44px;font-size:16px;max-width:100%}
 }

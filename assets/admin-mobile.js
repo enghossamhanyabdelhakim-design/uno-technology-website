@@ -2,6 +2,7 @@
 (function(){
  function label(root){
   [].forEach.call(root.querySelectorAll(".tw table"),function(t){
+   if(t.querySelector(".rmx-p,.rmx")||t.classList.contains("rmx")){var w=t.closest(".tw");if(w)w.classList.add("keep");return}
    var hs=[].map.call(t.querySelectorAll("thead th"),function(h){return h.textContent.replace(/\s+/g," ").trim()});
    if(!hs.length)return;
    [].forEach.call(t.querySelectorAll("tbody tr"),function(r){
