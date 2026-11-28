@@ -463,6 +463,7 @@
       renderRateBox();
       renderSummary();
     });
+    var ctry = document.createElement('p'); ctry.className = 'uo-country'; ctry.style.cssText = 'margin:0 0 8px;font-size:.9rem'; ctry.textContent = U.config.lang === 'ar' ? 'الدولة: جمهورية مصر العربية' : 'Country: Arab Republic of Egypt'; box.appendChild(ctry);
     box.appendChild(gov.wrap);
 
     var city = field({ name: 'city', label: t('co.city'), placeholder: t('co.city_ph'), value: state.delivery.city, optional: true, autocomplete: 'address-level2' });
