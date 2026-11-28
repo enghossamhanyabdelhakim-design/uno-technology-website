@@ -880,3 +880,10 @@ html:not([data-theme=dark]) .oc .od{background:#1F2933}
 .cta .ci{background:#fff;color:#B03C00}
 .cta .ci a{color:#B03C00}
 a.hs-s .hs-b,a.hs-s .hs-b span{color:#B03C00}
+
+
+/* r6-ban  promo banner CTA pills (.ban .bb) keep the old orange at 14-15px */
+.ban .bb,.ban .bb span{color:var(--od)}
+
+/* r6-ban2  dark theme: white pill needs dark ink, not the light dark-mode orange */
+html[data-theme=dark] .ban .bb,html[data-theme=dark] .ban .bb span{color:#B03C00}
