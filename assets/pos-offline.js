@@ -14,7 +14,9 @@
   }
   function tx(mode, fn) { return new Promise(function (res, rej) { var t = DB.transaction('q', mode), o = fn(t.objectStore('q')); t.oncomplete = function () { res(o && o.result); }; t.onerror = function () { rej(t.error); }; t.onabort = function () { rej(t.error); }; }); }
   function load() { return tx('readonly', function (s) { return s.getAll(); }).then(function (a) { Q = a || []; pill(); }); }
-  function seq() { var n = 1; try { n = (parseInt(localStorage.getItem('uno_off_seq') || '0', 10) || 0) + 1; localStorage.setItem('uno_off_seq', String(n)); } catch (e) {} return 'OFF-' + String(n).padStart(4, '0'); }
+  function devId() { var d = ''; try { d = localStorage.getItem('uno_off_dev') || ''; if (!d) { d = Math.random().toString(36).slice(2, 6).toUpperCase().padEnd(4, 'X'); localStorage.setItem('uno_off_dev', d); } } catch (e) { d = 'XXXX'; } return d; }
+  function seq() { var n = 1; try { n = (parseInt(localStorage.getItem('uno_off_seq') || '0', 10) || 0) + 1; localStorage.setItem('uno_off_seq', String(n)); } catch (e) {} return 'OFF-' + devId() + '-' + String(n).padStart(4, '0'); }
+  function taxOf(total) { var C = (typeof CFG !== 'undefined' && CFG) ? CFG : null; if (!C || typeof C.taxRate !== 'number') return 0; return Math.round(C.taxInclusive ? total - total / (1 + C.taxRate) : total * C.taxRate); }
   function report(rec, status, err) {
     if (!window.UNO_RPC_RAW) return;
     window.UNO_RPC_RAW('pos_offline_report', { p: { idem: rec.idem, offline_no: rec.number, queued_at: new Date(rec.at).toISOString(), total: rec.total, device_id: rec.device, status: status, error: err || null } }).catch(function () {});
@@ -30,7 +32,7 @@
     });
     var tendered = p.payments.reduce(function (s, x) { return s + x.amount; }, 0);
     var inv = { id: 'off-' + p.idempotency_key, number: number, created_at: now, shift_id: state.shift && state.shift.id, device_id: CF && args.device_id, customer_id: null, customer_name: null, lines: lines,
-      subtotal: lines.reduce(function (s, l) { return s + l.amount; }, 0), invoice_discount: totals.invoiceDiscount, total: totals.total, tax: Math.round(totals.total - totals.total / 1.14),
+      subtotal: lines.reduce(function (s, l) { return s + l.amount; }, 0), invoice_discount: totals.invoiceDiscount, total: totals.total, tax: taxOf(totals.total),
       payments: p.payments.map(function (x) { return { method: x.method, amount: x.amount }; }), tendered_total: tendered, paid_total: Math.min(tendered, totals.total), change_due: Math.max(0, tendered - totals.total), credit_amount: 0,
       note: T('فاتورة مؤقتة أوفلاين', 'Temporary offline invoice'), status: 'paid', idempotency_key: p.idempotency_key, returned_total: 0, offline: true };
     var rec = { idem: args.idem, args: args, at: now, number: number, total: totals.total / 100, device: args.device_id, status: 'pending', error: null };
@@ -59,8 +61,9 @@
         return tx('readwrite', function (s) { return s.put(rec); }).then(next);
       });
     }
-    return next().then(function () {
-      busy = false; state.syncing = false; try { renderTopbar(); } catch (e) {} pill();
+    function done() { busy = false; state.syncing = false; try { renderTopbar(); } catch (e) {} pill(); }
+    return next().catch(function (e) { try { report({ idem: 'flush', number: '', at: Date.now(), total: 0, device: devId() }, 'failed', String(e && e.message || e)); } catch (x) {} }).then(function () {
+      done();
       var bad = Q.filter(function (r) { return r.status === 'failed'; }).length;
       if (ok) toast(T('اتزامنت ' + ok + ' فاتورة أوفلاين', ok + ' offline invoice(s) synced'), 'ok');
       if (bad) toast(T(bad + ' فاتورة محتاجة مراجعة المدير', bad + ' invoice(s) need manager review'), 'bad', 6000);
@@ -85,3 +88,6 @@
   }
   if (document.readyState === 'complete') init(); else window.addEventListener('load', init);
 })();
+
+/* register the shared worker so the till shell is cached and can start offline after one online load */
+try { if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) { navigator.serviceWorker.register('sw.js'); } } catch (e) {}
