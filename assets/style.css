@@ -890,3 +890,9 @@ html[data-theme=dark] .ban .bb,html[data-theme=dark] .ban .bb span{color:#B03C00
 .acta>b{flex:1 1 100%}
 .acta>.btn{flex:1 1 calc(50% - 6px);justify-content:center;text-align:center;box-sizing:border-box;min-width:0}
 @media(min-width:760px){.acta>.btn{flex:0 1 auto}}
+
+/* r10: article contents list */
+.toc{display:flex;flex-direction:column;gap:2px;margin:0 0 22px;padding:14px 16px;border:1px solid var(--bd,#e6e6e6);border-radius:14px;background:var(--ol)}
+.toc b{font-size:15px;margin-bottom:6px}
+.toc button{all:unset;cursor:pointer;padding:6px 0;font-size:15px;color:#C94700;line-height:1.5}
+.toc button:hover,.toc button:focus-visible{text-decoration:underline}
