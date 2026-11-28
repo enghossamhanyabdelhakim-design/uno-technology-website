@@ -26,6 +26,7 @@ body[data-page="store"]:not(:has(> header)) { padding-top: 69px; }
 #app .us-wrap > div:not([class]):empty { min-height: 78px; }
 @media (min-width: 861px) { #app .us-wrap > div:not([class]):empty { min-height: 76px; } }
 /* filtered URL: the chips row is part of the toolbar */
-html.us-f #app .us-wrap > div:not([class]):empty { min-height: 126px; }
+html.us-f #app .us-wrap > div:not([class]):empty { min-height: 134px; }
 @media (min-width: 861px) { html.us-f #app .us-wrap > div:not([class]):empty { min-height: 124px; } }
 @media (max-width: 860px) { #app .us-cat { min-height: 70svh; } }
+.us-grid > .us-empty { grid-column: 1 / -1; }
