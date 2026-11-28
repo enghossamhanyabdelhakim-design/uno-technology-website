@@ -91,3 +91,15 @@ html[data-theme=dark] .us-chk small{background:rgba(255,138,61,.16);color:#FF8A3
 .us-card .us-heart svg{fill:none;stroke:currentColor;stroke-width:2}
 .us-card .us-heart.on{color:#C94700;border-color:#C94700}.us-card .us-heart.on svg{fill:currentColor}
 .us-card .us-heart:active{transform:scale(.9)}
+
+/* r8: related products row on the product page */
+.us-rel{margin:28px 0 12px}
+.us-rel-t{font-size:1.15rem;margin:0 0 12px}
+.us-rel-g{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.us-rel-c{display:flex;flex-direction:column;gap:6px;text-decoration:none;color:inherit;background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:10px;transition:border-color .2s}
+.us-rel-c:hover{border-color:var(--or)}
+.us-rel-c .ri{aspect-ratio:1;background:var(--s2);border-radius:10px;overflow:hidden;display:block}
+.us-rel-c .ri img{width:100%;height:100%;object-fit:cover;display:block}
+.us-rel-c b{font-size:.92rem;line-height:1.4}
+.us-rel-c i{font-style:normal;font-weight:800;color:var(--or2,#C94700)}
+@media(max-width:860px){.us-rel-g{grid-template-columns:repeat(2,1fr)}}
