@@ -1,8 +1,8 @@
 /* Uno store page: loads the storefront modules and mounts them between the site header and footer. Own code. */
 (function () {
   'use strict';
-  var V = '20261129t8', MODS = ['store-rpc', 'store-i18n', 'store-api', 'store-cart', 'store-category', 'store-product', 'store-404', 'store-discovery', 'uno-pdp', 'uno-store-seo'];
-  function css(n) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'assets/' + n + '.css?v=' + V; document.head.appendChild(l); }
+  var V = '20261129t9', MODS = ['store-rpc', 'store-i18n', 'store-api', 'store-cart', 'store-category', 'store-product', 'store-404', 'store-discovery', 'uno-pdp', 'uno-store-seo'];
+  function css(n) { var href = 'assets/' + n + '.css?v=' + V; if (document.querySelector('link[href="' + href + '"]')) return; var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l); }
   function load(n) { return new Promise(function (ok) { var s = document.createElement('script'); s.src = 'assets/' + n + '.js?v=' + V; s.onload = ok; s.onerror = ok; document.body.appendChild(s); }); }
   var st = document.createElement('style');
   st.textContent = '.us-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;max-width:1280px;margin:0 auto;padding:14px 16px 0}.us-tools #us-srch{flex:1 1 260px;min-width:0}' +
