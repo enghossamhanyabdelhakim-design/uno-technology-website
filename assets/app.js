@@ -411,9 +411,11 @@ function ask2(v){
   }).catch(function(){clearTimeout(to);local()})
 }
 function hm(){try{return new Date().toLocaleTimeString(h.lang==="en"?"en-GB":"ar-EG",{hour:"2-digit",minute:"2-digit"})}catch(e){return ""}}
+var FT=null;function face(k){var im=document.querySelector("#chat .ch-h>img");if(!im||document.querySelector("#chat.human"))return;clearInterval(FT);var P="assets/uno-face-",set=function(n){im.src=P+n+"-256.webp"};if(k==="think")set("thinking");else if(k==="speak"){var i=0,n=0;set("speak-hi");FT=setInterval(function(){i^=1;set(i?"speak-lo":"speak-hi");if(++n>11){clearInterval(FT);set("idle")}},140)}else set("idle")}
 function msg(cls,html){var b=$("#ch-b"),ty=/typing/.test(cls),sy=/\bsys\b/.test(cls),bot=/(^|\s)b(\s|$)/.test(cls),ag=/\bag\b/.test(cls),w="",tm="";
  if(ty)html='<span class="dots"><i></i><i></i><i></i></span>';
  else if(!sy){if(bot)w=(ag&&AGM)?agWho(AGM):'<span class="who">'+B(ag?{ar:"فريق الدعم",en:"Support team"}:{ar:"مساعد أونو",en:"Uno assistant"})+'</span>';tm='<time>'+hm()+'</time>'}
+ try{if(!sy)face(ty?"think":bot?"speak":"idle")}catch(e){}
  b.insertAdjacentHTML("beforeend",'<div class="m '+cls+'">'+w+html+tm+'</div>');b.scrollTo?b.scrollTo({top:b.scrollHeight,behavior:"smooth"}):(b.scrollTop=b.scrollHeight)}
 document.addEventListener("click",function(e){var t=e.target.closest&&e.target.closest(".ch-live");if(!t)return;t.disabled=true;user(L({ar:"عايز أكلم حد من الفريق",en:"I want to talk to a person"}));setTimeout(supStart,250)});
 function user(t){msg("u",esc(t))}
