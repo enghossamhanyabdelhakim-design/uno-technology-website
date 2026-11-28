@@ -885,3 +885,8 @@ a.hs-s .hs-b,a.hs-s .hs-b span{color:#B03C00}
 
 /* r6-ban2  dark theme: white pill needs dark ink, not the light dark-mode orange */
 html[data-theme=dark] .ban .bb,html[data-theme=dark] .ban .bb span{color:#B03C00}
+
+/* r9: tidy CTA button wrap */
+.acta>b{flex:1 1 100%}
+.acta>.btn{flex:1 1 calc(50% - 6px);justify-content:center;text-align:center;box-sizing:border-box;min-width:0}
+@media(min-width:760px){.acta>.btn{flex:0 1 auto}}
