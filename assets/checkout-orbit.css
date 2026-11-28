@@ -40,3 +40,6 @@ html[data-theme=dark] .uo-step__num{background:linear-gradient(135deg,#F65A00,#F
 
 /* r7-1  checkout suggested-product price: 13px #F65A00 on #F8F6F3 = 3.05:1 */
 html:not([data-theme=dark]) .uo-sugg__card i{color:#B03C00}
+
+/* r7c: summary expander reveals body when the card is open */
+.uo-summary.is-open .uo-summary__body{display:block}

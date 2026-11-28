@@ -672,6 +672,7 @@
       state.summaryOpen = !state.summaryOpen;
       toggle.setAttribute('aria-expanded', state.summaryOpen ? 'true' : 'false');
       aside.classList.toggle('is-open', state.summaryOpen);
+      var sb = aside.querySelector('.uo-summary__body'); if (sb) sb.classList.toggle('is-open', state.summaryOpen);
     });
     head.appendChild(toggle);
     aside.appendChild(head);
