@@ -436,3 +436,6 @@
   .uo-warranty__card.is-soon .uo-warranty__icon { background: rgba(201, 138, 18, .14); }
   .uo-warranty__card.is-expired .uo-warranty__icon { background: rgba(229, 72, 77, .12); }
 }
+
+/* sw180: one label color on brand fills: white, bold */
+.us-btn.pri,.us-btn.pri *,a.us-btn.pri,.uo-btn--primary,.uo-btn--primary *,a.uo-btn--primary,.us-card .act .us-btn.pri{color:#fff !important;font-weight:800}

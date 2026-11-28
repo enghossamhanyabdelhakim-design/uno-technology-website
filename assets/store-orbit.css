@@ -79,3 +79,6 @@ html[lang=en] .us,html[lang=en] .us-drawer{font-family:"Alexandria","Poppins","S
 .us-chk input:focus-visible{outline:3px solid rgba(246,90,0,.3);outline-offset:2px}
 .us-chk small{margin-inline-start:auto;min-width:26px;padding:1px 9px;border-radius:999px;background:rgba(246,90,0,.1);color:#B84500;font-size:12px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;line-height:1.6}
 html[data-theme=dark] .us-chk small{background:rgba(255,138,61,.16);color:#FF8A3D}
+
+/* sw180: one label color on brand fills: white, bold */
+.us-btn.pri,.us-btn.pri *,a.us-btn.pri,.uo-btn--primary,.uo-btn--primary *,a.uo-btn--primary,.us-card .act .us-btn.pri{color:#fff !important;font-weight:800}

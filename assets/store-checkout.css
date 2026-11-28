@@ -893,3 +893,6 @@ html[data-theme="light"] {
   .uo-bar { background: rgba(20, 16, 14, .94); }
   html[data-theme="light"] .uo-bar { background: rgba(251, 247, 244, .94); }
 }
+
+/* sw180: one label color on brand fills: white, bold */
+.us-btn.pri,.us-btn.pri *,a.us-btn.pri,.uo-btn--primary,.uo-btn--primary *,a.uo-btn--primary,.us-card .act .us-btn.pri{color:#fff !important;font-weight:800}

@@ -189,3 +189,6 @@ html[data-theme=dark] #chat .ch-q button{background:#232b36;color:#ff9a55}
 html[data-theme=dark] #chat .ch-f input{background:#232b36;color:#e8edf2}
 html[data-theme=dark] #chat .ch-f input:focus{background:#2a3340}
 html[data-theme=dark] #chat .m.ag{background:#12352b;border-color:#1f6b53;color:#e8edf2}
+
+/* sw180: keep page controls reachable under the floating chat button on phones */
+@media(max-width:600px){body{padding-bottom:84px}}

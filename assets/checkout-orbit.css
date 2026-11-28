@@ -34,3 +34,6 @@ html[data-theme=dark] .uo-sugg__card i{color:#FF8A3D}
 @media(max-width:520px){.uo-sugg__row{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.uo-sugg__card{padding:6px}}
 html[data-theme=dark] .uo-btn--primary{background:linear-gradient(135deg,#F65A00 0%,#FF7A1F 55%,#FF9E4A 100%)}
 html[data-theme=dark] .uo-step__num{background:linear-gradient(135deg,#F65A00,#FF7A1F)}
+
+/* sw180: one label color on brand fills: white, bold */
+.us-btn.pri,.us-btn.pri *,a.us-btn.pri,.uo-btn--primary,.uo-btn--primary *,a.uo-btn--primary,.us-card .act .us-btn.pri{color:#fff !important;font-weight:800}
