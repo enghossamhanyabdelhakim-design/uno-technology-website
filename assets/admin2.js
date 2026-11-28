@@ -84,10 +84,14 @@ var MODS=[
  {id:"an_iv",g:"التحليلات / Analytics",p:"analytics",ic:"box",l:"المخزون / Inventory"},
  {id:"an_br",g:"التحليلات / Analytics",p:"analytics",ic:"users",l:"مقارنة الفروع / Branch comparison"},
  {id:"sw",g:"الإعدادات / Settings",p:"core",ic:"tag",l:"الخيارات المدفوعة / Paid options"},
- {id:"inbox",g:"العملاء / Customers",p:"chat",ic:"inbox",l:"صندوق الوارد الموحد / Unified inbox"}
+ {id:"inbox",g:"العملاء / Customers",p:"chat",ic:"inbox",l:"صندوق الوارد الموحد / Unified inbox"},
+ {id:"acc_chart",g:"الحسابات / Accounting",p:"accounting.view",ic:"tag",l:"دليل الحسابات / Chart of accounts"},
+ {id:"acc_jrn",g:"الحسابات / Accounting",p:"accounting.view",ic:"inbox",l:"القيود اليومية / Journal"},
+ {id:"acc_gl",g:"الحسابات / Accounting",p:"accounting.view",ic:"box",l:"دفتر الأستاذ / General ledger"},
+ {id:"acc_tb",g:"الحسابات / Accounting",p:"accounting.view",ic:"dash",l:"ميزان المراجعة / Trial balance"}
 ];
 var GR={ov:"نظرة عامة / Overview",sl:"المبيعات / Sales",pu:"المشتريات / Purchases",iv:"المخزون / Inventory",ac:"الحسابات / Accounting",cr:"العملاء / CRM",rp:"التقارير / Reports",an:"التحليلات / Analytics",st:"المتجر الإلكتروني / Online store",wb:"الموقع / Website",se:"الإعدادات / Settings"};
-var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",an_ov:"an",an_sl:"an",an_pc:"an",an_iv:"an",an_br:"an",sw:"se",inbox:"cr",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",paym:"st",cpn:"st",pol:"st",sset:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",rmx:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
+var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",an_ov:"an",an_sl:"an",an_pc:"an",an_iv:"an",an_br:"an",sw:"se",inbox:"cr",acc_chart:"ac",acc_jrn:"ac",acc_gl:"ac",acc_tb:"ac",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",paym:"st",cpn:"st",pol:"st",sset:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",rmx:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
 MODS.forEach(function(m,i){m.gk=GM[m.id]||"se";m.g=GR[m.gk];m.o=i});
 MODS.sort(function(a,b){return GO.indexOf(a.gk)-GO.indexOf(b.gk)||a.o-b.o});
 var GOPEN={};try{GOPEN=JSON.parse(localStorage.getItem("uno_gopen")||"{}")}catch(e){}
@@ -449,7 +453,7 @@ RENDER.log=function(mn){
 function loadDocCfg(){api("POST","rpc/doc_settings_get",{}).then(function(d){window.UNOINV_CFG=(d&&d.cfg)||{}}).catch(function(){})}
 CLOUD.check().then(function(u){USER=u;return api("GET","admin_roles?user_id=eq."+u.id+"&select=role,active")}).then(function(r){
  var x=r&&r[0];if(!x||x.active===false){document.body.innerHTML='<div style="padding:40px;text-align:center;font-family:Cairo,sans-serif"><h2>لا توجد صلاحية / No access</h2><p>هذا الحساب غير مفعل كمستخدم لوحة تحكم. / This account is not enabled for the admin panel.</p><p><button onclick="CLOUD.logout();location.reload()">خروج / Logout</button></p></div>';return}
- ROLE=x.role;loadDocCfg();$("#rb").textContent=ROLES[ROLE]||ROLE;$("#who").textContent=USER.email||"";return api("POST","rpc/my_perms",{}).then(function(p){if(p&&p.length){if(ROLE==="owner"&&p.indexOf("analytics")<0)p=p.concat(["analytics"]);PERM[ROLE]=p}}).catch(function(){}).then(function(){buildNav();
+ ROLE=x.role;loadDocCfg();$("#rb").textContent=ROLES[ROLE]||ROLE;$("#who").textContent=USER.email||"";return api("POST","rpc/my_perms",{}).then(function(p){if(p&&p.length){if(ROLE==="owner"&&p.indexOf("analytics")<0)p=p.concat(["analytics","accounting.view","accounting.journal_manual","accounting.journal_approve"]);PERM[ROLE]=p}}).catch(function(){}).then(function(){buildNav();
  var h=(location.hash||"").replace("#","");var first=MODS.filter(function(m){return m.id===h&&can(m.p)})[0]?h:(ROLE==="cashier"?"pos":"dash");
  if(first==="dash"||first!=="content")setMod(first,true);else setMod("content",true);
 })}).catch(function(e){status("تعذر تحميل الصلاحيات: "+e.message,1)});
@@ -1205,6 +1209,68 @@ RENDER.ins=function(mn){
    }).catch(function(e){var b=$("#ib-th");if(b)b.innerHTML='<p class="hint" style="padding:18px">'+esc(e.message)+"</p>"})}
   api("POST","rpc/support_agents",{}).then(function(a){agents=a||[]}).catch(function(){}).then(list)};
  var s=document.createElement("style");s.textContent=".ib-wrap{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:14px}.ib-list{display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:auto}.ib-it{text-align:start;border:1px solid var(--bd,#ddd);border-radius:10px;padding:8px 10px;background:transparent;color:inherit;cursor:pointer;min-height:44px}.ib-it.on{border-color:#F65A00}.ib-th{border:1px solid var(--bd,#ddd);border-radius:12px;padding:10px;min-height:200px}.ib-ms{max-height:44vh;overflow:auto;display:flex;flex-direction:column;gap:8px;margin:10px 0}.ib-ms{overflow-x:hidden}.ib-m{overflow-wrap:anywhere;max-width:80%;padding:6px 10px;border-radius:10px;background:rgba(127,127,127,.12)}.ib-m.out{align-self:flex-end;background:rgba(246,90,0,.16)}.ib-rp{display:flex;gap:8px}.ib-rp textarea{flex:1}@media(max-width:700px){.ib-wrap{grid-template-columns:1fr}.ib-list{max-height:none}.ib-th:not(.full){display:none}.ib-th.full{position:fixed;inset:0;z-index:200;background:var(--bg,#faf8f6);border:0;border-radius:0;display:flex;flex-direction:column;padding:10px 12px}.ib-th.full .ib-ms{flex:1;max-height:none}.ib-th.full .ib-rp{position:sticky;bottom:0;padding:8px 0;background:var(--bg,#faf8f6)}.ib-th.full .ib-rp textarea{min-height:44px;font-size:16px}.ib-th.full .ib-rp .btn{min-height:44px}}";document.head.appendChild(s);
+})();
+/* Accounting screens (read via existing functions; writes only on a staff click and checked in the database). */
+(function(){
+ var T=function(a,e){return window.UNO_LANG==="en"?e:a};
+ function nm(a){return window.UNO_LANG==="en"?(a.en||a.ar):(a.ar||a.en)}
+ function n2(x){return '<span class="nw">'+Number(x||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+"</span>"}
+ function nwx(x){return '<span class="nw">'+esc(x==null?"":x)+"</span>"}
+ function ymd(d){return d.toISOString().slice(0,10)}
+ function range(from,to){return '<div class="an-bar"><label>'+T("من","From")+'<input type="date" id="ac-f" value="'+from+'"></label><label>'+T("إلى","To")+'<input type="date" id="ac-t" value="'+to+'"></label><button class="btn" id="ac-go" type="button">'+T("عرض","Show")+"</button></div>"}
+ var Y0=function(){return new Date().getFullYear()+"-01-01"},TD=function(){return ymd(new Date())};
+ function fail(mn,e){mn.innerHTML='<p class="hint" style="padding:18px">'+esc(e.message||e)+"</p>"}
+ RENDER.acc_chart=function(mn){
+  api("POST","rpc/erp_chart_list",{p:{}}).then(function(o){var r=o.rows||[];
+   var h='<p class="hint" style="margin-bottom:12px">'+T("دليل الحسابات مسودة عامة للمراجعة مع المحاسب قبل الاستخدام.","This chart of accounts is a draft to review with the accountant before use.")+"</p>";
+   h+=r.length?tbl([T("الكود","Code"),T("الحساب","Account"),T("النوع","Type"),T("الطبيعة","Nature"),T("يقبل قيود","Postable")],r.map(function(a){return [nwx(a.code),'<span style="padding-inline-start:'+((a.level-1)*16)+'px">'+(a.postable?"":"<b>")+esc(nm(a))+(a.postable?"":"</b>")+"</span>",nwx(a.type),nwx(a.nature),a.postable?pill(T("نعم","Yes"),"g"):pill(T("لا","No"))]})):empty("لا حسابات","No accounts");
+   mn.innerHTML=h}).catch(function(e){fail(mn,e)})};
+ RENDER.acc_tb=function(mn){
+  var f=Y0(),t=TD();
+  function go(){var a=$("#ac-f").value,b=$("#ac-t").value;api("POST","rpc/rpc_trial_balance",{p_from:a,p_to:b,p_branch:null,p_include_zero:false}).then(function(r){r=r||[];var s=function(k){return r.reduce(function(x,y){return x+Number(y[k]||0)},0)};
+    var ok=Math.abs(s("close_dr")-s("close_cr"))<0.005;
+    $("#ac-b").innerHTML=r.length?tbl([T("الكود","Code"),T("الحساب","Account"),T("افتتاحي مدين","Open Dr"),T("افتتاحي دائن","Open Cr"),T("حركة مدين","Mov Dr"),T("حركة دائن","Mov Cr"),T("ختامي مدين","Close Dr"),T("ختامي دائن","Close Cr")],r.map(function(x){return [nwx(x.code),esc(nm({ar:x.name_ar,en:x.name_en})),n2(x.open_dr),n2(x.open_cr),n2(x.mov_dr),n2(x.mov_cr),n2(x.close_dr),n2(x.close_cr)]}).concat([["","<b>"+T("الإجمالي","Total")+"</b>",n2(s("open_dr")),n2(s("open_cr")),n2(s("mov_dr")),n2(s("mov_cr")),n2(s("close_dr")),n2(s("close_cr"))]]))+'<p class="hint" style="margin-top:10px">'+(ok?T("ميزان المراجعة متوازن.","The trial balance is balanced."):T("تنبيه: ميزان المراجعة غير متوازن.","Warning: the trial balance does not balance."))+"</p>":empty("لا حركات في هذه الفترة","No movements in this period")}).catch(function(e){$("#ac-b").innerHTML='<p class="hint">'+esc(e.message)+"</p>"})}
+  mn.innerHTML=range(f,t)+'<div id="ac-b"></div>';$("#ac-go").onclick=go;go()};
+ RENDER.acc_gl=function(mn){
+  api("POST","rpc/erp_chart_list",{p:{}}).then(function(o){var ac=(o.rows||[]).filter(function(a){return a.postable});
+   mn.innerHTML='<div class="an-bar"><label>'+T("الحساب","Account")+'<select id="ac-a">'+ac.map(function(a){return '<option value="'+esc(a.code)+'">'+esc(a.code+" "+nm(a))+"</option>"}).join("")+'</select></label></div>'+range(Y0(),TD())+'<div id="ac-b"></div>';
+   function go(){var code=$("#ac-a").value;if(!code){$("#ac-b").innerHTML=empty("لا حسابات","No accounts");return}
+    api("POST","rpc/rpc_account_ledger",{p_code:code,p_from:$("#ac-f").value,p_to:$("#ac-t").value}).then(function(r){r=r||[];
+     $("#ac-b").innerHTML=r.length?tbl([T("التاريخ","Date"),T("رقم القيد","Entry"),T("المرجع","Ref"),T("البيان","Description"),T("مدين","Debit"),T("دائن","Credit"),T("الرصيد","Balance")],r.map(function(x){return [nwx(x.line_date||""),nwx(x.entry_no||""),esc(x.doc_ref||""),esc(x.description||""),n2(x.debit),n2(x.credit),n2(x.running)]})):empty("لا حركات","No movements")}).catch(function(e){$("#ac-b").innerHTML='<p class="hint">'+esc(e.message)+"</p>"})}
+   $("#ac-go").onclick=go;$("#ac-a").onchange=go;go()}).catch(function(e){fail(mn,e)})};
+ RENDER.acc_jrn=function(mn){
+  var q="";
+  function line(i){return '<div class="jl" data-i="'+i+'"><select class="jl-a"></select><input class="jl-d" type="number" min="0" step="0.01" placeholder="'+T("مدين","Debit")+'"><input class="jl-c" type="number" min="0" step="0.01" placeholder="'+T("دائن","Credit")+'"></div>'}
+  function draw(){
+   Promise.all([api("POST","rpc/erp_journal_list",{p:{range:"all",q:q}}),api("GET","journal_entries?select=id,no,entry_date,memo_ar,total_debit,total_credit&status=eq.draft&order=created_at.desc&limit=50")]).then(function(x){
+    var rows=x[0].rows||[],pend=x[1]||[],canM=can("accounting.journal_manual"),canA=can("accounting.journal_approve");
+    var h='<div class="an-bar"><label>'+T("بحث","Search")+'<input type="search" id="jq" value="'+esc(q)+'"></label>'+(canM?'<button class="btn" id="jnew" type="button">'+T("قيد يدوي جديد","New manual entry")+"</button>":"")+"</div>";
+    h+='<div id="jform"></div>';
+    if(pend.length)h+="<h3>"+T("قيود بانتظار الاعتماد","Entries waiting for approval")+"</h3>"+tbl([T("الرقم","No"),T("التاريخ","Date"),T("البيان","Memo"),T("المبلغ","Amount"),""],pend.map(function(p){return [nwx(p.no),nwx(p.entry_date),esc(p.memo_ar||""),n2(p.total_debit),(canA?'<button class="btn sm" data-ap="'+esc(p.id)+'" type="button">'+T("اعتماد","Approve")+"</button> ":"")+(canM?'<button class="sec sm" data-ds="'+esc(p.id)+'" type="button">'+T("حذف المسودة","Discard")+"</button>":"")]}));
+    h+="<h3>"+T("القيود المرحّلة","Posted entries")+"</h3>"+(rows.length?tbl([T("الرقم","No"),T("التاريخ","Date"),T("المصدر","Source"),T("البيان","Memo"),T("المبلغ","Amount"),""],rows.map(function(r){return [nwx(r.no),nwx(r.date),nwx(r.source),esc(r.memo_ar||"")+(r.lines?'<br><small class="hint">'+r.lines.map(function(l){return esc(l.acct)+" "+(Number(l.dr)?"Dr "+n2(l.dr):"Cr "+n2(l.cr))}).join(" · ")+"</small>":""),n2(r.total),canM&&r.source==="manual"?'<button class="sec sm" data-rv="'+esc(r.id)+'" type="button">'+T("عكس","Reverse")+"</button>":""]})):empty("لا قيود بعد","No entries yet"));
+    mn.innerHTML=h;
+    $("#jq").onchange=function(){q=this.value.trim();draw()};
+    var nb=$("#jnew");if(nb)nb.onclick=form;
+    [].forEach.call(mn.querySelectorAll("[data-ap]"),function(b){b.onclick=function(){uiConfirm(T("اعتماد هذا القيد وترحيله؟","Approve and post this entry?")).then(function(y){if(!y)return;api("POST","rpc/rpc_journal_approve",{p_id:b.dataset.ap}).then(function(){status(T("تم ✓","Done ✓"));draw()}).catch(function(e){status(e.message,1)})})}});
+    [].forEach.call(mn.querySelectorAll("[data-ds]"),function(b){b.onclick=function(){uiConfirm(T("حذف هذه المسودة؟","Discard this draft?")).then(function(y){if(!y)return;api("POST","rpc/rpc_journal_discard",{p_id:b.dataset.ds}).then(function(){draw()}).catch(function(e){status(e.message,1)})})}});
+    [].forEach.call(mn.querySelectorAll("[data-rv]"),function(b){b.onclick=function(){var why=prompt(T("سبب عكس القيد؟","Reason for the reversal?"));if(!why)return;api("POST","rpc/rpc_journal_reverse",{p_id:b.dataset.rv,p_date:null,p_reason:why}).then(function(){status(T("تم ✓","Done ✓"));draw()}).catch(function(e){status(e.message,1)})}});
+   }).catch(function(e){fail(mn,e)})}
+  function form(){
+   api("POST","rpc/erp_chart_list",{p:{}}).then(function(o){var ac=(o.rows||[]).filter(function(a){return a.postable});
+    var opts='<option value="">'+T("اختر الحساب","Pick account")+"</option>"+ac.map(function(a){return '<option value="'+esc(a.code)+'">'+esc(a.code+" "+nm(a))+"</option>"}).join("");
+    $("#jform").innerHTML='<div class="jf"><label>'+T("التاريخ","Date")+'<input type="date" id="jd" value="'+TD()+'"></label><label>'+T("البيان (مطلوب)","Memo (required)")+'<input id="jm" maxlength="200"></label><div id="jls">'+line(0)+line(1)+'</div><button class="sec sm" id="jadd" type="button">+ '+T("سطر","Line")+'</button> <span id="jbal" class="hint"></span><div><button class="btn" id="jsave" type="button">'+T("حفظ القيد","Save entry")+'</button> <button class="sec" id="jx" type="button">'+T("إلغاء","Cancel")+"</button></div><p class=\"hint\">"+T("القيد اليدوي يُحفظ كمسودة ويحتاج اعتماد المالك حسب الإعدادات.","A manual entry is saved as a draft and needs the owner's approval, per settings.")+"</p></div>";
+    function fill(){[].forEach.call($("#jform").querySelectorAll(".jl-a"),function(s){if(!s.options.length)s.innerHTML=opts})}
+    function bal(){var d=0,c=0;[].forEach.call($("#jform").querySelectorAll(".jl"),function(l){d+=Number(l.querySelector(".jl-d").value||0);c+=Number(l.querySelector(".jl-c").value||0)});$("#jbal").textContent=T("مدين ","Debit ")+d.toFixed(2)+" / "+T("دائن ","Credit ")+c.toFixed(2)+(Math.abs(d-c)<0.005&&d>0?" ✓":" ≠");return Math.abs(d-c)<0.005&&d>0}
+    fill();$("#jform").oninput=bal;
+    $("#jadd").onclick=function(){$("#jls").insertAdjacentHTML("beforeend",line(9));fill()};
+    $("#jx").onclick=function(){$("#jform").innerHTML=""};
+    $("#jsave").onclick=function(){var ls=[].map.call($("#jform").querySelectorAll(".jl"),function(l){return {account_code:l.querySelector(".jl-a").value,debit:Number(l.querySelector(".jl-d").value||0),credit:Number(l.querySelector(".jl-c").value||0)}}).filter(function(l){return l.account_code&&(l.debit||l.credit)});
+     if(!$("#jm").value.trim()){status(T("اكتب البيان","Write the memo"),1);return}
+     if(ls.length<2||!bal()){status(T("القيد غير متوازن","The entry is not balanced"),1);return}
+     $("#jsave").disabled=true;api("POST","rpc/rpc_journal_manual_create",{p:{entry_date:$("#jd").value,memo_ar:$("#jm").value.trim(),lines:ls}}).then(function(){status(T("تم الحفظ ✓","Saved ✓"));draw()}).catch(function(e){$("#jsave").disabled=false;status(e.message,1)})};
+   }).catch(function(e){status(e.message,1)})}
+  draw()};
+ var s=document.createElement("style");s.textContent=".jf{border:1px solid var(--bd,#ddd);border-radius:12px;padding:12px;margin-bottom:14px;display:flex;flex-direction:column;gap:8px}.jf label{display:flex;flex-direction:column;gap:4px;font-size:12px}.jl{display:grid;grid-template-columns:1fr 90px 90px;gap:6px}.jl select,.jl input,.jf input{min-height:44px}@media(max-width:700px){.jl{grid-template-columns:1fr 1fr}.jl-a{grid-column:1/-1}}";document.head.appendChild(s);
 })();
 })();
 
