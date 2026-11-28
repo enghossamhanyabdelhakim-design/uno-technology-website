@@ -796,7 +796,7 @@ window.UNO={
  "portfolio": [
   {
    "icon": "🌐",
-   "img": "assets/network.jpg",
+   "img": "assets/pf-network.jpg",
    "slug": "network",
    "svc": 1,
    "t": {
@@ -810,7 +810,7 @@ window.UNO={
   },
   {
    "icon": "📹",
-   "img": "assets/cctv.jpg",
+   "img": "assets/pf-cctv.jpg",
    "slug": "cctv",
    "svc": 2,
    "t": {
@@ -824,7 +824,7 @@ window.UNO={
   },
   {
    "icon": "🖥️",
-   "img": "assets/office.jpg",
+   "img": "assets/pf-office.jpg",
    "slug": "office",
    "svc": 3,
    "t": {
@@ -838,7 +838,7 @@ window.UNO={
   },
   {
    "icon": "💻",
-   "img": "assets/code.jpg",
+   "img": "assets/pf-code.jpg",
    "slug": "code",
    "svc": 0,
    "t": {
@@ -852,7 +852,7 @@ window.UNO={
   },
   {
    "icon": "🧩",
-   "img": "assets/web.jpg",
+   "img": "assets/pf-web.jpg",
    "slug": "web",
    "svc": 0,
    "t": {
@@ -866,7 +866,7 @@ window.UNO={
   },
   {
    "icon": "🛒",
-   "img": "assets/pos.jpg",
+   "img": "assets/pf-pos.jpg",
    "slug": "pos",
    "svc": 4,
    "t": {
@@ -880,7 +880,7 @@ window.UNO={
   },
   {
    "icon": "🎨",
-   "img": "assets/design.jpg",
+   "img": "assets/pf-design.jpg",
    "slug": "design",
    "svc": 5,
    "t": {
@@ -894,7 +894,7 @@ window.UNO={
   },
   {
    "icon": "🖨️",
-   "img": "assets/print.jpg",
+   "img": "assets/pf-print.jpg",
    "slug": "print",
    "svc": 6,
    "t": {
@@ -908,7 +908,7 @@ window.UNO={
   },
   {
    "icon": "🔌",
-   "img": "assets/electro.jpg",
+   "img": "assets/pf-electro.jpg",
    "slug": "electro",
    "svc": 8,
    "t": {
