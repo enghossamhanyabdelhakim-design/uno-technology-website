@@ -2305,11 +2305,14 @@ SHEETS.weight = function () {
         <label for="grams">${T('الكمية', 'Quantity')} (${p ? uLab(p.id) : ''})</label>
         <input class="input num" id="grams" inputmode="decimal" value="${state.ui.weightRaw != null ? esc(state.ui.weightRaw) : nf(grams / 1000, 3)}" data-act="weight-input">
       </div>
-      <div class="paid-box"><span class="lbl">${T('الإجمالي', 'Total')}</span><span class="val">${money(amountV)}</span></div>
+      ${p ? `<div class="field"><label>${T('كميات سريعة', 'Quick amounts')}</label><div style="display:flex;gap:8px;flex-wrap:wrap">${[250, 500, 1000].map((g) => `<button type="button" class="btn" style="min-height:44px" data-act="weight-preset" data-g="${g}">${g >= 1000 ? nf(g / 1000, 3) + ' ' + uLab(p.id) : g + ' ' + T('جم', 'g')}</button>`).join('')}</div></div>
+      <div class="field"><label for="wamt">${T('أو بالمبلغ', 'Or by amount')} (${cur()})</label>
+        <input class="input num" id="wamt" type="text" inputmode="decimal" style="min-height:44px;font-size:16px" value="${esc(state.ui.weightAmt || '')}" data-act="weight-amount" placeholder="0.00"></div>` : ''}
+      <div class="paid-box"><span class="lbl">${T('الإجمالي', 'Total')}</span><span class="val" id="wtotal">${money(amountV)}</span></div>
       <div class="hint">${p ? T('أقل خطوة', 'Smallest step') + ' ' + nf(stepOf(p.id) / 1000, 3) + ' ' + uLab(p.id) + ' · ' + T('الكمية بتتقرب لأقرب خطوة: ', 'Rounded to the nearest step: ') + nf(grams / 1000, 3) : ''}</div>`,
     foot: `<button class="btn is-ghost" data-act="close-sheet">${T('إلغاء', 'Cancel')}</button>
       <div class="grow"></div>
-      <button class="btn is-primary" data-act="weight-add">${T('إضافة للفاتورة', 'Add to invoice')} · ${money(amountV)}</button>`
+      <button class="btn is-primary" data-act="weight-add" id="wadd">${T('إضافة للفاتورة', 'Add to invoice')} · ${money(amountV)}</button>`
   };
 };
 
@@ -2600,7 +2603,13 @@ function onAction(act, node) {
     /* catalog */
     case 'cat': state.category = id; renderRail(); renderGrid(); break;
     case 'filter': state.filter = id; renderGrid(); break;
-    case 'add': addProduct(id); break;
+    case 'add': {
+      const wp = state.products.find((x) => x.id === id);
+      if (wp && wp.weighted && state.shift && state.shift.status === 'open' && wp.stock > 0 && !wp.blocked) {
+        state.ui.weightProduct = id; state.ui.weightGrams = 250; state.ui.weightRaw = null; state.ui.weightAmt = ''; openSheet('weight');
+      } else addProduct(id);
+      break;
+    }
     case 'select-line': state.selected = id; renderCart(); break;
     case 'qty': changeQty(id, Number(d.d)); break;
     case 'open-price': openSheet('open-price'); break;
@@ -2671,6 +2680,7 @@ function onAction(act, node) {
       break;
     }
     /* weight */
+    case 'weight-preset': state.ui.weightGrams = Number(d.g); state.ui.weightRaw = null; state.ui.weightAmt = ''; refreshSheet(); break;
     case 'weight-pick': state.ui.weightProduct = node.value; state.ui.weightRaw = null; refreshSheet(); break;
     case 'weight-input': state.ui.weightRaw = node.value; state.ui.weightGrams = Math.round(parseDec(node.value) * 1000); refreshSheet(); break;
     case 'weight-add': {
@@ -2744,7 +2754,7 @@ function initActions() {
     }
     const act = node.dataset.act;
     /* input-driven actions are handled on input/change, not click */
-    if (['ret-search', 'count', 'move-amount', 'move-note', 'cust-search', 'disc-value', 'weight-input', 'manual-code'].includes(act)) return;
+    if (['ret-search', 'count', 'move-amount', 'move-note', 'cust-search', 'disc-value', 'weight-input', 'weight-amount', 'manual-code'].includes(act)) return;
     if (act === 'ret-restock') return;
     e.preventDefault();
     e.stopPropagation();
@@ -2761,6 +2771,20 @@ function initActions() {
     else if (act === 'move-note') state.ui.move.note = node.value;
     else if (act === 'cust-search') { state.ui.custQuery = node.value; refreshSheet(); }
     else if (act === 'disc-value') state.ui.disc.value = node.value;
+    else if (act === 'weight-amount') {
+      /* sell by amount: grams = amount / price per unit, snapped to the item step; total shown is the real qty x price */
+      const wp = state.products.find((x) => x.id === (state.ui.weightProduct || (state.products.find((y) => y.weighted) || {}).id));
+      state.ui.weightAmt = node.value;
+      const amt = Math.round(parseDec(node.value) * 100); /* typed in pounds, prices are in piastres */
+      if (wp && amt > 0 && wp.price > 0) {
+        state.ui.weightGrams = snapQty(wp.id, Math.round(amt / wp.price * 1000)); state.ui.weightRaw = null;
+        const tot = money(round(wp.price * state.ui.weightGrams / 1000));
+        const g = el('grams'), tv = el('wtotal'), wa = el('wadd');
+        if (g) g.value = nf(state.ui.weightGrams / 1000, 3);
+        if (tv) tv.textContent = tot;
+        if (wa) wa.textContent = T('إضافة للفاتورة', 'Add to invoice') + ' · ' + tot;
+      }
+    }
     else if (act === 'weight-input') { state.ui.weightRaw = node.value; state.ui.weightGrams = Math.round(parseDec(node.value) * 1000); refreshSheet(); }
   }, false);
 
