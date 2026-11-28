@@ -412,7 +412,7 @@ function ask2(v){
 }
 function hm(){try{return new Date().toLocaleTimeString(h.lang==="en"?"en-GB":"ar-EG",{hour:"2-digit",minute:"2-digit"})}catch(e){return ""}}
 var FT=null;function face(k){var im=document.querySelector("#chat .ch-h>img");if(!im||document.querySelector("#chat.human"))return;clearInterval(FT);var P="assets/uno-face-",set=function(n){im.src=P+n+"-256.webp"};if(k==="think")set("thinking");else if(k==="speak"){var i=0,n=0;set("speak-hi");FT=setInterval(function(){i^=1;set(i?"speak-lo":"speak-hi");if(++n>11){clearInterval(FT);set("idle")}},140)}else set("idle")}
-function msg(cls,html){var b=$("#ch-b"),ty=/typing/.test(cls),sy=/\bsys\b/.test(cls),bot=/(^|\s)b(\s|$)/.test(cls),ag=/\bag\b/.test(cls),w="",tm="";
+function msg(cls,html){var b=$("#ch-b");var wl=b.querySelector(".ch-wel");if(wl)wl.remove();var ty=/typing/.test(cls),sy=/\bsys\b/.test(cls),bot=/(^|\s)b(\s|$)/.test(cls),ag=/\bag\b/.test(cls),w="",tm="";
  if(ty)html='<span class="dots"><i></i><i></i><i></i></span>';
  else if(!sy){if(bot)w=(ag&&AGM)?agWho(AGM):'<span class="who">'+B(ag?{ar:"فريق الدعم",en:"Support team"}:{ar:"مساعد أونو",en:"Uno assistant"})+'</span>';tm='<time>'+hm()+'</time>'}
  try{if(!sy)face(ty?"think":bot?"speak":"idle")}catch(e){}
@@ -490,9 +490,12 @@ function micToggle(){var b=$("#ch-mic");if(REC){REC.mr.stop();return}
     fetch(c.url+"/storage/v1/object/support-media/"+path,{method:"POST",headers:{apikey:c.key,Authorization:"Bearer "+c.key,"Content-Type":bl.type.split(";")[0]},body:bl}).then(function(r){if(!r.ok)throw new Error("up");var u=c.url+"/storage/v1/object/public/support-media/"+path;msg("u",vbody("[voice] "+u));return supRpc("support_send",{p_id:SUP.id,p_token:SUP.tok,p_body:"[voice] "+u})}).catch(function(){msg("b",B({ar:"الرسالة الصوتية متبعتتش. جرّب تاني.",en:"Voice note failed. Try again."}))})};
    mr.start()}).catch(function(){msg("sys",B({ar:"محتاجين إذن الميكروفون.",en:"Microphone permission is needed."}))})}
 
+function welcome(){var S=[{ar:"عايز أبدأ مشروع",en:"I want to start a project"},{ar:"أسأل عن منتج في المتجر",en:"Ask about a store product"},{ar:"محتاج عرض سعر كاميرات",en:"I need a CCTV quote"}];
+  $("#ch-b").insertAdjacentHTML("beforeend",'<div class="ch-wel"><img src="assets/uno-avatar-256.webp" alt="'+U(L({ar:"أونو",en:"Uno"}))+'"><b>'+B({ar:"أهلاً بيك في أونو",en:"Welcome to Uno"})+'</b><p>'+B({ar:"أنا أونو، مساعدك الذكي. اسألني عن خدماتنا أو منتجات المتجر أو أي مشكلة تقنية.",en:"I'm Uno, your smart assistant. Ask me about our services, store products or any tech problem."})+'</p><div class="cw-sug">'+S.map(function(q,i){return '<button type="button" data-w="'+i+'">'+B(q)+'</button>'}).join("")+'</div><small>'+B({ar:"المساعد متاح ٢٤ ساعة والرد فوري",en:"The assistant is available 24/7 and replies instantly"})+'</small></div>');
+  $$("#ch-b .cw-sug button").forEach(function(b){b.onclick=function(){var t=L(S[+b.dataset.w]);user(t);setTimeout(function(){bot(brain(t))},300)}})}
 function openChat(greetOnly,topic){
   if(!$("#chat"))return; $("#chat").classList.remove("out");$("#chat").hidden=false; chatOpen=true; document.body.classList.add("chat-open"); vvFit(); $("#chat-fab").classList.add("hid");
-  if(!chatInit){chatInit=true;bot({a:C.chatbot.greeting,links:[]});quick();}
+  if(!chatInit){chatInit=true;welcome();quick();}
   if(topic){user(L({ar:"عايز أسأل عن: ",en:"I'd like to ask about: "})+topic);setTimeout(function(){bot(brain(topic))},300)}
   setTimeout(function(){$("#ch-i").focus();[150,400,800].forEach(function(t){setTimeout(vvFit,t)})},50);
 }
