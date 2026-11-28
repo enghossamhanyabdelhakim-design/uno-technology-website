@@ -405,7 +405,7 @@ RENDER.stmt=function(mn){
   all.forEach(function(r){var dt=String(r.date).slice(0,10);if(from&&dt<from){open=Number(r.balance)}else if(!to||dt<=to){rows.push(r)}else{}});
   var close=rows.length?Number(rows[rows.length-1].balance):open;
   var cn=(ar?CO.name_ar:CO.name_en)||CO.name_ar||CO.name_en||"",cl=[];
-  if(CO.address)cl.push(esc(CO.address));if(CO.phone)cl.push('<span dir="ltr">'+esc(CO.phone)+"</span>");if(CO.tax_id)cl.push((ar?"الرقم الضريبي: ":"Tax ID: ")+'<span dir="ltr">'+esc(CO.tax_id)+"</span>");
+  if(!CO.is_placeholder){if(CO.address)cl.push(esc(CO.address));if(CO.phone)cl.push('<span dir="ltr">'+esc(CO.phone)+"</span>");if(CO.tax_id)cl.push((ar?"الرقم الضريبي: ":"Tax ID: ")+'<span dir="ltr">'+esc(CO.tax_id)+"</span>");}
   var ag=d.aging||{},tdv='padding:4px 6px;border-bottom:1px solid #ccc;font-size:12px;';
   var h='<div class="stm" dir="'+(ar?"rtl":"ltr")+'" style="background:#fff;color:#111;padding:14px;font-family:inherit;line-height:1.5;max-width:210mm;box-sizing:border-box">'
   +'<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:2px solid #111;padding-bottom:8px"><div><div style="font-size:18px;font-weight:700">'+esc(cn)+'</div><div style="font-size:12px">'+cl.join(" · ")+'</div></div><div style="text-align:'+(ar?"left":"right")+'"><div style="font-size:16px;font-weight:700">'+(ar?"كشف حساب عميل":"Customer statement")+'</div><div style="font-size:12px">'+(ar?"تاريخ الطباعة: ":"Printed: ")+'<span dir="ltr">'+new Date().toISOString().slice(0,10)+"</span></div></div></div>"
@@ -486,8 +486,8 @@ RENDER.lbl=function(mn){
    +'<label class="f" style="flex:1 1 80px"><span>'+bi("الوزن جم","Weight g")+'</span><input data-w="'+esc(p.id)+'" type="number" inputmode="numeric" min="1" max="99999" value="'+esc(s.w||1000)+'" style="min-height:44px;font-size:16px"></label>'
    +'<label class="f" style="flex:1 1 70px"><span>'+bi("النسخ","Copies")+'</span><input data-n="'+esc(p.id)+'" type="number" inputmode="numeric" min="1" max="48" value="'+esc(s.n||1)+'" style="min-height:44px;font-size:16px"></label></div>'+(ok?"":'<p class="hint">'+bi("اكتب كود من 5 أرقام عشان تفعّل الملصق","Enter a 5-digit code to enable the label")+"</p>")+"</div>"}).join(""):empty("لا توجد أصناف","No products");
   [].forEach.call($("#lb-l").querySelectorAll("[data-s]"),function(i){i.onchange=function(){SEL[i.dataset.s]=SEL[i.dataset.s]||{};SEL[i.dataset.s].on=i.checked;cnt()}});
-  [].forEach.call($("#lb-l").querySelectorAll("[data-w]"),function(i){i.onchange=function(){SEL[i.dataset.w]=SEL[i.dataset.w]||{};SEL[i.dataset.w].w=Number(i.value)}});
-  [].forEach.call($("#lb-l").querySelectorAll("[data-n]"),function(i){i.onchange=function(){SEL[i.dataset.n]=SEL[i.dataset.n]||{};SEL[i.dataset.n].n=Math.max(1,Math.min(48,Number(i.value)||1))}});
+  [].forEach.call($("#lb-l").querySelectorAll("[data-w]"),function(i){i.onchange=function(){SEL[i.dataset.w]=SEL[i.dataset.w]||{};SEL[i.dataset.w].w=Number(i.value);cnt()}});
+  [].forEach.call($("#lb-l").querySelectorAll("[data-n]"),function(i){i.onchange=function(){SEL[i.dataset.n]=SEL[i.dataset.n]||{};SEL[i.dataset.n].n=Math.max(1,Math.min(48,Number(i.value)||1));cnt()}});
   [].forEach.call($("#lb-l").querySelectorAll("[data-c]"),function(i){i.onchange=function(){var id=i.dataset.c,v=i.value.trim(),p=P.filter(function(x){return x.id===id})[0];if(v&&!/^[0-9]{5}$/.test(v)){status("الكود لازم 5 أرقام / Code must be 5 digits",1);i.value=p.scale_code||"";return}
     if(v&&P.some(function(x){return x.id!==id&&x.scale_code===v})){status("الكود مستخدم لصنف تاني / Code already used by another product",1);i.value=p.scale_code||"";return}
     api("PATCH","products?id=eq."+id,{scale_code:v||null},"return=minimal").then(function(){p.scale_code=v||null;status("تم الحفظ ✓ / Saved ✓");draw()}).catch(function(e){status(perr(e),1);i.value=p.scale_code||""})}});cnt()}
