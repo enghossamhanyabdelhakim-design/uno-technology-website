@@ -501,7 +501,7 @@ function openChat(greetOnly,topic){
 }
 function vvFit(){var v=window.visualViewport,c=$("#chat");if(!c)return;if(v){c.style.setProperty("--vvh",v.height+"px");if(window.matchMedia("(max-width:820px)").matches){c.style.transform="";c.style.bottom="auto";c.style.top=(v.offsetTop||0)+"px";c.style.height=v.height+"px"}else{c.style.top="";c.style.bottom="";c.style.height=""}var b=$("#ch-b");if(b)b.scrollTop=b.scrollHeight}}
 if(window.visualViewport){visualViewport.addEventListener("resize",function(){if(chatOpen)vvFit()});visualViewport.addEventListener("scroll",function(){if(chatOpen)vvFit()})}
-function closeChat(){document.body.classList.remove("chat-open");$("#chat").style.removeProperty("--vvh");$("#chat").style.transform="";["top","bottom","height"].forEach(function(k){$("#chat").style[k]=""});chatOpen=false;$("#chat-fab").setAttribute("aria-expanded","false");try{$("#chat-fab").focus({preventScroll:true})}catch(e){}$("#chat-fab").classList.remove("hid");var _c=$("#chat");_c.classList.add("out");setTimeout(function(){if(!chatOpen){_c.hidden=true;_c.classList.remove("out")}},170)}
+function closeChat(){document.body.classList.remove("chat-open");$("#chat").style.removeProperty("--vvh");$("#chat").style.transform="";["top","bottom","height"].forEach(function(k){$("#chat").style[k]=""});chatOpen=false;$("#chat-fab").setAttribute("aria-expanded","false");$("#chat-fab").classList.remove("hid");try{$("#chat-fab").focus({preventScroll:true})}catch(e){}var _c=$("#chat");_c.classList.add("out");setTimeout(function(){if(!chatOpen){_c.hidden=true;_c.classList.remove("out")}},170)}
 window.UNO_openChat=openChat;
 
 /* ---------- common behaviours ---------- */
@@ -527,7 +527,7 @@ function wire(){ptnLoad();
 }
 
 function store(){
-  window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src=window.UNO_STORE_OLD?"assets/store.js?v=20261127j":"assets/store-main.js?v=20261129s7";document.body.appendChild(sc);
+  window.__U={h:h,C:C,esc:esc,B:B,bi:bi,ico:ico,intl:intl,U:U,$:$,$$:$$};var sc=document.createElement("script");sc.src=window.UNO_STORE_OLD?"assets/store.js?v=20261127j":"assets/store-main.js?v=20261129s8";document.body.appendChild(sc);
   document.title=(h.lang==="en"?"Store | ":"المتجر | ")+((C.site&&C.site.name&&(C.site.name.en))||"Uno");
 }
 
