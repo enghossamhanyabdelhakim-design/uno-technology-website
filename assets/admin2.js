@@ -1223,7 +1223,7 @@ RENDER.ins=function(mn){
  RENDER.acc_chart=function(mn){
   api("POST","rpc/erp_chart_list",{p:{}}).then(function(o){var r=o.rows||[];
    var h='<p class="hint" style="margin-bottom:12px">'+T("دليل الحسابات مسودة عامة للمراجعة مع المحاسب قبل الاستخدام.","This chart of accounts is a draft to review with the accountant before use.")+"</p>";
-   h+=r.length?tbl([T("الكود","Code"),T("الحساب","Account"),T("النوع","Type"),T("الطبيعة","Nature"),T("يقبل قيود","Postable")],r.map(function(a){return [nwx(a.code),'<span style="padding-inline-start:'+((a.level-1)*16)+'px">'+(a.postable?"":"<b>")+esc(nm(a))+(a.postable?"":"</b>")+"</span>",nwx(a.type),nwx(a.nature),a.postable?pill(T("نعم","Yes"),"g"):pill(T("لا","No"))]})):empty("لا حسابات","No accounts");
+   h+=r.length?tbl([T("الكود","Code"),T("الحساب","Account"),T("النوع","Type"),T("الطبيعة","Nature"),T("يقبل قيود","Postable")],r.map(function(a){return [nwx(a.code),'<span style="display:inline-block;min-width:150px;padding-inline-start:'+((a.level-1)*12)+'px">'+(a.postable?"":"<b>")+esc(nm(a))+(a.postable?"":"</b>")+"</span>",nwx(a.type),nwx(a.nature),a.postable?pill(T("نعم","Yes"),"g"):pill(T("لا","No"))]})):empty("لا حسابات","No accounts");
    mn.innerHTML=h}).catch(function(e){fail(mn,e)})};
  RENDER.acc_tb=function(mn){
   var f=Y0(),t=TD();
