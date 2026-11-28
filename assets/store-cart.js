@@ -32,7 +32,7 @@
   async function render() {
     if (!drawer) return;
     await calcShip();
-    const disc = coupon && coupon.valid ? Math.round(sub() * (coupon.percent || 0) / 100) : 0;
+    const disc = coupon && coupon.valid ? Math.min(sub(), coupon.discount != null ? +coupon.discount || 0 : Math.round(sub() * (coupon.percent || 0) / 100)) : 0;
     const shipPrice = ship && ship.available ? ship.price : null;
     const total = sub() - disc + (shipPrice || 0);
     const qtyBox = it => h('div', { class: 'us-qty' },

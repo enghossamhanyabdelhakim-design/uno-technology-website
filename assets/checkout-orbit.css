@@ -43,3 +43,15 @@ html:not([data-theme=dark]) .uo-sugg__card i{color:#B03C00}
 
 /* r7c: summary expander reveals body when the card is open */
 .uo-summary.is-open .uo-summary__body{display:block}
+
+/* r8: coupon box in the order summary */
+.uo-coupon{margin:10px 0 6px}
+.uo-coupon__d summary{cursor:pointer;font-weight:700;color:var(--uo-text-2,inherit);padding:8px 0;min-height:44px;display:flex;align-items:center}
+.uo-coupon__row{display:flex;gap:8px;align-items:stretch;margin-top:4px}
+.uo-coupon__row input{flex:1;min-width:0;min-height:44px;border-radius:12px;border:1px solid var(--uo-line,#ddd);background:var(--uo-surface,#fff);color:inherit;padding:0 12px;font:inherit;text-transform:uppercase}
+.uo-coupon__row .uo-btn{min-height:44px;padding:0 16px;flex:none}
+.uo-coupon__msg{font-size:13px;margin-top:6px;min-height:1px}
+.uo-coupon__msg.is-ok{color:#0a7a3d;font-weight:700}
+.uo-coupon__msg.is-bad{color:#B3261E}
+html[data-theme=dark] .uo-coupon__msg.is-ok{color:#4ade80}
+html[data-theme=dark] .uo-coupon__msg.is-bad{color:#ff8a80}

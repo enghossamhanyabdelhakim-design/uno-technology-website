@@ -56,6 +56,8 @@
       'pp.status_cancelled': 'ملغي',
       'pp.status_returned': 'مرتجع',
       'pp.timeline': 'مراحل الطلب',
+      'pp.courier': 'شركة الشحن',
+      'pp.tracking_no': 'رقم التتبع',
       'pp.updated': 'آخر تحديث',
       'pp.placed_at': 'تاريخ الطلب',
       'pp.delivered_at': 'تاريخ التسليم',
@@ -159,6 +161,8 @@
       'pp.status_cancelled': 'Cancelled',
       'pp.status_returned': 'Returned',
       'pp.timeline': 'Order stages',
+      'pp.courier': 'Courier',
+      'pp.tracking_no': 'Tracking number',
       'pp.updated': 'Last update',
       'pp.placed_at': 'Order date',
       'pp.delivered_at': 'Delivered',
@@ -349,6 +353,11 @@
       if (order.delivery.eta_min_days !== undefined) {
         rows.push([t('pp.eta'), U.etaText({ eta_min_days: order.delivery.eta_min_days, eta_max_days: order.delivery.eta_max_days })]);
       }
+    }
+    if (order.delivery.method !== 'pickup') {
+      var cr = U.config.lang === 'ar' ? order.delivery.carrier_ar : order.delivery.carrier_en;
+      if (cr) rows.push([t('pp.courier'), cr]);
+      if (order.delivery.tracking_number) rows.push([t('pp.tracking_no'), order.delivery.tracking_number]);
     }
     rows.push([t('pp.placed_at'), U.dateTime(order.placed_at)]);
     if (order.delivered_at) rows.push([t('pp.delivered_at'), U.dateTime(order.delivered_at)]);

@@ -70,7 +70,7 @@
   function orderCreate(p) {
     var body = {
       customer: p.customer, delivery: p.delivery, items: p.items, payment: p.payment || { method: 'cod' },
-      notes: p.notes || '', lang: U.config.lang || 'ar', coupon: (cart().coupon && cart().coupon.code) || undefined
+      notes: p.notes || '', lang: U.config.lang || 'ar', coupon: (cart().coupon && cart().coupon.valid && cart().coupon.code) || undefined
     };
     return R('store_order_create', body).then(function (r) {
       if (r && r.ok === false) throw fail(r.error || 'ORDER_FAILED', r.message_ar);
@@ -91,7 +91,7 @@
 
   function ret(p) { return R('store_return_request', p); }
 
-  U.configure({ rpc: { store_variants_get: variants, store_shipping_rates: shipping, store_order_create: orderCreate, store_order_track: track, store_return_request: ret } });
+  U.configure({ rpc: { store_variants_get: variants, store_shipping_rates: shipping, store_order_create: orderCreate, store_order_track: track, store_return_request: ret, store_coupon_check: function (a) { return R('store_coupon_check', a || {}); } } });
   U.configure({ returnsSubmit: function (pl) {
     return ret({ order_number: pl.order_number, phone: lastPhone, reason: pl.reason, items: pl.items, notes: pl.details || '' }).then(function (r) {
       if (!r || r.ok === false) throw fail('RETURN_FAILED', r && r.message_ar);

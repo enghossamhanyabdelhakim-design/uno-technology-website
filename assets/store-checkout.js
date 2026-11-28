@@ -51,6 +51,13 @@
       'co.rate_pick': 'اختار المحافظة عشان يظهر سعر الشحن.',
       'co.rate_unavail': 'التوصيل غير متاح لهذه المحافظة حاليًا. تقدر تختار الاستلام من الفرع.',
       'co.rate_unavail_short': 'غير متاح حاليًا',
+      'co.coupon_q': 'عندك كوبون؟',
+      'co.coupon_ph': 'كود الخصم',
+      'co.coupon_apply': 'تطبيق',
+      'co.coupon_remove': 'إزالة',
+      'co.coupon_ok': 'تم تطبيق الكود',
+      'co.coupon_bad': 'الكود غير صالح',
+      'co.discount': 'الخصم',
       'co.rate_pending': 'اختار المحافظة',
       'co.pickup_pick': 'اختار الفرع اللي تحب تستلم منه.',
       'co.pickup_hours': 'مواعيد العمل',
@@ -145,6 +152,13 @@
       'co.rate_pick': 'Choose a governorate to see the shipping rate.',
       'co.rate_unavail': 'Delivery is not available to this governorate right now. You can choose branch pickup.',
       'co.rate_unavail_short': 'Not available right now',
+      'co.coupon_q': 'Have a coupon?',
+      'co.coupon_ph': 'Coupon code',
+      'co.coupon_apply': 'Apply',
+      'co.coupon_remove': 'Remove',
+      'co.coupon_ok': 'Code applied',
+      'co.coupon_bad': 'This code cannot be applied',
+      'co.discount': 'Discount',
       'co.rate_pending': 'Choose a governorate',
       'co.pickup_pick': 'Choose the branch you want to collect from.',
       'co.pickup_hours': 'Opening hours',
@@ -246,7 +260,12 @@
     return state.rate ? state.rate.price : 0;
   }
 
-  function total() { return subtotal() + shippingPrice(); }
+  /* coupon: shares the cart drawer's storage (uno_cart_v1.coupon); the server re-validates on order create */
+  function readCartBlob() { try { return JSON.parse(global.localStorage.getItem('uno_cart_v1') || '{}') || {}; } catch (e) { return {}; } }
+  function writeCoupon(c) { try { var b = readCartBlob(); b.coupon = c; global.localStorage.setItem('uno_cart_v1', JSON.stringify(b)); } catch (e) {} }
+  function coupon() { var c = readCartBlob().coupon; return c && c.code ? c : null; }
+  function discount() { var c = coupon(); if (!c || !c.valid) return 0; return Math.max(0, Math.min(+c.discount || 0, subtotal())); }
+  function total() { return subtotal() - discount() + shippingPrice(); }
 
   function branches() { return U.branches(); }
 
@@ -697,8 +716,10 @@
     });
     body.appendChild(list);
 
+    body.appendChild(couponBox());
     var totals = U.el('dl', { class: 'uo-totals' });
     totals.appendChild(totalRow(t('co.subtotal'), U.money(subtotal())));
+    if (discount() > 0) totals.appendChild(totalRow(t('co.discount') + ' (' + coupon().code + ')', '- ' + U.money(discount())));
     totals.appendChild(totalRow(t('co.shipping'),
       state.delivery.method === 'pickup' ? t('co.rate_free') :
         (state.rate ? U.money(state.rate.price) :
@@ -732,6 +753,37 @@
   }
 
   function count() { return state.items.reduce(function (s, i) { return s + i.qty; }, 0); }
+
+  function couponBox() {
+    var c = coupon(), box = U.el('div', { class: 'uo-coupon' });
+    var msgEl = U.el('div', { class: 'uo-coupon__msg', role: 'status', 'aria-live': 'polite' });
+    if (c && c.valid) {
+      msgEl.className += ' is-ok'; msgEl.textContent = t('co.coupon_ok') + ': ' + c.code;
+      var rm = U.el('button', { type: 'button', class: 'uo-linkbtn' }); rm.textContent = t('co.coupon_remove');
+      rm.addEventListener('click', function () { writeCoupon(null); renderSummary(); });
+      box.appendChild(msgEl); box.appendChild(rm); return box;
+    }
+    var det = U.el('details', { class: 'uo-coupon__d' });
+    if (state.couponOpen) det.setAttribute('open', '');
+    var sm = U.el('summary'); sm.textContent = t('co.coupon_q'); det.appendChild(sm);
+    var row = U.el('div', { class: 'uo-coupon__row' });
+    var inp = U.el('input', { type: 'text', class: 'uo-input', maxlength: '30', autocomplete: 'off', autocapitalize: 'characters', placeholder: t('co.coupon_ph'), 'aria-label': t('co.coupon_ph') });
+    var btn = U.el('button', { type: 'button', class: 'uo-btn uo-btn--ghost' }); btn.textContent = t('co.coupon_apply');
+    function apply() {
+      var code = String(inp.value || '').trim().toUpperCase(); if (!code) return;
+      btn.disabled = true; msgEl.className = 'uo-coupon__msg'; msgEl.textContent = '…';
+      U.rpc('store_coupon_check', { code: code, subtotal: subtotal() }).then(function (r) {
+        if (r && r.valid) { writeCoupon({ code: code, valid: true, kind: r.kind, value: r.value, discount: +r.discount || 0 }); state.couponOpen = false; renderSummary(); return; }
+        btn.disabled = false; msgEl.className = 'uo-coupon__msg is-bad';
+        msgEl.textContent = (global.document.documentElement.lang === 'en') ? t('co.coupon_bad') : ((r && r.error) || t('co.coupon_bad'));
+      }).catch(function () { btn.disabled = false; msgEl.className = 'uo-coupon__msg is-bad'; msgEl.textContent = t('co.coupon_bad'); });
+    }
+    btn.addEventListener('click', apply);
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); apply(); } });
+    det.addEventListener('toggle', function () { state.couponOpen = det.open; });
+    row.appendChild(inp); row.appendChild(btn); det.appendChild(row); det.appendChild(msgEl); box.appendChild(det);
+    return box;
+  }
 
   function totalRow(label, value, strong) {
     var row = U.el('div', { class: 'uo-totals__row' + (strong ? ' uo-totals__row--total' : '') });
