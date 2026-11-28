@@ -16,3 +16,13 @@ jobs:
         run: |
           if grep -rIlE "sb_secret_|service_role" --include=*.js --include=*.html .; then exit 1; fi
           if ls UNO_*.md 2>/dev/null | grep -q .; then exit 1; fi
+  gitleaks:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
+        env:
+          GITLEAKS_ENABLE_COMMENTS: false
