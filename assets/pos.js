@@ -1086,7 +1086,9 @@ function handleScan(code) {
     weight = parseInt(code.slice(2, 2 + CFG.weightDigits), 10);
     itemCode = code;
   }
-  const prod = state.products.find((p) => p.barcode === code)
+  /* scale label: 21 + 5 digit grams + 5 digit scale code + check digit. Matched first by the product's scale code; normal barcodes fall through to the old matching. */
+  const scaleProd = (pre === '21' && code.length === 13) ? state.products.find((p) => p.scale && p.scale === code.slice(7, 12)) : null;
+  const prod = scaleProd || state.products.find((p) => p.barcode === code)
     || state.products.find((p) => p.barcode === itemCode)
     || state.products.find((p) => p.barcode.slice(-6) === code.slice(-6));
   state.ui.scanLog.unshift({ code, at: Date.now(), found: !!prod, name: prod ? prod[LANG] : null });

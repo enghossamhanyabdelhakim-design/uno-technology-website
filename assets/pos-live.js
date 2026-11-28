@@ -131,7 +131,7 @@
           get('admin_roles?user_id=eq.' + L.uid + '&select=role,active&limit=1').catch(function () { return []; }),
           get('core_branches?kind=eq.warehouse&active=eq.true&select=id,name_ar&order=created_at.asc&limit=20'),
           get('categories?select=id,name_ar,name_en&order=sort.asc').catch(function () { return get('categories?select=id,name_ar,name_en').catch(function () { return []; }); }),
-          get('products?select=id,name_ar,name_en,price,barcode,category_id,is_demo&active=eq.true&order=name_ar.asc&limit=1000'),
+          get('products?select=id,name_ar,name_en,price,barcode,scale_code,category_id,is_demo&active=eq.true&order=name_ar.asc&limit=1000'),
           get('core_stock_levels?select=product_id,warehouse_id,qty'),
           get('core_partners?kind=in.(customer,both)&active=eq.true&select=id,name,phone,credit_limit,balance&order=name.asc&limit=500'),
           rpc('pos_item_units').catch(function () { return []; }),
@@ -152,7 +152,7 @@
         var UN = {}; (r[6] || []).forEach(function (u) { UN[u.product_id] = u; });
         state.products = r[3].map(function (p) {
           var u = UN[p.id], ms = !!(u && u.sold_by && u.sold_by !== 'unit'), tag = p.is_demo ? ' (تجريبي)' : '';
-          return { id: p.id, cat: p.category_id || 'all', ar: (p.name_ar || p.name_en) + tag, en: (p.name_en || p.name_ar) + (p.is_demo ? ' (demo)' : ''), price: P(p.price), stock: ms ? Math.max(0, Math.round((stock[p.id] || 0) * 1000)) : Math.max(0, Math.floor(stock[p.id] || 0)), barcode: p.barcode || '', weighted: ms, step: ms ? Math.max(1, Math.round(Number(u.step || 0.001) * 1000)) : 1, unitAr: ms ? (u.unit || 'كجم') : 'قطعة', unitEn: ms ? (UEN[u.unit] || u.unit || 'kg') : 'pc', mono: (p.name_ar || p.name_en || '?').charAt(0) };
+          return { id: p.id, cat: p.category_id || 'all', ar: (p.name_ar || p.name_en) + tag, en: (p.name_en || p.name_ar) + (p.is_demo ? ' (demo)' : ''), price: P(p.price), stock: ms ? Math.max(0, Math.round((stock[p.id] || 0) * 1000)) : Math.max(0, Math.floor(stock[p.id] || 0)), barcode: p.barcode || '', scale: p.scale_code || '', weighted: ms, step: ms ? Math.max(1, Math.round(Number(u.step || 0.001) * 1000)) : 1, unitAr: ms ? (u.unit || 'كجم') : 'قطعة', unitEn: ms ? (UEN[u.unit] || u.unit || 'kg') : 'pc', mono: (p.name_ar || p.name_en || '?').charAt(0) };
         });
         state.customers = r[5].map(function (c) { return { id: c.id, ar: c.name, en: c.name, phone: c.phone || '', credit_limit: P(c.credit_limit), balance: P(c.balance), tier: 'retail' }; });
         return loadShift().then(loadHolds);
