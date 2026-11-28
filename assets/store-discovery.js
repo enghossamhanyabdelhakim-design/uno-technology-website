@@ -450,7 +450,7 @@
   w.UnoStore = {
     setSynonyms: function (map) { if (map) for (var k in map) syn[norm(k)] = (Array.isArray(map[k]) ? map[k] : [map[k]]).map(norm); },
     setLang: function (l) { lang = l === 'en' ? 'en' : 'ar'; if (w.UnoI18n) w.UnoI18n.setLang(lang); else { d.documentElement.lang = lang; d.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; } },
-    t: t, norm: norm, rank: rank, ready: ensureCache, getProduct: byId, addToCart: addToCart, products: function () { return cache.slice(); },
+    t: t, norm: norm, rank: rank, parsePrice: parsePrice, ready: ensureCache, getProduct: byId, addToCart: addToCart, products: function () { return cache.slice(); },
     wishlist: wish, compare: cmp, trackView: trackView, toast: toast,
     cardHTML: cardHTML, mountGrid: mountGrid, openQuick: openQuick,
     mountSearch: mountSearch, related: related, mountWishlistPanel: mountWishlistPanel, mountWishlistPage: mountWishlistPage,

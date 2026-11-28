@@ -24,7 +24,18 @@
     const go = (patch, keepPage) => { Object.assign(st, patch); if (!keepPage) st.page = 1; load(); };
     async function load() {
       writeQ(st); grid.className = 'us-grid'; grid.replaceChildren(...Array.from({ length: 6 }, () => h('div', { class: 'us-skel' })));
-      try { data = await API.store_search({ q: st.q, category: st.category, brands: st.brands, min: st.min, max: st.max, in_stock: st.in_stock, attrs: st.attrs, sort: st.sort, page: st.page, per_page: opts.perPage }); }
+      try {
+        const US = w.UnoStore; let q = st.q, mn = st.min, mx = st.max, pp = null;
+        if (q && US && US.parsePrice) { pp = US.parsePrice(q); if (pp) { q = pp.q; if (pp.max != null) mx = mx == null ? pp.max : Math.min(mx, pp.max); if (pp.min != null) mn = mn == null ? pp.min : Math.max(mn, pp.min); } }
+        const base = { category: st.category, brands: st.brands, min: mn, max: mx, in_stock: st.in_stock, attrs: st.attrs, sort: st.sort };
+        data = await API.store_search({ ...base, q, page: st.page, per_page: opts.perPage });
+        if (q && data.total === 0 && US && US.rank && US.ready) { // same synonym / typo ranking as the search dropdown
+          await US.ready(); const ids = US.rank(q).items.map(x => x.id);
+          if (ids.length) { const full = await API.store_search({ ...base, q: '', sort: 'relevance', page: 1, per_page: 200 }), order = new Map(ids.map((x, i) => [x, i]));
+            const items = full.items.filter(x => order.has(x.id)).sort((a, b) => order.get(a.id) - order.get(b.id));
+            if (items.length) data = { ...full, items, total: items.length, page: 1, pages: 1 }; }
+        }
+      }
       catch (e) { grid.className = ''; grid.replaceChildren(h('div', { class: 'us-empty' }, h('p', {}, I.t('error')), h('button', { class: 'us-btn pri', onclick: load }, I.t('retry')))); return; }
       draw();
     }
@@ -61,10 +72,17 @@
         b.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 21s-7-4.6-9.3-9.1C1 8.5 2.8 5 6.2 5c2 0 3.2 1.1 3.8 2.2C10.6 6.1 11.8 5 13.8 5c3.4 0 5.2 3.5 3.5 6.9C15.1 16.4 12 21 12 21z"/></svg>';
         return b;
       };
+      const eyeBtn = p => {
+        const US = w.UnoStore; if (!US || !US.openQuick) return null;
+        const lab = document.documentElement.lang === 'en' ? 'Quick view' : 'نظرة سريعة';
+        const b = h('button', { type: 'button', class: 'us-heart us-eye', 'aria-label': lab, title: lab, onclick: () => US.openQuick(p.id, b) });
+        b.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zm10-3a3 3 0 100 6 3 3 0 000-6z"/></svg>';
+        return b;
+      };
       const oos = p.stock <= 0, pc = p.compare_at && p.compare_at > p.price ? Math.round((1 - p.price / p.compare_at) * 100) : 0;
       return h('article', { class: 'us-card' }, p.demo && h('span', { class: 'us-tag us-dtag' }, I.t('demo_short')), (oos || pc > 0) && h('span', { class: 'us-tag' + (oos ? ' oos' : '') }, oos ? I.t('out_of_stock') : I.t('off', { p: I.num(pc) })),
         h('a', { class: 'im', href: opts.productUrl(p.id), 'aria-label': I.pick(p.name) }, h('img', { src: p.image, alt: I.pick(p.name), loading: 'lazy' })),
-        heartBtn(p),
+        heartBtn(p), eyeBtn(p),
         h('div', { class: 'bd' }, h('div', { class: 'br' }, I.pick(p.brand)), h('a', { class: 'nm', href: opts.productUrl(p.id) }, I.pick(p.name)),
           p.reviews_count > 0 && h('div', { class: 'us-stars' }, '★ ' + I.num(+p.rating_avg.toFixed(1)) + ' (' + I.t('reviews_n', { n: I.num(p.reviews_count) }) + ')'),
           h('div', { class: 'us-pr' }, h('b', {}, I.money(p.price)), pc > 0 && h('s', {}, I.money(p.compare_at))),
