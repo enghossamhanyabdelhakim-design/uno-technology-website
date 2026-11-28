@@ -49,6 +49,9 @@
       'co.rate_free': 'مجاني',
       'co.rate_error': 'مقدرناش نجيب سعر الشحن. جرّب تاني.',
       'co.rate_pick': 'اختار المحافظة عشان يظهر سعر الشحن.',
+      'co.rate_unavail': 'التوصيل غير متاح لهذه المحافظة حاليًا. تقدر تختار الاستلام من الفرع.',
+      'co.rate_unavail_short': 'غير متاح حاليًا',
+      'co.rate_pending': 'اختار المحافظة',
       'co.pickup_pick': 'اختار الفرع اللي تحب تستلم منه.',
       'co.pickup_hours': 'مواعيد العمل',
       'co.pickup_free': 'الاستلام من الفرع مجاني.',
@@ -140,6 +143,9 @@
       'co.rate_free': 'Free',
       'co.rate_error': 'Could not load the shipping rate. Try again.',
       'co.rate_pick': 'Choose a governorate to see the shipping rate.',
+      'co.rate_unavail': 'Delivery is not available to this governorate right now. You can choose branch pickup.',
+      'co.rate_unavail_short': 'Not available right now',
+      'co.rate_pending': 'Choose a governorate',
       'co.pickup_pick': 'Choose the branch you want to collect from.',
       'co.pickup_hours': 'Opening hours',
       'co.pickup_free': 'Branch pickup is free.',
@@ -472,6 +478,11 @@
       box.appendChild(sr);
       return;
     }
+    if (state.rateState === 'unavailable') {
+      box.className = 'uo-rate is-error';
+      box.innerHTML = '<div class="uo-rate__row" role="alert"><span class="uo-rate__icon">' + icon('alert') + '</span><span>' + U.escapeHtml(t('co.rate_unavail')) + '</span></div>';
+      return;
+    }
     if (state.rateState === 'error') {
       box.className = 'uo-rate is-error';
       box.innerHTML = '<div class="uo-rate__row"><span class="uo-rate__icon">' + icon('alert') + '</span><span>' +
@@ -690,7 +701,10 @@
     totals.appendChild(totalRow(t('co.subtotal'), U.money(subtotal())));
     totals.appendChild(totalRow(t('co.shipping'),
       state.delivery.method === 'pickup' ? t('co.rate_free') :
-        (state.rate ? U.money(state.rate.price) : '—')));
+        (state.rate ? U.money(state.rate.price) :
+          state.rateState === 'unavailable' ? t('co.rate_unavail_short') :
+          state.rateState === 'error' ? t('co.rate_error') :
+          state.rateState === 'loading' ? t('co.rate_loading') : t('co.rate_pending'))));
     var grand = totalRow(t('co.total'), U.money(total()), true);
     totals.appendChild(grand);
     body.appendChild(totals);
@@ -816,7 +830,7 @@
     }).then(function (res) {
       if (state.delivery.governorate !== gov) return;
       var rate = (res && res.rates && res.rates[0]) || null;
-      if (!rate) { state.rateState = 'error'; }
+      if (!rate) { state.rateState = 'unavailable'; }
       else { state.rate = rate; state.rateState = 'ready'; }
       renderRateBox();
       renderSummary();
@@ -847,6 +861,7 @@
 
     if (state.delivery.method === 'home') {
       if (!state.delivery.governorate) errors.governorate = t('co.err_gov');
+      else if (state.rateState === 'unavailable') errors.governorate = t('co.rate_unavail');
       if (String(state.delivery.address).trim().length < 8) errors.address = t('co.err_address');
     } else if (!state.delivery.branch_id) {
       errors.branch_id = t('co.err_branch');

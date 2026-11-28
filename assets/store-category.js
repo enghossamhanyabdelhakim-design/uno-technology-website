@@ -53,9 +53,18 @@
       return c.length ? h('div', { class: 'us-chips' }, c.map(x => h('button', { class: 'us-chip', onclick: x[1] }, x[0] + ' ✕')), h('button', { class: 'us-chip', onclick: () => go({ q: '', category: '', brands: [], min: null, max: null, in_stock: false, attrs: {} }) }, I.t('clear_all'))) : null;
     }
     function card(p) {
+      const heartBtn = p => {
+        const WL = w.UnoStore && w.UnoStore.wishlist; if (!WL) return null;
+        const en = document.documentElement.lang === 'en', on = WL.has(p.id);
+        const lab = on => on ? (en ? 'Remove from wishlist' : 'أزل من المفضلة') : (en ? 'Add to wishlist' : 'أضف إلى المفضلة');
+        const b = h('button', { type: 'button', class: 'us-heart' + (on ? ' on' : ''), 'aria-pressed': String(on), 'aria-label': lab(on), onclick: () => { const now = WL.toggle(p.id); b.classList.toggle('on', now); b.setAttribute('aria-pressed', String(now)); b.setAttribute('aria-label', lab(now)); } });
+        b.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 21s-7-4.6-9.3-9.1C1 8.5 2.8 5 6.2 5c2 0 3.2 1.1 3.8 2.2C10.6 6.1 11.8 5 13.8 5c3.4 0 5.2 3.5 3.5 6.9C15.1 16.4 12 21 12 21z"/></svg>';
+        return b;
+      };
       const oos = p.stock <= 0, pc = p.compare_at && p.compare_at > p.price ? Math.round((1 - p.price / p.compare_at) * 100) : 0;
       return h('article', { class: 'us-card' }, p.demo && h('span', { class: 'us-tag us-dtag' }, I.t('demo_short')), (oos || pc > 0) && h('span', { class: 'us-tag' + (oos ? ' oos' : '') }, oos ? I.t('out_of_stock') : I.t('off', { p: I.num(pc) })),
         h('a', { class: 'im', href: opts.productUrl(p.id), 'aria-label': I.pick(p.name) }, h('img', { src: p.image, alt: I.pick(p.name), loading: 'lazy' })),
+        heartBtn(p),
         h('div', { class: 'bd' }, h('div', { class: 'br' }, I.pick(p.brand)), h('a', { class: 'nm', href: opts.productUrl(p.id) }, I.pick(p.name)),
           p.reviews_count > 0 && h('div', { class: 'us-stars' }, '★ ' + I.num(+p.rating_avg.toFixed(1)) + ' (' + I.t('reviews_n', { n: I.num(p.reviews_count) }) + ')'),
           h('div', { class: 'us-pr' }, h('b', {}, I.money(p.price)), pc > 0 && h('s', {}, I.money(p.compare_at))),

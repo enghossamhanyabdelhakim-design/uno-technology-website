@@ -85,3 +85,9 @@ html[data-theme=dark] .us-chk small{background:rgba(255,138,61,.16);color:#FF8A3
 
 /* r7b: mobile filter sheet fully hidden until opened (no peek, no tap target) */
 @media(max-width:860px){.us-side{top:auto;align-self:auto;visibility:hidden;pointer-events:none;transition:transform .25s,visibility 0s .25s}.us-side.on{visibility:visible;pointer-events:auto;transition:transform .25s}}
+
+/* r8: wishlist heart on grid cards */
+.us-card .us-heart{position:absolute;inset-block-start:8px;inset-inline-start:8px;z-index:2;width:40px;height:40px;border-radius:50%;border:1px solid var(--bd);background:var(--s1);color:var(--mu,#7a6a5e);display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:color .15s,transform .12s}
+.us-card .us-heart svg{fill:none;stroke:currentColor;stroke-width:2}
+.us-card .us-heart.on{color:#C94700;border-color:#C94700}.us-card .us-heart.on svg{fill:currentColor}
+.us-card .us-heart:active{transform:scale(.9)}
