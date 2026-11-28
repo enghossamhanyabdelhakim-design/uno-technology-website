@@ -105,7 +105,7 @@
     var grid = q('#us-pg .us-cat') || q('#us-pg .us-grid'); if (!grid) return false;
     var p = new URLSearchParams(location.search), qq = p.get('q'), cat = p.get('cat');
     var count = txt(q('#us-pg .us-bar .grow'));
-    var chip = txt(q('#us-pg .us-chips .us-chip'));
+    var chip = txt(q('#us-pg .us-chips .us-chip')).replace(/\s*[\u2715\u2716\u00D7]\s*$/, '').trim();
     var label = qq ? T('نتائج البحث عن «' + qq + '»', 'Search results for “' + qq + '”')
       : cat ? (chip || T('قسم ' + cat, cat)) : T('كل المنتجات', 'All products');
     var head = q('.uno-cat-h1');
@@ -125,7 +125,12 @@
       return { '@type': 'ListItem', position: i + 1, name: txt(a), url: abs(a.getAttribute('href')) };
     });
     if (items.length) ld('uno-ld-list', { '@context': 'https://schema.org', '@type': 'ItemList', itemListElement: items });
-    ld('uno-ld-product', null); ld('uno-ld-crumbs', null);
+    ld('uno-ld-product', null);
+    if (cat && !qq) ld('uno-ld-crumbs', { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+      { '@type': 'ListItem', position: 1, name: T('الرئيسية', 'Home'), item: location.origin + location.pathname.replace(/store\.html$/, 'index.html') },
+      { '@type': 'ListItem', position: 2, name: T('المتجر', 'Store'), item: location.origin + location.pathname },
+      { '@type': 'ListItem', position: 3, name: label }] });
+    else ld('uno-ld-crumbs', null);
     return true;
   }
 
