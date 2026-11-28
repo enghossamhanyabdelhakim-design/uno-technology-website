@@ -126,3 +126,4 @@ html[data-theme=dark] .us-chk small{background:rgba(255,138,61,.16);color:#FF8A3
   .us-bar .grow{font-size:.8rem;opacity:.75}
 }
 .us-card .us-eye{inset-block-start:54px}
+#app .us-card .us-tag:not(.us-dtag){inset-inline-start:auto;inset-inline-end:10px}#app .us-card .us-dtag~.us-tag{inset-block-start:42px}

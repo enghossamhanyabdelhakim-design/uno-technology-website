@@ -25,7 +25,7 @@
       lowest: 'Lowest price', currency: 'EGP', openCompare: 'Open compare', moveToCart: 'Add all to cart', demoNote: 'Demo data for preview', save: 'Save', same: 'Same', clearCmp: 'Clear compare', seeWish: 'View wishlist', items: 'items', filters: 'Filters', availOnly: 'In stock only', priceRange: 'Price', from: 'From', to: 'To', reset: 'Clear filters', related: 'Similar products', shown: 'shown', noMatch: 'No products match these filters', moreOpts: 'Multiple versions', discount: 'off', popular: 'Most ordered', cats: 'Categories', brandsT: 'Brands', onlyLeft: 'Only %n left', searchAll: 'Full search for', boughtT: 'Frequently bought together', qty: 'Qty', copyLink: 'Copy compare link', copied: 'Link copied', mic: 'Voice search', micFail: 'Voice recognition is unavailable right now', pMin: 'from %n', pMax: 'up to %n', addedN: 'Added %n to cart', needVar: '%n need a version choice' }
   };
   var lang = 'ar', cache = [], cacheReady = null, listeners = [], det = {};
-  var syn = { 'موبايل': ['هاتف'], 'موبايلات': ['هاتف'], 'تليفون': ['هاتف'], 'تليفونات': ['هاتف'], 'لاب': ['لابتوب'], 'نوت': ['لابتوب'] };
+  var syn = { 'موبايل': ['هاتف'], 'موبايلات': ['هاتف'], 'تليفون': ['هاتف'], 'تليفونات': ['هاتف'], 'لاب': ['لابتوب'], 'نوت': ['لابتوب'], 'انترنت': ['راوتر', 'شبكة', 'سويتش', 'فاي'] };
   function LG() { return (w.UnoI18n && w.UnoI18n.lang) || lang; }
   function t(k) { return (T[LG()] && T[LG()][k]) || T.ar[k] || k; }
   function L(o) { return o ? (typeof o === 'string' ? o : (o[LG()] || o.ar || o.en || '')) : ''; }
