@@ -33,3 +33,5 @@ html.us-f #app .us-wrap > div:not([class]):empty { min-height: 134px; }
 @media (min-width: 861px) { #app .us-cat { min-height: 620px; } }
 /* product view: keep the SEO block and links below the fold while the product loads (they were pushed down, CLS 0.06 to 0.1) */
 html.us-p #us-pg { min-height: 100svh; }
+/* product gallery: full width before the image loads (it sat at 160px, then jumped to 366px: CLS 0.17 on slow links) */
+.us-gal .main { width: 100%; }
