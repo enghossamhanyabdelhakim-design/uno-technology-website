@@ -406,7 +406,7 @@ RENDER.stmt=function(mn){
   var close=rows.length?Number(rows[rows.length-1].balance):open;
   var cn=(ar?CO.name_ar:CO.name_en)||CO.name_ar||CO.name_en||"",cl=[];
   if(!CO.is_placeholder){if(CO.address)cl.push(esc(CO.address));if(CO.phone)cl.push('<span dir="ltr">'+esc(CO.phone)+"</span>");if(CO.tax_id)cl.push((ar?"الرقم الضريبي: ":"Tax ID: ")+'<span dir="ltr">'+esc(CO.tax_id)+"</span>");}
-  var ag=d.aging||{},tdv='padding:4px 6px;border-bottom:1px solid #ccc;font-size:12px;';
+  var ag=d.aging||{},tdv='padding:4px 6px;border-bottom:1px solid #ccc;font-size:12px;white-space:nowrap;';
   var h='<div class="stm" dir="'+(ar?"rtl":"ltr")+'" style="background:#fff;color:#111;padding:14px;font-family:inherit;line-height:1.5;max-width:210mm;box-sizing:border-box">'
   +'<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:2px solid #111;padding-bottom:8px"><div><div style="font-size:18px;font-weight:700">'+esc(cn)+'</div><div style="font-size:12px">'+cl.join(" · ")+'</div></div><div style="text-align:'+(ar?"left":"right")+'"><div style="font-size:16px;font-weight:700">'+(ar?"كشف حساب عميل":"Customer statement")+'</div><div style="font-size:12px">'+(ar?"تاريخ الطباعة: ":"Printed: ")+'<span dir="ltr">'+new Date().toISOString().slice(0,10)+"</span></div></div></div>"
   +'<div style="margin:10px 0;font-size:13px"><b>'+esc(c.name||"")+'</b>'+(c.phone?' · <span dir="ltr">'+esc(c.phone)+"</span>":"")+'<br>'+(ar?"الفترة: ":"Period: ")+'<span dir="ltr">'+esc(from||(ar?"البداية":"start"))+" → "+esc(to||(ar?"اليوم":"today"))+"</span></div>"
