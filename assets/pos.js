@@ -1473,7 +1473,16 @@ function rcDoc() {
   return { cfg: d ? d.cfg : { text: { phone: '01505946321' }, tax_fallback_phone: true }, tax: realTax, phone: co.phone || '' };
 }
 function receiptHtml(inv, tplOverride) {
-  return receiptHtml0(inv, tplOverride) + secondLine(inv);
+  return receiptHtml0(inv, tplOverride) + secondLine(inv) + footerLine();
+}
+/* promo and opening hours lines under the receipt: only when the owner switched them on and wrote text */
+function footerLine() {
+  const f = window.UNO_FOOTER;
+  if (!f) return '';
+  const promo = LANG === 'ar' ? f.promo_ar : f.promo_en, hours = LANG === 'ar' ? f.hours_ar : f.hours_en;
+  const lines = [promo, hours].filter((x) => x && String(x).trim());
+  if (!lines.length) return '';
+  return `<div class="rc-footer" style="text-align:center;font-size:11px;margin:4px 0">${lines.map((x) => esc(String(x))).join('<br>')}</div>`;
 }
 /* second currency line: display only, shown only when the admin switch is on and a rate exists */
 function secondLine(inv) {
