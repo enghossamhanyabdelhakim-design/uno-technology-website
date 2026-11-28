@@ -13,4 +13,4 @@ try{
  }).catch(function(){}).then(go);
 }catch(e){go()}
 })();
-;(function(){function ld(){var s=document.createElement("script");s.src="assets/slots.js?v=20261129s2";document.body.appendChild(s)}if(document.readyState==="complete")setTimeout(ld,600);else window.addEventListener("load",function(){setTimeout(ld,600)})})();
+;(function(){function ld(){var s=document.createElement("script");s.src="assets/slots.js?v=20261129s3";document.body.appendChild(s)}if(document.readyState==="complete")setTimeout(ld,600);else window.addEventListener("load",function(){setTimeout(ld,600)})})();
