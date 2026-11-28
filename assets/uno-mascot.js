@@ -7,14 +7,15 @@
   var NS = 'http://www.w3.org/2000/svg';
   var BASE = 'assets/';
   var RIG = {
-    thumbs: { mx: 291.3, my: 140.0, d: 96.8, ang: 15.2 },
-    shield: { mx: 208.9, my: 110.8, d: 84.2, ang: -10.6 },
-    bulb: { mx: 222.7, my: 145.9, d: 84.7, ang: -14.5 },
-    laptop: { mx: 251.5, my: 126.0, d: 85.9, ang: 1.7 },
-    support: { mx: 289.9, my: 131.7, d: 87.8, ang: 10.2 },
-    wrench: { mx: 247.7, my: 114.8, d: 80.1, ang: -4.9 }
+    thumbs: { mx: 240.0, my: 138.5, d: 68.06, ang: 7.7 },
+    shield: { mx: 240.0, my: 138.5, d: 68.06, ang: -11.1 },
+    bulb: { mx: 240.0, my: 138.5, d: 68.06, ang: -16.0 },
+    laptop: { mx: 240.0, my: 138.5, d: 68.06, ang: 0.7 },
+    support: { mx: 240.0, my: 138.5, d: 68.06, ang: 5.7 },
+    wrench: { mx: 240.0, my: 138.5, d: 68.25, ang: -5.4 }
   };
-  var AX = 250, AY = 150, AD = 88; /* common anchor so the face stays put across poses */
+
+  var AX = 240, AY = 138.5, AD = 78; /* common anchor so the face stays put across poses */
   var STATE_POSE = { idle: 'thumbs', speaking: 'thumbs', happy: 'thumbs', listening: 'support', thinking: 'laptop' };
   var KW = [
     [/(اهلا|أهلا|مرحبا|مرحباً|السلام|ازيك|hello|hi\b|welcome|hey|شكرا|شكراً|تمام|ممتاز|حاضر|great|sure|thanks|perfect)/i, 'thumbs'],
@@ -51,7 +52,7 @@
       img.style.cssText = 'position:absolute;left:0;top:0;width:480px;height:480px;display:block;pointer-events:none';
       img.onload = function () { loaded++; layers[name].ready = true; if (name === cur) wrap.style.opacity = 1; };
       img.onerror = function () { if (name === 'thumbs') { failed = true; if (opts.onfail) opts.onfail(); } };
-      img.src = BASE + 'uno-bot-' + name + '.webp?v=20261128h';
+      img.src = BASE + 'uno-bot-' + name + '.webp?v=20261129r4';
       var svg = el('svg', { viewBox: '0 0 480 480', width: 480, height: 480 }); svg.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;overflow:visible';
       var face = el('g', { transform: 'translate(' + (r.mx) + ' ' + (r.my) + ') rotate(' + r.ang + ') translate(0 ' + (0.27 * d) + ')' });
       /* eyes: arc (happy) + orb (open), glow underlay, in visor frame units of d */
@@ -74,7 +75,7 @@
       var aL = arcEye(-d / 2), aR = arcEye(d / 2), oL = orbEye(-d / 2), oR = orbEye(d / 2);
       var eyesArc = el('g', {}), eyesOrb = el('g', { opacity: 0 });
       eyesArc.appendChild(aL.g); eyesArc.appendChild(aR.g); eyesOrb.appendChild(oL.g); eyesOrb.appendChild(oR.g);
-      var mouthG = el('g', { transform: 'translate(0 ' + (0.11 * d) + ')' });
+      var mouthG = el('g', { transform: 'translate(0 ' + (0.38 * d) + ')' });
       var mGlow = el('path', { d: '', fill: 'none', stroke: '#ff9a1a', 'stroke-opacity': '.3', 'stroke-width': 0.1 * d, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
       var mMain = el('path', { d: '', fill: 'rgba(255,120,10,.0)', stroke: '#ffb82e', 'stroke-width': 0.07 * d, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
       mouthG.appendChild(mGlow); mouthG.appendChild(mMain);
