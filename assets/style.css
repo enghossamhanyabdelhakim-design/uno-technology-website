@@ -896,3 +896,8 @@ html[data-theme=dark] .ban .bb,html[data-theme=dark] .ban .bb span{color:#B03C00
 .toc b{font-size:15px;margin-bottom:6px}
 .toc button{all:unset;cursor:pointer;padding:6px 0;font-size:15px;color:#C94700;line-height:1.5}
 .toc button:hover,.toc button:focus-visible{text-decoration:underline}
+
+/* polish: brand selection, bidi isolation for mixed AR/EN store text */
+::selection{background:rgba(246,90,0,.22)}
+html[lang=en] .us .nm,html[lang=en] .us .br{unicode-bidi:isolate;text-align:start}
+.us .us-pr b{unicode-bidi:isolate}
