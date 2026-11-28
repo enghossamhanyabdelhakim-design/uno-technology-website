@@ -64,7 +64,7 @@
       var dx = e.clientX - x0, dy = e.clientY - y0; x0 = null;
       if (Math.abs(dx) < 36 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
       var btns = Array.prototype.slice.call(thumbs.querySelectorAll('button'));
-      var i = btns.findIndex(function (b) { return b.getAttribute('aria-current') === 'true'; });
+      var i = btns.findIndex(function (b) { return b.hasAttribute('aria-current') && b.getAttribute('aria-current') !== 'false'; });
       if (i < 0) i = 0;
       var next = dx < 0 ? i + 1 : i - 1;
       if (next >= 0 && next < btns.length) btns[next].click();

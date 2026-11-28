@@ -5,3 +5,5 @@
 }
 @media (prefers-reduced-motion: reduce) { .us-sticky { transition: none; } }
 .uno-ask-share { background: none; border: 0; color: var(--mu); font: inherit; font-size: .85rem; min-height: 44px; cursor: pointer; text-decoration: underline; display: block; margin-block: 6px; }
+/* horizontal swipe changes the image; vertical scroll and pinch stay native */
+.us-gal .main { touch-action: pan-y pinch-zoom; }
