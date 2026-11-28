@@ -449,7 +449,7 @@ RENDER.log=function(mn){
 function loadDocCfg(){api("POST","rpc/doc_settings_get",{}).then(function(d){window.UNOINV_CFG=(d&&d.cfg)||{}}).catch(function(){})}
 CLOUD.check().then(function(u){USER=u;return api("GET","admin_roles?user_id=eq."+u.id+"&select=role,active")}).then(function(r){
  var x=r&&r[0];if(!x||x.active===false){document.body.innerHTML='<div style="padding:40px;text-align:center;font-family:Cairo,sans-serif"><h2>لا توجد صلاحية / No access</h2><p>هذا الحساب غير مفعل كمستخدم لوحة تحكم. / This account is not enabled for the admin panel.</p><p><button onclick="CLOUD.logout();location.reload()">خروج / Logout</button></p></div>';return}
- ROLE=x.role;loadDocCfg();$("#rb").textContent=ROLES[ROLE]||ROLE;$("#who").textContent=USER.email||"";return api("POST","rpc/my_perms",{}).then(function(p){if(p&&p.length)PERM[ROLE]=p}).catch(function(){}).then(function(){buildNav();
+ ROLE=x.role;loadDocCfg();$("#rb").textContent=ROLES[ROLE]||ROLE;$("#who").textContent=USER.email||"";return api("POST","rpc/my_perms",{}).then(function(p){if(p&&p.length){if(ROLE==="owner"&&p.indexOf("analytics")<0)p=p.concat(["analytics"]);PERM[ROLE]=p}}).catch(function(){}).then(function(){buildNav();
  var h=(location.hash||"").replace("#","");var first=MODS.filter(function(m){return m.id===h&&can(m.p)})[0]?h:(ROLE==="cashier"?"pos":"dash");
  if(first==="dash"||first!=="content")setMod(first,true);else setMod("content",true);
 })}).catch(function(e){status("تعذر تحميل الصلاحيات: "+e.message,1)});
