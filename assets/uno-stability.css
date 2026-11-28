@@ -21,3 +21,11 @@ footer.ft a, .ft .fcols a { min-height: 44px; display: inline-flex; align-items:
 .us-links { padding-bottom: 100px; }
 /* r13: same reserved height on desktop (measured CLS 0.9 at 1280 without it) */
 @media (min-width: 821px) { body[data-page="store"] #app { min-height: 100svh; } }
+/* r13b: reserve the header height before app.js inserts it, and the toolbar row height before the store mounts it (CLS 0.1 at 1280) */
+body[data-page="store"]:not(:has(> header)) { padding-top: 69px; }
+#app .us-wrap > div:not([class]):empty { min-height: 78px; }
+@media (min-width: 861px) { #app .us-wrap > div:not([class]):empty { min-height: 76px; } }
+/* filtered URL: the chips row is part of the toolbar */
+html.us-f #app .us-wrap > div:not([class]):empty { min-height: 126px; }
+@media (min-width: 861px) { html.us-f #app .us-wrap > div:not([class]):empty { min-height: 124px; } }
+@media (max-width: 860px) { #app .us-cat { min-height: 70svh; } }
