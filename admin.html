@@ -111,7 +111,7 @@ h2,.card,td{overflow-wrap:anywhere}
 function start(){document.getElementById("lg").style.display="none";
  CLOUD.load().then(function(r){try{localStorage.removeItem("uno_draft")}catch(e){}
   if(r&&r.data&&r.data.site){window.UNO=window.UNO_FILL(r.data,window.UNO)}
- }).catch(function(){}).then(function(){var x=document.createElement("script");x.src="assets/admin.js?v=20261128c";x.onload=function(){var y=document.createElement("script");y.src="assets/admin2.js?v=20261129ib1";document.body.appendChild(y)};document.body.appendChild(x)})}
+ }).catch(function(){}).then(function(){var x=document.createElement("script");x.src="assets/admin.js?v=20261128c";x.onload=function(){var y=document.createElement("script");y.src="assets/admin2.js?v=20261129ib2";document.body.appendChild(y)};document.body.appendChild(x)})}
 if(CLOUD.loggedIn()){CLOUD.check().then(start).catch(function(){CLOUD.logout()})}
 document.getElementById("lf").onsubmit=function(e){e.preventDefault();var le=document.getElementById("le");le.textContent="...";
  CLOUD.login(document.getElementById("em").value.trim(),document.getElementById("pw").value).then(start).catch(function(er){le.textContent="فشل الدخول / Login failed: "+er.message})}
