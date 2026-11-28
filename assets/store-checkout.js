@@ -996,7 +996,7 @@
           var img = (p.images && p.images[0]) || 'assets/pimg-acc.svg';
           var nm = (ar ? p.name_ar : p.name_en) || p.name_ar || '';
           var price = Number(p.price).toLocaleString(ar ? 'ar-EG' : 'en-US');
-          return '<a class="uo-sugg__card" href="store.html?page=product&id=' + encodeURIComponent(p.id) + '"><span class="uo-sugg__img"><img src="' + U.escapeHtml(img) + '" alt="" loading="lazy"></span><b>' + U.escapeHtml(nm) + '</b><i>' + price + ' ' + cur + '</i>' + (p.is_demo ? '<em>' + (ar ? 'تجريبي' : 'Sample') + '</em>' : '') + '</a>';
+          return '<a class="uo-sugg__card" href="store.html?page=product&id=' + encodeURIComponent(p.id) + '"><span class="uo-sugg__img"><img src="' + U.escapeHtml(img) + '" alt="' + U.escapeHtml(nm) + '" loading="lazy"></span><b>' + U.escapeHtml(nm) + '</b><i>' + price + ' ' + cur + '</i>' + (p.is_demo ? '<em>' + (ar ? 'تجريبي' : 'Sample') + '</em>' : '') + '</a>';
         }).join('') + '</div>';
         box.hidden = false;
       }).catch(function () {});

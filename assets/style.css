@@ -868,7 +868,7 @@ a.hs-s .hs-b,a.hs-s .hs-b span{color:var(--od)}
 .cta .ci a{display:inline-flex;align-items:center;min-height:44px}
 
 /* r6-store  store card discount tag: 12.5px white on brand fill = 3.29:1 */
-html:not([data-theme=dark]) .us-tag{background:var(--od)}
+html:not([data-theme=dark]) .us-tag:not(.us-dtag){background:var(--od)}
 
 /* r6-demo  "demo product" pill: white 11px on a 78% ink scrim = 3.2:1 -> solid ink */
 html:not([data-theme=dark]) .oc .od{background:#1F2933}

@@ -150,3 +150,8 @@ html[data-theme=light] .us-drawer{--bg:#fffaf6;--s1:#fff;--s2:#fbf1e8;--bd:#ecd9
 .us-side .us-fbtn.pri{position:sticky;inset-block-end:0}
 
 .us-tag.us-dtag{inset-inline-start:auto;inset-inline-end:10px;background:var(--warn);color:#2a1d12}
+
+/* r7-2  store "demo" pill: 12.5px ink on the warn orange = 3.21:1 */
+html:not([data-theme=dark]) .us-tag.us-dtag{background:#FFE0B2;color:#5A2A00}
+/* r7-3  store discount tag in dark theme: white on #F65A00 = 3.29:1 */
+html[data-theme=dark] .us-tag:not(.us-dtag){background:#C94700}
