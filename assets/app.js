@@ -341,10 +341,14 @@ function tools(){
   $$("#tabs .chip").forEach(function(c){c.onclick=function(){location.hash=c.dataset.t;show(c.dataset.t)}});
   $("#tf").onsubmit=function(e){e.preventDefault();var v={};$$("#tf select, #tf input").forEach(function(x){v[x.id]=x.value});
     var r=T[cur].calc(v);
-    $("#tout").innerHTML='<h3>'+B(r.title)+'</h3><table class="rt">'+r.rows.map(function(x){return '<tr><th>'+B(x[0])+'</th><td>'+(typeof x[1]==="object"?B(x[1]):'<span dir="ltr">'+esc(x[1])+'</span>')+'</td></tr>'}).join("")+'</table><ul class="rn">'+r.notes.map(function(n){return '<li>'+B(n)+'</li>'}).join("")+'</ul><div class="acta"><a class="btn" href="'+U(ctaBtn())+'">'+B(C.blog.contactBtn)+'</a> <button class="btn alt" type="button" id="cp">'+B(bi("نسخ الملخص","Copy summary"))+'</button></div>';
+    $("#tout").innerHTML='<h3>'+B(r.title)+'</h3><table class="rt">'+r.rows.map(function(x){return '<tr><th>'+B(x[0])+'</th><td>'+(typeof x[1]==="object"?B(x[1]):'<span dir="ltr">'+esc(x[1])+'</span>')+'</td></tr>'}).join("")+'</table><ul class="rn">'+r.notes.map(function(n){return '<li>'+B(n)+'</li>'}).join("")+'</ul><div class="acta"><a class="btn" href="'+U(ctaBtn())+'">'+B(C.blog.contactBtn)+'</a> <button class="btn alt" type="button" id="cp">'+B(bi("نسخ الملخص","Copy summary"))+'</button> <button class="btn alt" type="button" id="cl">'+B(bi("نسخ رابط النتيجة","Copy result link"))+'</button>'+(cur!=="quote"?' <a class="btn alt" href="tools.html?q='+encodeURIComponent(String(r.sum||"").slice(0,500))+'#quote">'+B(bi("اطلب عرض سعر بالملخص","Request a quote with this"))+'</a> <a class="btn alt" href="store.html">'+B(bi("تصفح المتجر","Browse the store"))+'</a>':'')+'</div>';
+    $("#cl").onclick=function(){try{var u=location.origin+location.pathname+"?v="+encodeURIComponent(JSON.stringify(v))+"#"+cur;navigator.clipboard.writeText(u);this.textContent="\u2713"}catch(e){}};
     $("#cp").onclick=function(){try{navigator.clipboard.writeText(r.sum);this.textContent="\u2713"}catch(e){}};
     $("#tout").scrollIntoView({behavior:"smooth",block:"nearest"});};
   show(cur);
+  try{var qs=new URLSearchParams(location.search),qv=qs.get("v"),qq=qs.get("q");
+    if(qq&&cur==="quote"&&$("#qb-d"))$("#qb-d").value=qq.slice(0,500);
+    if(qv&&cur!=="quote"){var o=JSON.parse(qv);Object.keys(o).forEach(function(k){var el=document.getElementById(k);if(el&&el.closest("#tf")&&typeof o[k]==="string")el.value=o[k].slice(0,200)});$("#tf").dispatchEvent(new Event("submit",{cancelable:true}))}}catch(e){}
 }
 
 /* ---------- chatbot (rule based, no backend) ---------- */
