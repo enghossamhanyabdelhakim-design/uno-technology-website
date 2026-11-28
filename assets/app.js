@@ -90,7 +90,7 @@ function rtime(p){var t=String((p.body&&(p.body.en||p.body.ar))||"").replace(/<[
 function rtB(p){var m=rtime(p);return B({ar:m+" دقيقة قراءة",en:m+" min read"})}
 function postCard(p){
   var cat=(C.blog.cats.filter(function(c){return c.id===p.cat})[0])||{};
-  return '<a class="pc rv" href="blog.html#'+U(p.slug)+'">'+(p.img?'<img src="'+U(p.img)+'" alt="'+U(L(p.t))+'" data-alt-ar="'+U(p.t.ar||"")+'" data-alt-en="'+U(p.t.en||"")+'" loading="lazy">':'<div class="pci">'+ico(p.icon||"\uD83D\uDCDD")+'</div>')+
+  return '<a class="pc rv" href="blog-'+U(p.slug)+'.html">'+(p.img?'<img src="'+U(p.img)+'" alt="'+U(L(p.t))+'" data-alt-ar="'+U(p.t.ar||"")+'" data-alt-en="'+U(p.t.en||"")+'" loading="lazy">':'<div class="pci">'+ico(p.icon||"\uD83D\uDCDD")+'</div>')+
    '<div class="pcb"><small>'+B(cat.t||"")+' <i class="rtm">\u00B7 '+rtB(p)+'</i></small><h3>'+B(p.title)+'</h3><p>'+B(p.summary)+'</p><span class="more">'+B(C.blog.readMore)+' \u2192</span></div></a>';
 }
 function home(){
@@ -148,11 +148,12 @@ function home(){
 /* ---------- blog ---------- */
 function blog(){
   var P=C.blog.posts.filter(function(p){return p.published!==false}), cats=C.blog.cats;
-  var slug=decodeURIComponent((location.hash||"").replace("#","")), post=P.filter(function(p){return p.slug===slug})[0];
+  var slug=window.UNO_SLUG||decodeURIComponent((location.hash||"").replace("#","")), post=P.filter(function(p){return p.slug===slug})[0];
+  if(post&&!window.UNO_SLUG&&location.pathname.indexOf("blog.html")>-1){location.replace("blog-"+post.slug+".html"+(location.search||""));return}
   if(post){
     var cat=cats.filter(function(c){return c.id===post.cat})[0]||{};
     var rel=P.filter(function(p){return p.slug!==post.slug&&p.cat===post.cat}).concat(P.filter(function(p){return p.slug!==post.slug&&p.cat!==post.cat})).slice(0,3);
-    $("#app").innerHTML='<section><div class="wrap art"><a class="back" href="blog.html">\u2190 '+B(C.blog.back)+'</a><div id="rdp"></div><small class="catl">'+B(cat.t||"")+'</small><h1>'+B(post.title)+'</h1><div class="ameta">'+rtB(post)+' <span>\u00B7</span> <a class="shr" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(L(post.title)+" "+location.href)+'">'+B({ar:"مشاركة على واتساب",en:"Share on WhatsApp"})+'</a> <button type="button" class="shr" id="cpl">'+B({ar:"نسخ الرابط",en:"Copy link"})+'</button></div>'+(post.img?'<img class="aimg" src="'+U(post.img)+'" alt="">':'')+'<div class="abody">'+B(post.body,true)+'</div><div class="acta"><b>'+B(C.blog.help)+'</b> <a class="btn" href="'+U(ctaBtn())+'">'+B(C.blog.contactBtn)+'</a> <button class="btn alt" type="button" id="askart">'+B(C.blog.askUno)+'</button></div><h2 style="margin-top:50px">'+B(C.blog.related)+'</h2><div class="pgrid3">'+rel.map(postCard).join("")+'</div></div></section>';
+    $("#app").innerHTML='<section><div class="wrap art"><a class="back" href="blog.html">\u2190 '+B(C.blog.back)+'</a><div id="rdp"></div><small class="catl">'+B(cat.t||"")+'</small><h1>'+B(post.title)+'</h1><div class="ameta"><span>'+B({ar:"أونو للخدمات التكنولوجية",en:"Uno Technology Services"})+'</span> <span>\u00B7</span> '+rtB(post)+' <span>\u00B7</span> <a class="shr" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(L(post.title)+" "+location.href)+'">'+B({ar:"مشاركة على واتساب",en:"Share on WhatsApp"})+'</a> <button type="button" class="shr" id="cpl">'+B({ar:"نسخ الرابط",en:"Copy link"})+'</button></div>'+(post.img?'<img class="aimg" src="'+U(post.img)+'" alt="">':'')+'<div class="abody">'+B(post.body,true)+'</div><div class="acta"><b>'+B(C.blog.help)+'</b> <a class="btn" href="'+U(ctaBtn())+'">'+B(C.blog.contactBtn)+'</a> <a class="btn alt" href="tools.html#'+({cctv:"cctv",pc:"fix",net:"net"}[post.cat]||"quote")+'">'+B(post.cat==="cctv"?{ar:"جرّب مخطط الكاميرات",en:"Try the CCTV planner"}:post.cat==="pc"?{ar:"دليل الأعطال",en:"Troubleshooting guide"}:post.cat==="net"?{ar:"اختبار الشبكة",en:"Network check"}:{ar:"اطلب عرض سعر",en:"Request a quote"})+'</a> <button class="btn alt" type="button" id="askart">'+B(C.blog.askUno)+'</button></div><h2 style="margin-top:50px">'+B(C.blog.related)+'</h2><div class="pgrid3">'+rel.map(postCard).join("")+'</div></div></section>';
     document.title=L(post.title)+" | "+L(C.site.name);
     $("#askart").onclick=function(){openChat(true,L(post.title))};
     window.scrollTo(0,0);
@@ -165,7 +166,7 @@ function blog(){
     function draw(){
       var n=norm(qq), list=P.filter(function(p){return (f==="all"||p.cat===f)&&(!n||norm(L(p.title)+" "+L(p.summary)+" "+(p.kw||"")).indexOf(n)>-1||norm(p.title.ar+" "+p.title.en+" "+p.summary.ar+" "+p.summary.en+" "+(p.kw||"")).indexOf(n)>-1)});
       var ft=(f==="all"&&!n&&list.length>3)?list[0]:null,cat0=ft?(cats.filter(function(c){return c.id===ft.cat})[0]||{}):{};
-      $("#plist").innerHTML=list.length?((ft?'<a class="feat" href="blog.html#'+U(ft.slug)+'">'+(ft.img?'<img src="'+U(ft.img)+'" alt="">':'<div class="pci">'+ico(ft.icon||"\uD83D\uDCDD")+'</div>')+'<div class="fb"><small>'+B({ar:"مقال مميز",en:"Featured"})+' \u00B7 '+B(cat0.t||"")+' \u00B7 '+rtB(ft)+'</small><h3>'+B(ft.title)+'</h3><p>'+B(ft.summary)+'</p><span class="more">'+B(C.blog.readMore)+' \u2192</span></div></a>':"")+(ft?list.slice(1):list).map(postCard).join("")):'<p class="sub">'+B(C.blog.none)+'</p>';
+      $("#plist").innerHTML=list.length?((ft?'<a class="feat" href="blog-'+U(ft.slug)+'.html">'+(ft.img?'<img src="'+U(ft.img)+'" alt="">':'<div class="pci">'+ico(ft.icon||"\uD83D\uDCDD")+'</div>')+'<div class="fb"><small>'+B({ar:"مقال مميز",en:"Featured"})+' \u00B7 '+B(cat0.t||"")+' \u00B7 '+rtB(ft)+'</small><h3>'+B(ft.title)+'</h3><p>'+B(ft.summary)+'</p><span class="more">'+B(C.blog.readMore)+' \u2192</span></div></a>':"")+(ft?list.slice(1):list).map(postCard).join("")):'<p class="sub">'+B(C.blog.none)+'</p>';
       $$(".rv").forEach(function(x){x.classList.add("in")});
     }
     $$("#bchips .chip").forEach(function(c){c.onclick=function(){$$("#bchips .chip").forEach(function(y){y.classList.remove("on")});c.classList.add("on");f=c.dataset.f;draw()}});
@@ -355,7 +356,7 @@ function brain(text){
   var ch=C.chatbot;
   (ch.faqs||[]).forEach(function(f){add(score(qn,f.kw)?score(qn,f.kw)+0.5:0,{a:f.a,links:f.link?[{t:f.linkText||bi("افتح","Open"),u:f.link}]:[]})});
   C.services.forEach(function(s){add(score(qn,s.kw||""),{a:ch.serviceAnswer,svc:s,links:[{t:bi("الخدمات","Services"),u:"index.html#services"}]})});
-  C.blog.posts.forEach(function(p){if(p.published===false)return;add(score(qn,(p.kw||"")+","+p.title.ar+","+p.title.en)*0.9,{a:ch.articleAnswer,links:[{t:p.title,u:"blog.html#"+p.slug}]})});
+  C.blog.posts.forEach(function(p){if(p.published===false)return;add(score(qn,(p.kw||"")+","+p.title.ar+","+p.title.en)*0.9,{a:ch.articleAnswer,links:[{t:p.title,u:"blog-"+p.slug+".html"}]})});
   C.toolCards.forEach(function(t){add(score(qn,t.kw||""),{a:t.botAnswer||ch.toolAnswer,links:[{t:t.t,u:t.link}]})});
   add(score(qn,ch.contactKw||"")?score(qn,ch.contactKw||"")+0.4:0,{a:{ar:ch.contactAnswer.ar,en:ch.contactAnswer.en},contact:true,links:[]});
   add(score(qn,ch.greetKw||"")*0.6,{a:ch.greeting,links:[]});
