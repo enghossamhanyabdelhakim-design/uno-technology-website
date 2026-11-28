@@ -191,6 +191,8 @@
         if (r && r.__offline) return r.result;
         return get('core_sales_docs?id=eq.' + r.id + '&select=*').then(function (d) { return loadDocs(d); }).then(function (o) {
           var inv = o[0];
+          /* loyalty: credit points after the sale is saved. Does nothing while the loyalty switch is off. Never blocks the sale. */
+          if (inv && inv.id && p.customer_id) { try { rpc('loyalty_earn_for_sale', { p_sale: inv.id }).catch(function () {}); } catch (e) {} }
           inv.lines.forEach(function (ln, i) { var cl = cart[i]; var prod = cl && state.products.filter(function (x) { return x.id === cl.productId; })[0]; if (prod) { ln.name_ar = prod.ar; ln.name_en = prod.en; ln.mono = prod.mono; prod.stock = Math.max(0, prod.stock - cl.qty); } });
           inv.change_due = P(r.change); inv.credit_amount = P(r.due);
           var cr = p.payments.filter(function (x) { return x.method === 'credit'; }).reduce(function (s, x) { return s + x.amount; }, 0);
