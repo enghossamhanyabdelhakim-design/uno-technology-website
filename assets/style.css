@@ -777,3 +777,106 @@ html:not([data-theme=dark]) .fcta .btn.ghost:hover,html:not([data-theme=dark]) .
 @keyframes usk{to{background-position:-200% 0}}
 #us-pg:empty{min-height:440px;margin:12px;border-radius:16px;background:linear-gradient(90deg,rgba(128,128,128,.10) 25%,rgba(128,128,128,.04) 50%,rgba(128,128,128,.10) 75%);background-size:200% 100%;animation:usk 1.3s linear infinite}
 @media(prefers-reduced-motion:reduce){#us-pg:empty{animation:none}}
+
+
+/* ===== r6: dedicated UI/UX pass (contrast system, mobile density, targets) ===== */
+:root{--od-strong:#A83C00;--wa-deep:#0F7A3D}
+html[data-theme=dark]{--od-strong:#FFB07A;--wa-deep:#128C4A}
+
+/* r6-1  brand orange is a FILL; orange text uses --od (4.79:1 on white) */
+.tag{color:var(--od-strong)}
+.op,.oc .op,.pmore,.more,.bb,.frole,.rq-st,.hs-b,.why b,.pcb small,
+.cta .btn,.mbar a,.mbar button,footer.ft a:hover,nav a:hover,.h3b:hover,
+.card[data-c] h3::after,.faq summary::after{color:var(--od)}
+html:not([data-theme=dark]) .btn.alt{color:var(--od)}
+html:not([data-theme=dark]) .fcta .btn{background:#fff;color:#B03C00}
+html:not([data-theme=dark]) .fcta .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.8)}
+
+/* r6-2  small white labels on brand fills -> deep fill (4.79:1) */
+html:not([data-theme=dark]) .cta,
+html:not([data-theme=dark]) .oc .ob,
+html:not([data-theme=dark]) .chip.on,
+html:not([data-theme=dark]) .chip:hover,
+html:not([data-theme=dark]) .hcta,
+html:not([data-theme=dark]) .steps .n,
+html:not([data-theme=dark]) .ch-h{background:var(--od);border-color:var(--od)}
+
+/* r6-3  CTA contact pills and social pills readable */
+.cta .ci{background:#fff;color:var(--od)}
+.cta .ci a{color:var(--od)}
+.cta .soc{color:#fff;border-color:rgba(255,255,255,.9)}
+
+/* r6-4  primary label stays >=18.66px bold on mobile (large-text rule) */
+@media(max-width:420px){.btn,.btn.alt{font-size:19px;padding-inline:16px}}
+
+/* r6-5  services on mobile: 13 cards -> compact accordion (saves ~3,300px) */
+@media(max-width:820px){
+  #services .grid{gap:10px}
+  #services .card.sc{display:grid;grid-template-columns:44px 1fr;column-gap:12px;align-items:center;padding:10px 14px;border-radius:16px;overflow:visible}
+  #services .card.sc .sci{display:none}
+  #services .card.sc>.ic{display:grid;float:none;width:44px;height:44px;margin:0;font-size:22px;box-shadow:none;background:var(--ol)}
+  #services .card.sc>h3{margin:0;min-height:44px;display:flex;align-items:center;font-size:17px}
+  #services .card.sc>h3::after{content:"+";font-size:24px;font-weight:400;margin-inline-start:auto;padding-inline:6px;color:var(--od-strong);line-height:1}
+  #services .card.sc.open>h3::after{content:"\2212"}
+  #services .card.sc>ul{grid-column:1/-1;margin:0;padding-top:8px}
+  #services .card.sc>ul li{font-size:14.5px}
+  #services .card.sc:not(.open)>ul{display:none}
+  #services .card.sc.open{align-items:start}
+  #services .card.sc:hover{transform:none;box-shadow:none}
+}
+
+/* r6-6  tap targets: FAQ 26->52, footer links 25->34, pills 34->40, dots 9->28 */
+#faq summary{min-height:52px;display:flex;align-items:center;gap:8px;padding-block:12px}
+#faq summary::after{float:none}
+footer.ft .fcols a{min-height:34px;display:flex;align-items:center;margin-bottom:4px}
+footer.ft .fsoc a{display:inline-flex;align-items:center;min-height:40px;margin:0}
+.cta .soc{min-height:40px;display:inline-flex;align-items:center}
+.cta .ci{min-height:44px;display:inline-flex;align-items:center}
+.hs-d{gap:0;bottom:10px}
+.hs-d button{width:28px;height:28px;background:transparent;display:grid;place-items:center}
+.hs-d button::before{content:"";width:9px;height:9px;border-radius:99px;background:rgba(255,255,255,.6);transition:width .25s}
+.hs-d button.on{width:36px;background:transparent}
+.hs-d button.on::before{width:22px;background:#fff}
+
+/* r6-7  offer price line breathing room */
+.oc .op{gap:6px;align-items:baseline;flex-wrap:wrap;line-height:1.4}
+.oc .op s{font-size:12.5px;opacity:.9}
+
+/* r6-8  bottom bar: white on #25D366 was 1.98:1 */
+.mbar .wa{background:var(--wa-deep);color:#fff}
+.mbar .wa svg{color:#fff}
+
+/* r6-9  header: language switch becomes a quiet utility control */
+.lang{color:var(--ink);border:1.5px solid var(--ln);font-size:13px;font-weight:700;min-height:40px;padding:0 12px}
+.lang:hover{background:var(--bg2);color:var(--ink);border-color:var(--o)}
+
+/* r6-10  hero slide: scrim under the text so 15px white labels read */
+.hs-s::after{content:"";position:absolute;inset:0;background:linear-gradient(to left,rgba(90,30,0,.45),rgba(90,30,0,.12) 60%,rgba(90,30,0,0) 85%);z-index:0;pointer-events:none}
+html[lang=en] .hs-s::after{transform:scaleX(-1)}
+.hs-t,.hs-i{position:relative;z-index:1}
+
+/* r6-11  Arabic paragraph measure at 390 */
+.hero p,.sub,#faq details p{max-width:46ch}
+
+/* r6-12  selector-precision follow-ups (measured) */
+html:not([data-theme=dark]) .hero .tag{color:#A83C00}
+a.hs-s .hs-b,a.hs-s .hs-b span{color:var(--od)}
+.mbar a.on{color:var(--od)}
+.mbar a.on::before{background:var(--od)}
+#services .card.sc .h3b{display:flex;align-items:center;min-height:44px;width:100%;text-align:start}
+.lang{min-height:44px}
+.cta .ci a{display:inline-flex;align-items:center;min-height:44px}
+
+/* r6-store  store card discount tag: 12.5px white on brand fill = 3.29:1 */
+html:not([data-theme=dark]) .us-tag{background:var(--od)}
+
+/* r6-demo  "demo product" pill: white 11px on a 78% ink scrim = 3.2:1 -> solid ink */
+html:not([data-theme=dark]) .oc .od{background:#1F2933}
+
+/* r6-dark  same fixes must hold in dark theme (light-orange text on white pills fails there) */
+.cta,html[data-theme=dark] .cta{background:#C94700}
+.oc .ob,html[data-theme=dark] .oc .ob{background:#C94700}
+.chip.on,html[data-theme=dark] .chip.on{background:#C94700;border-color:#C94700}
+.cta .ci{background:#fff;color:#B03C00}
+.cta .ci a{color:#B03C00}
+a.hs-s .hs-b,a.hs-s .hs-b span{color:#B03C00}
