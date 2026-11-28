@@ -15,16 +15,16 @@ section{background:var(--card);border:1px solid var(--bd);border-radius:16px;pad
 <main><h1 id="t1"></h1><p class="sub" id="t2"></p><nav class="t" id="nv"></nav><div id="ps"></div></main>
 <script src="assets/config.js?v=20261128w"></script><script src="assets/store-rpc.js?v=20261128w"></script>
 <script>
-var T={ar:{h:'سياسات المتجر',s:'الاسترجاع والشحن والضمان والشروط.',ph:'نص مؤقت',bk:'المتجر',lg:'English',terms:'الشروط والأحكام',tt:'نص الشروط والأحكام قيد الإعداد من فريق أونو وسيُنشر هنا قريبًا.',err:'تعذّر تحميل السياسات. حاول مرة أخرى.'},
-en:{h:'Store policies',s:'Returns, shipping, warranty and terms.',ph:'Placeholder',bk:'Store',lg:'العربية',terms:'Terms and conditions',tt:'The terms and conditions text is being prepared by the Uno team and will be published here soon.',err:'Could not load the policies. Please try again.'}};
+var T={ar:{h:'سياسات المتجر',s:'الاسترجاع والشحن والضمان والشروط.',ph:'مسودة',bk:'المتجر',lg:'English',terms:'الشروط والأحكام',tt:'نص الشروط والأحكام قيد الإعداد من فريق أونو وسيُنشر هنا قريبًا.',err:'تعذّر تحميل السياسات. حاول مرة أخرى.'},
+en:{h:'Store policies',s:'Returns, shipping, warranty and terms.',ph:'Draft',bk:'Store',lg:'العربية',terms:'Terms and conditions',tt:'The terms and conditions text is being prepared by the Uno team and will be published here soon.',err:'Could not load the policies. Please try again.'}};
 var q=new URLSearchParams(location.search),lang=q.get('lang')||localStorage.getItem('uno_lang')||'ar',data=null;
 document.documentElement.dataset.theme=q.get('theme')||'dark';
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function draw(){var t=T[lang];document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
  t1.textContent=t.h;t2.textContent=t.s;bk.textContent=t.bk;lg.textContent=t.lg;
  if(!data){ps.innerHTML='<p>'+esc(t.err)+'</p>';return}
- var items=['returns','shipping','warranty'].filter(function(k){return data[k]}).map(function(k){var p=data[k];return{id:k,title:p.title[lang]||p.title.ar,body:p.body[lang]||p.body.ar,ph:!!p.placeholder}});
- items.push({id:'terms',title:t.terms,body:t.tt,ph:true});
+ var items=['returns','shipping','warranty','terms'].filter(function(k){return data[k]}).map(function(k){var p=data[k];return{id:k,title:p.title[lang]||p.title.ar,body:p.body[lang]||p.body.ar,ph:!!p.placeholder}});
+ if(!data.terms)items.push({id:'terms',title:t.terms,body:t.tt,ph:true});
  nv.innerHTML=items.map(function(i){return'<a href="#'+i.id+'">'+esc(i.title)+'</a>'}).join('');
  ps.innerHTML=items.map(function(i){return'<section id="'+i.id+'"><h2>'+esc(i.title)+(i.ph?'<span class="ph">'+esc(t.ph)+'</span>':'')+'</h2><p>'+esc(i.body).replace(/\n/g,'<br>')+'</p></section>'}).join('');
  if(location.hash){var e=document.getElementById(location.hash.slice(1));e&&e.scrollIntoView()}}
