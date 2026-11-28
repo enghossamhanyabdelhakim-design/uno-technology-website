@@ -82,3 +82,6 @@ html[data-theme=dark] .us-chk small{background:rgba(255,138,61,.16);color:#FF8A3
 
 /* sw180: one label color on brand fills: white, bold */
 .us-btn.pri,.us-btn.pri *,a.us-btn.pri,.uo-btn--primary,.uo-btn--primary *,a.uo-btn--primary,.us-card .act .us-btn.pri{color:#fff !important;font-weight:800}
+
+/* r7b: mobile filter sheet fully hidden until opened (no peek, no tap target) */
+@media(max-width:860px){.us-side{top:auto;align-self:auto;visibility:hidden;pointer-events:none;transition:transform .25s,visibility 0s .25s}.us-side.on{visibility:visible;pointer-events:auto;transition:transform .25s}}
