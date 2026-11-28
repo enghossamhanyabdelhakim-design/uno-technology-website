@@ -1316,7 +1316,7 @@ window.UNO={
   }
  ],
  "chatbot": {
-  "avatar": "assets/pose-thumbs.jpg",
+  "avatar": "assets/uno-avatar-256.webp",
   "name": {
    "ar": "أونو",
    "en": "Uno"

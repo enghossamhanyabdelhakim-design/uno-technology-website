@@ -90,7 +90,7 @@ html[dir=ltr] #chat .ch-b{background:radial-gradient(circle at 0 0, rgba(246,90,
 #chat .m.b::before{
   content:""; position:absolute; inset-inline-start:-38px; bottom:2px;
   width:30px; height:30px; border-radius:50%;
-  background:#fff url("pose-thumbs.jpg") center top/cover;
+  background:#fff url("uno-avatar-128.webp") center/cover;
   border:1.5px solid rgba(246,90,0,.45);
   box-shadow:0 1px 4px rgba(20,24,30,.18);
 }
