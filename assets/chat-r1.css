@@ -1,0 +1,191 @@
+/* ============================================================
+   Uno chat widget — Round 1 UI/UX pack (drop-in, append AFTER style.css)
+   Scope: #chat-fab, #chat, #vc. No markup changes required.
+   Goals: compact pop-up on mobile (never full-screen), fix sticky-ad
+   covering the input, premium calm surfaces, mascot presence on bot
+   bubbles, clear support path, brand #F65A00/white.
+   ============================================================ */
+
+/* ---------- 0. tokens ---------- */
+#chat, #chat-fab, #vc{
+  --cr:#F65A00; --cr2:#ff8a3d; --cg:#10b981; --cgd:#0d9488;
+  --ink:#1c2430; --mut:#66707d; --ln:#e7e3de;
+  --sh-pop:0 24px 64px rgba(20,24,30,.30), 0 2px 8px rgba(20,24,30,.10);
+}
+
+/* ---------- 1. launcher (FAB) ---------- */
+#chat-fab{
+  z-index:70;
+  border-width:2px;
+  box-shadow:0 8px 22px rgba(246,90,0,.32), 0 2px 6px rgba(20,24,30,.14);
+  animation:none;                       /* calm: no perpetual bobbing */
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+#chat-fab:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(246,90,0,.40),0 2px 6px rgba(20,24,30,.14)}
+#chat-fab:active{transform:scale(.94)}
+#chat-fab:not(.hid):after{animation:fabp 2.8s 3}   /* pulse a few times, then rest */
+
+/* ---------- 2. shell — compact pop-up on every screen ---------- */
+#chat{
+  z-index:70;                            /* above the sticky ad slot (60) */
+  width:min(400px, calc(100vw - 24px)) !important;
+  height:min(640px, calc(var(--vvh, 100dvh) - 24px)) !important;
+  max-height:calc(var(--vvh, 100dvh) - 24px);
+  inset-inline-start:12px !important; inset-inline-end:auto !important;
+  top:auto !important; bottom:12px !important;
+  border-radius:24px !important; border:0;
+  background:var(--bg,#fff);
+  box-shadow:var(--sh-pop), 0 0 0 1px rgba(246,90,0,.10);
+  transform-origin:bottom right;
+}
+html[dir=ltr] #chat{transform-origin:bottom left}
+/* keep the chat clear of the mobile sticky ad: hide the ad while chatting */
+body.chat-open .uslot-mobile_sticky{display:none !important}
+
+/* ---------- 3. header ---------- */
+#chat .ch-h{
+  padding:13px 14px; gap:12px;
+  background:
+    radial-gradient(140% 160% at 100% 0, rgba(255,154,85,.55) 0, transparent 52%),
+    linear-gradient(135deg, #f65a00, #e04a00);
+}
+html[dir=ltr] #chat .ch-h{background:radial-gradient(140% 160% at 0 0, rgba(255,154,85,.55) 0, transparent 52%),linear-gradient(135deg,#f65a00,#e04a00)}
+#chat .ch-h>img{width:44px;height:44px;border:2px solid rgba(255,255,255,.85);box-shadow:0 0 0 3px rgba(255,255,255,.16)}
+#chat .ch-h b{font-size:16px}
+#chat .ch-h small{font-size:12px;font-weight:600}
+#chat .ch-h button{width:36px;height:36px;background:rgba(255,255,255,.18);border-radius:50%}
+#chat .ch-h button:hover{background:rgba(255,255,255,.30)}
+/* live mode: brand-safe teal (no near-black header) */
+#chat.human .ch-h{background:linear-gradient(135deg,#10b981,#0d9488)}
+
+/* ---------- 4. mode tabs — segmented control ---------- */
+#chat #ch-tabs{
+  display:flex; gap:4px; padding:6px;
+  background:var(--bg,#fff); border-bottom:1px solid var(--ln);
+}
+#chat #ch-tabs button{
+  flex:1; border-radius:12px; padding:8px 6px; font-size:13px; font-weight:700;
+}
+#chat #ch-tabs button.on{background:linear-gradient(135deg,var(--cr),var(--cr2));color:#fff}
+#chat #ch-tabs button[data-m=live].on{background:linear-gradient(135deg,var(--cg),var(--cgd));color:#fff}
+
+/* ---------- 5. message list ---------- */
+#chat .ch-b{
+  padding:16px 14px 10px; gap:10px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(246,90,0,.05), transparent 46%),
+    var(--bg,#fff);
+}
+html[dir=ltr] #chat .ch-b{background:radial-gradient(circle at 0 0, rgba(246,90,0,.05), transparent 46%),var(--bg,#fff)}
+
+/* bubbles */
+#chat .m{max-width:82%; border-radius:18px; font-size:14.5px; line-height:1.6; padding:10px 14px 7px}
+#chat .m.b{
+  background:#fff; border:1px solid var(--ln);
+  box-shadow:0 1px 3px rgba(20,24,30,.07);
+  border-start-start-radius:6px;
+  margin-inline-start:38px;             /* room for the mascot avatar */
+}
+/* mascot avatar beside every bot bubble (CSS-only; round 2 will group them) */
+#chat .m.b::before{
+  content:""; position:absolute; inset-inline-start:-38px; bottom:2px;
+  width:30px; height:30px; border-radius:50%;
+  background:#fff url("pose-thumbs.jpg") center top/cover;
+  border:1.5px solid rgba(246,90,0,.45);
+  box-shadow:0 1px 4px rgba(20,24,30,.18);
+}
+#chat .m.b.typing::before{content:""}
+#chat .m.u{
+  background:linear-gradient(135deg,#f65a00,#ff7a2e);
+  border-start-end-radius:6px;
+  box-shadow:0 4px 14px rgba(246,90,0,.24);
+}
+#chat .m.ag{background:#ecfdf5;border:1px solid #a7f3d0;border-inline-start:3px solid var(--cg)}
+#chat .m .who{font-size:11.5px;font-weight:800;margin-bottom:2px}
+#chat .m time{font-size:10.5px;opacity:.62;margin-top:4px}
+#chat .m.sys{font-size:12.5px;color:var(--mut)}
+
+/* inline "talk to live support" inside bot answers: full-width, one clear action */
+#chat .m .lk a, #chat .m .lk button{
+  display:block; width:100%; margin-top:8px; padding:9px 12px;
+  border:1.5px solid rgba(16,185,129,.55); border-radius:12px;
+  background:rgba(16,185,129,.07); color:var(--cgd);
+  font-weight:700; font-size:13.5px; text-align:center; text-decoration:none;
+}
+#chat .m .lk a:hover{background:var(--cg);border-color:var(--cg);color:#fff}
+
+/* typing indicator */
+#chat .m.typing{background:#fff;border:1px solid var(--ln);border-radius:18px;border-start-start-radius:6px;padding:13px 16px}
+#chat .dots i{background:var(--cr)}
+
+/* ---------- 6. quick-reply chips — one scrollable row ---------- */
+#chat .ch-q{
+  display:flex; flex-wrap:nowrap; gap:8px;
+  overflow-x:auto; overflow-y:hidden; scrollbar-width:none;
+  padding:4px 14px 8px;
+  -webkit-mask-image:linear-gradient(to left,transparent 0,#000 16px,#000 calc(100% - 24px),transparent);
+  mask-image:linear-gradient(to left,transparent 0,#000 16px,#000 calc(100% - 24px),transparent);
+}
+#chat .ch-q::-webkit-scrollbar{display:none}
+#chat .ch-q button{
+  flex:0 0 auto; white-space:nowrap;
+  border:1.5px solid rgba(246,90,0,.45); background:#fff; color:var(--cr);
+  border-radius:99px; padding:7px 14px; font-weight:700; font-size:13px;
+  min-height:36px;
+}
+#chat .ch-q button:hover{background:var(--cr);color:#fff}
+#chat .ch-q button.hum{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* ---------- 7. persistent support button ---------- */
+#chat .ch-sup{
+  margin:0 14px 8px; padding:11px 14px; border-radius:14px;
+  border:1.5px solid rgba(16,185,129,.55); background:rgba(16,185,129,.08);
+  color:var(--cgd); font-weight:800; font-size:13.5px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+#chat .ch-sup::before{
+  content:""; width:18px; height:18px; flex:none;
+  background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+#chat .ch-sup:hover{background:var(--cg);border-color:var(--cg);color:#fff}
+
+/* ---------- 8. composer ---------- */
+#chat .ch-f{
+  gap:8px; padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--ln); background:var(--bg,#fff);
+}
+#chat .ch-f input{
+  min-height:44px; border:1.5px solid var(--ln); border-radius:99px;
+  padding:10px 16px; font-size:16px; background:#fafafa;
+}
+#chat .ch-f input:focus{outline:none;border-color:var(--cr);background:#fff;box-shadow:0 0 0 3px rgba(246,90,0,.14)}
+#chat .ch-f button{width:44px;height:44px;flex:0 0 44px;border-radius:50%}
+#chat .ch-f #ch-mic{background:transparent;color:var(--mut);border:1.5px solid var(--ln)}
+#chat .ch-f #ch-mic:hover{color:var(--cr);border-color:var(--cr)}
+#chat .ch-f #ch-s{background:linear-gradient(135deg,var(--cr),var(--cr2));box-shadow:0 4px 12px rgba(246,90,0,.30)}
+#chat .ch-f #ch-s:disabled{background:#d7dbe0;box-shadow:none}
+
+/* ---------- 9. voice call screen — brand-safe surface ---------- */
+#vc{
+  background:
+    radial-gradient(90% 60% at 50% 0%, rgba(246,90,0,.28), transparent 60%),
+    linear-gradient(180deg,#232b36,#161b22);
+}
+
+/* ---------- 10. motion & small screens ---------- */
+@media (prefers-reduced-motion:reduce){
+  #chat-fab:not(.hid):after{animation:none}
+}
+@media (max-width:420px){
+  #chat .m{max-width:86%}
+}
+
+/* dark mode (added by builder: pack used light-only surfaces) */
+html[data-theme=dark] #chat{--ln:#2e3742;--mut:#9aa5b1;--bg:#161b22}
+html[data-theme=dark] #chat .m.b,html[data-theme=dark] #chat .m.typing{background:#232b36;border-color:#2e3742;color:#e8edf2}
+html[data-theme=dark] #chat .ch-q button{background:#232b36;color:#ff9a55}
+html[data-theme=dark] #chat .ch-f input{background:#232b36;color:#e8edf2}
+html[data-theme=dark] #chat .ch-f input:focus{background:#2a3340}
+html[data-theme=dark] #chat .m.ag{background:#12352b;border-color:#1f6b53;color:#e8edf2}

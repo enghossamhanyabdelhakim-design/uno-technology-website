@@ -5,7 +5,7 @@ window.UNO={
  "images": {
   "logoHeader": "assets/logo-uno-technology.png",
   "logoMark": "assets/logo-tu.png",
-  "hero": "assets/mascot-badge.jpg",
+  "hero": "assets/mascot-badge.webp",
   "about": "assets/logo-circle.png"
  },
  "site": {

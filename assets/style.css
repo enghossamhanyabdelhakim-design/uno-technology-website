@@ -767,3 +767,13 @@ html:not([data-theme=dark]) .btn.alt{color:#1F2933}
 html:not([data-theme=dark]) .btn.alt:hover{background:#FFF1E8;border-color:#F65A00}
 html:not([data-theme=dark]) .btn.alt:active{background:#FFE3D1}
 @media(max-width:420px){.btn{font-size:18px}}
+
+/* sw176: buttons that sit on orange bands, store skeleton */
+html:not([data-theme=dark]) .fcta .btn,html:not([data-theme=dark]) .cta .btn,html:not([data-theme=dark]) .ban .btn{background:#fff;color:#B03F00;border-color:#fff;box-shadow:none}
+html:not([data-theme=dark]) .fcta .btn:hover,html:not([data-theme=dark]) .cta .btn:hover,html:not([data-theme=dark]) .ban .btn:hover{background:#FFF1E8;color:#B03F00;border-color:#fff}
+html:not([data-theme=dark]) .fcta .btn.ghost,html:not([data-theme=dark]) .fcta .btn.alt,html:not([data-theme=dark]) .cta .btn.alt,html:not([data-theme=dark]) .ban .btn.alt{background:transparent;color:#fff;border-color:#fff}
+html:not([data-theme=dark]) .fcta .btn.ghost:hover,html:not([data-theme=dark]) .fcta .btn.alt:hover,html:not([data-theme=dark]) .cta .btn.alt:hover,html:not([data-theme=dark]) .ban .btn.alt:hover{background:rgba(255,255,255,.18);color:#fff;border-color:#fff}
+.fcta .btn,.cta .btn,.ban .btn{font-size:17px;font-weight:800}
+@keyframes usk{to{background-position:-200% 0}}
+#us-pg:empty{min-height:440px;margin:12px;border-radius:16px;background:linear-gradient(90deg,rgba(128,128,128,.10) 25%,rgba(128,128,128,.04) 50%,rgba(128,128,128,.10) 75%);background-size:200% 100%;animation:usk 1.3s linear infinite}
+@media(prefers-reduced-motion:reduce){#us-pg:empty{animation:none}}
