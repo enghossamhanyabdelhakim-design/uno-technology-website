@@ -35,6 +35,35 @@
     }
   }
 
+  /* Help block: hotline as tap-to-call + a button that opens the site's support chat (no WhatsApp link). */
+  function buildHelp(info) {
+    if (q('.uno-pdp-help', info)) return;
+    var p = q('.us-info .us-buy', info);
+    if (!p) return;
+    var num = (w.UnoStore && UnoStore.config && UnoStore.config.hotline) || '01505946321';
+    var box = d.createElement('div');
+    box.className = 'uno-pdp-help';
+    var tt = d.createElement('p');
+    tt.className = 'uno-pdp-help__t';
+    tt.textContent = T('محتاج مساعدة قبل الشراء؟', 'Need help before you buy?');
+    var row = d.createElement('div');
+    row.className = 'uno-pdp-help__r';
+    var a = d.createElement('a');
+    a.className = 'uno-pdp-help__a';
+    a.href = 'tel:' + num;
+    a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><bdi dir="ltr"></bdi>';
+    a.querySelector('bdi').textContent = num;
+    a.setAttribute('aria-label', T('اتصل بخط أونو ', 'Call the Uno line ') + num);
+    var b = d.createElement('button');
+    b.type = 'button';
+    b.className = 'uno-pdp-help__b';
+    b.textContent = T('كلم الدعم في الشات', 'Chat with support');
+    b.onclick = function () { var f = d.getElementById('chat-fab'); if (f) f.click(); };
+    row.appendChild(a); row.appendChild(b);
+    box.appendChild(tt); box.appendChild(row);
+    p.insertAdjacentElement('afterend', box);
+  }
+
   function wireSticky(info) {
     var sticky = q('.us-sticky'), buy = q('.us-buy', info);
     if (!sticky || !buy || sticky.__unoWired === buy) return;
@@ -75,6 +104,7 @@
     var info = q('.us-info');
     if (!info) return;
     buildExtras(info);
+    buildHelp(info);
     wireSticky(info);
     wireSwipe(info);
   }

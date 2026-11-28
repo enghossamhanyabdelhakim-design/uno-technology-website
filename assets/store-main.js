@@ -1,7 +1,7 @@
 /* Uno store page: loads the storefront modules and mounts them between the site header and footer. Own code. */
 (function () {
   'use strict';
-  var V = '20261129t9', MODS = ['store-rpc', 'store-i18n', 'store-api', 'store-cart', 'store-category', 'store-product', 'store-404', 'store-discovery', 'uno-pdp', 'uno-store-seo'];
+  var V = '20261129ua', MODS = ['store-rpc', 'store-i18n', 'store-api', 'store-cart', 'store-category', 'store-product', 'store-404', 'store-discovery', 'uno-pdp', 'uno-store-seo'];
   function css(n) { var href = 'assets/' + n + '.css?v=' + V; if (document.querySelector('link[href="' + href + '"]')) return; var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l); }
   function load(n) { return new Promise(function (ok) { var s = document.createElement('script'); s.src = 'assets/' + n + '.js?v=' + V; s.onload = ok; s.onerror = ok; document.body.appendChild(s); }); }
   var st = document.createElement('style');
