@@ -67,7 +67,8 @@
       'pp.help_title': 'محتاج تعديل أو عندك سؤال؟',
       'pp.help_note': 'كلمنا على خط أونو أو واتساب وهنساعدك.',
       'pp.returns_title': 'طلب استرجاع أو استبدال',
-      'pp.returns_sub': 'الاسترجاع متاح خلال ١٤ يوم من استلام الطلب، والمنتج لازم يكون غير مستعمل وبكامل تغليفه.',
+      'pp.returns_sub': 'الاسترجاع متاح خلال {n} يوم من استلام الطلب، والمنتج لازم يكون غير مستعمل وبكامل تغليفه.',
+      'pp.returns_off': 'الاسترجاع متوقف حاليًا. كلمنا لو عندك مشكلة في طلبك.',
       'pp.returns_step1': 'بيانات الطلب',
       'pp.returns_step2': 'المنتجات والسبب',
       'pp.returns_step3': 'التأكيد',
@@ -89,7 +90,7 @@
       'pp.refund_card': 'الدفع بالبطاقة: الاسترداد على نفس البطاقة بعد استلام المنتج.',
       'pp.refund_note': 'مصاريف الشحن غير قابلة للاسترداد إلا لو المشكلة من عندنا.',
       'pp.returns_window': 'آخر يوم للاسترجاع: {date}',
-      'pp.returns_closed': 'مدة الاسترجاع (١٤ يوم) خلصت للطلب ده. كلمنا لو المشكلة عيب صناعة، الضمان ممكن يغطيها.',
+      'pp.returns_closed': 'مدة الاسترجاع ({n} يوم) خلصت للطلب ده. كلمنا لو المشكلة عيب صناعة، الضمان ممكن يغطيها.',
       'pp.returns_submit': 'إرسال طلب الاسترجاع',
       'pp.returns_sending': 'بنرسل الطلب…',
       'pp.returns_ok_title': 'تم تسجيل طلب الاسترجاع',
@@ -172,7 +173,8 @@
       'pp.help_title': 'Need a change or have a question?',
       'pp.help_note': 'Call the Uno line or WhatsApp us.',
       'pp.returns_title': 'Return or exchange request',
-      'pp.returns_sub': 'Returns are open for 14 days from delivery, and the item must be unused and in its full packaging.',
+      'pp.returns_sub': 'Returns are open for {n} days from delivery, and the item must be unused and in its full packaging.',
+      'pp.returns_off': 'Returns are currently turned off. Contact us if there is a problem with your order.',
       'pp.returns_step1': 'Order details',
       'pp.returns_step2': 'Items and reason',
       'pp.returns_step3': 'Confirm',
@@ -194,7 +196,7 @@
       'pp.refund_card': 'Card payment: refunded to the same card after we receive the item.',
       'pp.refund_note': 'Shipping fees are not refunded unless the fault is ours.',
       'pp.returns_window': 'Last day to return: {date}',
-      'pp.returns_closed': 'The 14-day return window has closed for this order. Contact us if it is a manufacturing fault; warranty may cover it.',
+      'pp.returns_closed': 'The {n}-day return window has closed for this order. Contact us if it is a manufacturing fault; warranty may cover it.',
       'pp.returns_submit': 'Send return request',
       'pp.returns_sending': 'Sending…',
       'pp.returns_ok_title': 'Return request recorded',
@@ -635,15 +637,30 @@
    * Returns
    * ------------------------------------------------------------------ */
 
+  /* Return window in days. Read live from the store settings (Admin > Store settings); 14 if the read fails; 0 = returns off. */
+  var RD = 14;
+  function dn(n) { return U.config.lang === 'ar' ? String(n).replace(/\d/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'.charAt(d); }) : String(n); }
+  function retSub() { return RD === 0 ? t('pp.returns_off') : t('pp.returns_sub', { n: dn(RD) }); }
+  function retClosed() { return RD === 0 ? t('pp.returns_off') : t('pp.returns_closed', { n: dn(RD) }); }
+  function loadReturnDays(done) {
+    var fin = false;
+    function go(v) { if (fin) return; fin = true; if (typeof v === 'number' && v >= 0 && v <= 365 && isFinite(v)) RD = Math.floor(v); done(); }
+    try {
+      if (!global.UNO_STORE_RPC) return go();
+      var to = setTimeout(go, 2500);
+      global.UNO_STORE_RPC('store_return_days').then(function (v) { clearTimeout(to); go(typeof v === 'number' ? v : +v); }, function () { clearTimeout(to); go(); });
+    } catch (e) { go(); }
+  }
+
   function returnDeadline(order) {
     if (!order.delivered_at) return null;
     var d = new Date(order.delivered_at);
-    d.setDate(d.getDate() + (U.config.returnWindowDays || 14));
+    d.setDate(d.getDate() + RD);
     return d;
   }
 
   function initReturns(root) {
-    var parts = shell(root, 'returns', t('pp.returns_title'), t('pp.returns_sub'));
+    var parts = shell(root, 'returns', t('pp.returns_title'), retSub());
     var state = { order: null, picked: {}, reason: '', details: '', submitted: null };
 
     var step1 = U.el('section', { class: 'uo-step uo-step--card' });
@@ -695,7 +712,7 @@
     container.appendChild(h);
 
     var deadline = returnDeadline(order);
-    var open = deadline && deadline.getTime() >= Date.now() && order.status === 'delivered';
+    var open = RD > 0 && deadline && deadline.getTime() >= Date.now() && order.status === 'delivered';
 
     var summary = U.el('div', { class: 'uo-card uo-card--order' });
     var line = U.el('div', { class: 'uo-order-line' });
@@ -709,7 +726,7 @@
 
     if (!open) {
       var closed = U.el('div', { class: 'uo-note uo-note--warn' });
-      closed.innerHTML = icon('alert') + '<div><strong>' + U.escapeHtml(t('pp.returns_closed')) + '</strong></div>';
+      closed.innerHTML = icon('alert') + '<div><strong>' + U.escapeHtml(retClosed()) + '</strong></div>';
       container.appendChild(closed);
       container.appendChild(helpCard());
       return;
@@ -996,7 +1013,7 @@
     if (!root) throw new Error('uno-store: post-purchase root not found');
     var page = opts.page || root.getAttribute('data-uno-page') || 'track';
     if (page === 'confirm') initConfirm(root);
-    else if (page === 'returns') initReturns(root);
+    else if (page === 'returns') loadReturnDays(function () { initReturns(root); });
     else if (page === 'warranty') initWarranty(root);
     else initTrack(root);
   }

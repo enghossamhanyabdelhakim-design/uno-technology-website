@@ -50,6 +50,7 @@ var MODS=[
  {id:"paym",g:"المتجر / Store",p:"store",ic:"tag",l:"طرق الدفع / Payment methods"},
  {id:"cpn",g:"المتجر / Store",p:"store",ic:"tag",l:"كوبونات الخصم / Coupons"},
  {id:"pol",g:"المتجر / Store",p:"store",ic:"kb",l:"سياسات المتجر / Policies"},
+ {id:"sset",g:"المتجر / Store",p:"store",ic:"kb",l:"إعدادات المتجر / Store settings"},
  {id:"ret",g:"المتجر / Store",p:"orders",ic:"inbox",l:"طلبات الاسترجاع / Returns"},
  {id:"content",g:"المحتوى / Content",p:"content",ic:"edit",l:"محتوى الموقع / Site content"},
  {id:"ptn",g:"المحتوى / Content",p:"content",ic:"star",l:"البراندات والشركاء / Brands & partners"},
@@ -79,7 +80,7 @@ var MODS=[
  {id:"cin",g:"النظام الداخلي / UNO Core",p:"core",ic:"box",l:"المخزون / Inventory"}
 ];
 var GR={ov:"نظرة عامة / Overview",sl:"المبيعات / Sales",pu:"المشتريات / Purchases",iv:"المخزون / Inventory",ac:"الحسابات / Accounting",cr:"العملاء / CRM",rp:"التقارير / Reports",st:"المتجر الإلكتروني / Online store",wb:"الموقع / Website",se:"الإعدادات / Settings"};
-var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",paym:"st",cpn:"st",pol:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",rmx:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
+var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",paym:"st",cpn:"st",pol:"st",sset:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",rmx:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
 MODS.forEach(function(m,i){m.gk=GM[m.id]||"se";m.g=GR[m.gk];m.o=i});
 MODS.sort(function(a,b){return GO.indexOf(a.gk)-GO.indexOf(b.gk)||a.o-b.o});
 var GOPEN={};try{GOPEN=JSON.parse(localStorage.getItem("uno_gopen")||"{}")}catch(e){}
@@ -305,6 +306,8 @@ RENDER.cpn=function(mn){CRUD(mn,{table:"coupons",pk:"code",order:"created_at.des
  addf:[{k:"code",l:["الكود","Code"],req:1,dir:1},{k:"kind",l:["النوع","Kind"],t:"sel",o:[["percent","نسبة % / Percent"],["fixed","مبلغ / Fixed"]]},{k:"val",l:["القيمة","Value"],t:"num"},{k:"min_subtotal",l:["حد أدنى","Min subtotal"],t:"num",d:0},{k:"max_uses",l:["أقصى استخدام","Max uses"],t:"num"},{k:"active",l:["مفعل","On"],t:"bool"}]})};
 RENDER.pol=function(mn){CRUD(mn,{table:"store_policies",pk:"k",order:"k.asc",l:["سياسات المتجر","Store policies"],h:["النصوص دي بتظهر في صفحة المنتج وصفحة السياسات. لحد ما تكتب النص الحقيقي بيظهر نص مؤقت. شيل علامة مؤقت بعد الكتابة.","These texts appear on product pages and the policies page. Until you write the real text a placeholder shows. Untick Placeholder once done."],
  fields:[{k:"k",l:["النوع","Type"],t:"ro"},{k:"title_ar",l:["العنوان عربي","Title AR"]},{k:"title_en",l:["العنوان إنجليزي","Title EN"]},{k:"body_ar",l:["النص عربي","Text AR"],t:"area"},{k:"body_en",l:["النص إنجليزي","Text EN"],t:"area"},{k:"is_placeholder",l:["مؤقت","Placeholder"],t:"bool"}]})};
+RENDER.sset=function(mn){CRUD(mn,{table:"store_settings",pk:"k",order:"k.asc",l:["إعدادات المتجر","Store settings"],h:["أيام الاسترجاع: عدد الأيام اللي العميل يقدر يرجع فيها المنتج بعد الاستلام. بتظهر في صفحة الاسترجاع للعميل. اكتب 0 لو عايز توقف الاسترجاع.","Return days: how many days after delivery a customer can return an item. It shows on the returns page. Enter 0 to turn returns off."],
+ fields:[{k:"k",l:["الإعداد (return_days = أيام الاسترجاع)","Setting (return_days = Return days)"],t:"ro"},{k:"value_int",l:["القيمة (0 = الاسترجاع متوقف)","Value (0 = returns off)"],t:"num"}]})};
 RENDER.ret=function(mn){CRUD(mn,{table:"return_requests",pk:"id",order:"created_at.desc",l:["طلبات الاسترجاع","Return requests"],h:["الطلبات اللي العميل بعتها من صفحة الاسترجاع. غيّر الحالة بعد المتابعة.","Requests customers sent from the returns page. Update the status as you follow up."],
  fields:[{k:"number",l:["#","#"],t:"ro"},{k:"order_number",l:["الطلب","Order"],t:"ro"},{k:"phone",l:["الموبايل","Phone"],t:"ro"},{k:"reason",l:["السبب","Reason"],t:"ro"},{k:"notes",l:["ملاحظات","Notes"],t:"ro"},{k:"status",l:["الحالة","Status"],t:"sel",o:[["new","جديد / New"],["approved","موافق / Approved"],["received","تم الاستلام / Received"],["refunded","تم الرد / Refunded"],["rejected","مرفوض / Rejected"]]},{k:"created_at",l:["التاريخ","Date"],t:"ro"}]})};
 RENDER.vari=function(mn){CRUD(mn,{table:"product_variants",pk:"id",order:"created_at.desc",add:1,del:1,l:["خيارات المنتجات","Product variants"],h:["كل خيار (مثلًا الذاكرة أو اللون) له سعر ومخزون خاص. المنتج من غير خيارات بيتباع كمنتج واحد. الخيارات بصيغة JSON مثل {\"color\":\"Black\"}.","Each variant (for example memory or colour) has its own price and stock. A product with no variants sells as one item. Options are JSON like {\"color\":\"Black\"}."],

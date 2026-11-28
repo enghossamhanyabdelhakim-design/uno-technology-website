@@ -31,6 +31,7 @@ var H={
  store_order_create:function(a){return call("store_order_create",{p:a})},
  store_order_track:function(a){return call("store_order_track",{a:a})},
  store_return_request:function(a){return call("store_return_request",{a:a})},
+ store_return_days:function(){return call("store_return_days",{})},
  store_meta:function(){return call("store_meta",{})},
  ads_get:function(a){return call("ads_get",{p_slot:a.slot,p_lang:a.lang||"ar"})}
 };
