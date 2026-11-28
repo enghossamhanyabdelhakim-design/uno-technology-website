@@ -91,7 +91,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px 12px;
 @media(max-width:560px){.top .rb{display:none}.top{gap:8px}.top h1{font-size:14.5px;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}}
 h2,.card,td{overflow-wrap:anywhere}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/admin-orbit.css?v=20261129o4"><link rel="stylesheet" href="assets/admin-mobile.css?v=20261129m1"><script defer src="assets/admin-mobile.js?v=20261129m1"></script></head>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/admin-orbit.css?v=20261129o4"><link rel="stylesheet" href="assets/admin-mobile.css?v=20261129m2"><script defer src="assets/admin-mobile.js?v=20261129m2"></script></head>
 <body>
 <div class="app">
 <aside id="sb" aria-label="Navigation"><div class="sbh"><img src="assets/logo-tu.png" alt=""><b>Uno Admin</b><button class="col" id="col" type="button" aria-label="collapse"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button></div><nav id="nav"><div id="side"></div></nav><div class="sbf"><span class="r" id="who"></span><button class="dg sm" id="b-out" type="button">خروج / Logout</button></div></aside>
@@ -111,7 +111,7 @@ h2,.card,td{overflow-wrap:anywhere}
 function start(){document.getElementById("lg").style.display="none";
  CLOUD.load().then(function(r){try{localStorage.removeItem("uno_draft")}catch(e){}
   if(r&&r.data&&r.data.site){window.UNO=window.UNO_FILL(r.data,window.UNO)}
- }).catch(function(){}).then(function(){var x=document.createElement("script");x.src="assets/admin.js?v=20261128c";x.onload=function(){var y=document.createElement("script");y.src="assets/admin2.js?v=20261129acB";document.body.appendChild(y)};document.body.appendChild(x)})}
+ }).catch(function(){}).then(function(){var x=document.createElement("script");x.src="assets/admin.js?v=20261128c";x.onload=function(){var y=document.createElement("script");y.src="assets/admin2.js?v=20261129acC";document.body.appendChild(y)};document.body.appendChild(x)})}
 if(CLOUD.loggedIn()){CLOUD.check().then(start).catch(function(){CLOUD.logout()})}
 document.getElementById("lf").onsubmit=function(e){e.preventDefault();var le=document.getElementById("le");le.textContent="...";
  CLOUD.login(document.getElementById("em").value.trim(),document.getElementById("pw").value).then(start).catch(function(er){le.textContent="فشل الدخول / Login failed: "+er.message})}
