@@ -83,10 +83,11 @@ var MODS=[
  {id:"an_pc",g:"التحليلات / Analytics",p:"analytics",ic:"tag",l:"نقطة البيع والنقدية / POS and cash"},
  {id:"an_iv",g:"التحليلات / Analytics",p:"analytics",ic:"box",l:"المخزون / Inventory"},
  {id:"an_br",g:"التحليلات / Analytics",p:"analytics",ic:"users",l:"مقارنة الفروع / Branch comparison"},
- {id:"sw",g:"الإعدادات / Settings",p:"core",ic:"tag",l:"الخيارات المدفوعة / Paid options"}
+ {id:"sw",g:"الإعدادات / Settings",p:"core",ic:"tag",l:"الخيارات المدفوعة / Paid options"},
+ {id:"inbox",g:"العملاء / Customers",p:"chat",ic:"inbox",l:"صندوق الوارد الموحد / Unified inbox"}
 ];
 var GR={ov:"نظرة عامة / Overview",sl:"المبيعات / Sales",pu:"المشتريات / Purchases",iv:"المخزون / Inventory",ac:"الحسابات / Accounting",cr:"العملاء / CRM",rp:"التقارير / Reports",an:"التحليلات / Analytics",st:"المتجر الإلكتروني / Online store",wb:"الموقع / Website",se:"الإعدادات / Settings"};
-var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",an_ov:"an",an_sl:"an",an_pc:"an",an_iv:"an",an_br:"an",sw:"se",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",paym:"st",cpn:"st",pol:"st",sset:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",rmx:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
+var GM={dash:"ov",pos:"sl",sal:"sl",inv:"sl",pur:"pu",cin:"iv",cbr:"iv",cun:"iv",pay:"ac",tax:"ac",cpa:"cr",sup:"cr",req:"cr",ins:"rp",an_ov:"an",an_sl:"an",an_pc:"an",an_iv:"an",an_br:"an",sw:"se",inbox:"cr",prod:"st",cat:"st",ord:"st",rv:"st",vari:"st",attr:"st",ship:"st",paym:"st",cpn:"st",pol:"st",sset:"st",ret:"st",ads2:"wb",content:"wb",ptn:"wb",ads:"wb",kb:"wb",cset:"se",rmx:"se",cco:"se",cdoc:"se",users:"se",aud:"se",bk:"se",log:"se"},GO=Object.keys(GR);
 MODS.forEach(function(m,i){m.gk=GM[m.id]||"se";m.g=GR[m.gk];m.o=i});
 MODS.sort(function(a,b){return GO.indexOf(a.gk)-GO.indexOf(b.gk)||a.o-b.o});
 var GOPEN={};try{GOPEN=JSON.parse(localStorage.getItem("uno_gopen")||"{}")}catch(e){}
@@ -1183,5 +1184,35 @@ RENDER.ins=function(mn){
     if(on)uiConfirm(T("هذا الخيار قد يكلف مالًا عند الاستخدام ولن يعمل قبل إضافة المفتاح عبر رابط الخزنة. تشغيله؟","This option can cost money when used and does nothing until its key is added through a vault link. Turn it on?")).then(function(y){if(y)go()});else go()}});
   }).catch(function(e){mn.innerHTML='<p class="hint" style="padding:18px">'+esc(e.message)+"</p>"})}
   draw()};
+})();
+/* Unified inbox (phase 1). Replies need a staff click. Nothing is sent automatically. */
+(function(){
+ var T=function(a,e){return window.UNO_LANG==="en"?e:a};
+ var CH={web:T("الموقع","Website"),messenger:"Messenger",instagram:"Instagram",whatsapp:"WhatsApp"};
+ RENDER.inbox=function(mn){
+  var cur=null,flt={channel:"",status:"open"},agents=[];
+  function list(){
+   api("POST","rpc/inbox_list",{p_channel:flt.channel||null,p_status:flt.status||null,p_limit:80}).then(function(rows){
+    var h='<div class="an-bar"><label>'+T("القناة","Channel")+'<select id="ib-ch"><option value="">'+T("الكل","All")+"</option>"+Object.keys(CH).map(function(k){return '<option value="'+k+'"'+(flt.channel===k?" selected":"")+">"+esc(CH[k])+"</option>"}).join("")+'</select></label><label>'+T("الحالة","Status")+'<select id="ib-st"><option value="open"'+(flt.status==="open"?" selected":"")+">"+T("مفتوحة","Open")+'</option><option value="closed"'+(flt.status==="closed"?" selected":"")+">"+T("مغلقة","Closed")+'</option><option value=""'+(flt.status===""?" selected":"")+">"+T("الكل","All")+"</option></select></label></div>";
+    h+='<div class="ib-wrap"><div class="ib-list">'+(rows.length?rows.map(function(r){return '<button type="button" class="ib-it'+(cur===r.id?" on":"")+'" data-id="'+esc(r.id)+'"><b>'+esc(r.name||"-")+"</b> "+pill(CH[r.channel]||r.channel)+(r.unread>0?" "+pill(r.unread+"","o"):"")+'<br><small class="hint">'+esc(r.last_body||"")+"</small></button>"}).join(""):empty("لا محادثات","No conversations"))+'</div><div class="ib-th" id="ib-th">'+(cur?"":'<p class="hint" style="padding:18px">'+T("اختر محادثة.","Pick a conversation.")+"</p>")+"</div></div>";
+    h+='<p class="hint" style="margin-top:12px">'+T("لا يُرسل شيء إلا بضغطة موظف. قنوات Messenger وInstagram وWhatsApp مغلقة حتى تُضاف مفاتيحها عبر رابط الخزنة.","Nothing is sent unless a staff member clicks send. Messenger, Instagram and WhatsApp stay off until their keys are added through a vault link.")+"</p>";
+    mn.innerHTML=h;
+    $("#ib-ch").onchange=function(){flt.channel=this.value;list()};$("#ib-st").onchange=function(){flt.status=this.value;list()};
+    [].forEach.call(mn.querySelectorAll(".ib-it"),function(b){b.onclick=function(){cur=b.dataset.id;list()}});
+    if(cur)thread();
+   }).catch(function(e){mn.innerHTML='<p class="hint" style="padding:18px">'+esc(e.message)+"</p>"})}
+  function thread(){
+   api("POST","rpc/inbox_thread",{p_chat:cur}).then(function(o){var c=o.chat,box=$("#ib-th");if(!box)return;
+    var h='<div class="ib-hd"><b>'+esc(c.name||"-")+"</b> "+pill(CH[c.channel]||c.channel)+(c.phone?' <small class="hint">'+esc(c.phone)+"</small>":"")+'<br><small class="hint">'+T("المسؤول","Assigned")+": "+esc(c.assigned_name||"-")+(c.window_expires_at?" · "+T("تنتهي نافذة الرد","Reply window ends")+": "+esc(dt(c.window_expires_at)):"")+"</small>";
+    if(c.can_reply)h+=' <select id="ib-as"><option value="">'+T("بدون مسؤول","Unassigned")+"</option>"+agents.map(function(a){return '<option value="'+esc(a.user_id)+'"'+(c.assigned_to===a.user_id?" selected":"")+">"+esc(a.name)+"</option>"}).join("")+"</select>";
+    h+='</div><div class="ib-ms">'+o.msgs.map(function(m){var out=m.direction==="out";return '<div class="ib-m'+(out?" out":"")+'"><small class="hint">'+esc(out?(m.name||T("الموظف","Staff")):(c.name||T("العميل","Customer")))+" · "+esc(dt(m.at))+(m.delivery_status?" · "+esc(m.delivery_status):"")+"</small><div>"+esc(m.body)+"</div></div>"}).join("")+"</div>";
+    if(c.can_reply&&c.window_open&&c.status==="open")h+='<div class="ib-rp"><textarea id="ib-tx" rows="2" maxlength="1000" placeholder="'+T("اكتب الرد","Write a reply")+'"></textarea><button class="btn" id="ib-sd" type="button">'+T("إرسال","Send")+"</button></div>";
+    else h+='<p class="hint">'+(!c.can_reply?T("ليس لديك صلاحية الرد على هذه القناة.","You cannot reply on this channel."):!c.window_open?T("انتهت نافذة الرد.","The reply window has ended."):T("المحادثة مغلقة.","This conversation is closed."))+"</p>";
+    box.innerHTML=h;var ms=box.querySelector(".ib-ms");if(ms)ms.scrollTop=ms.scrollHeight;
+    var as=$("#ib-as");if(as)as.onchange=function(){api("POST","rpc/inbox_assign",{p_chat:cur,p_user:as.value||null}).then(function(){status(T("تم ✓","Done ✓"));list()}).catch(function(e){status(e.message,1)})};
+    var sd=$("#ib-sd");if(sd)sd.onclick=function(){var v=$("#ib-tx").value.trim();if(!v)return;sd.disabled=true;api("POST","rpc/inbox_reply",{p_chat:cur,p_body:v}).then(function(){thread()}).catch(function(e){sd.disabled=false;status(e.message,1)})};
+   }).catch(function(e){var b=$("#ib-th");if(b)b.innerHTML='<p class="hint" style="padding:18px">'+esc(e.message)+"</p>"})}
+  api("POST","rpc/support_agents",{}).then(function(a){agents=a||[]}).catch(function(){}).then(list)};
+ var s=document.createElement("style");s.textContent=".ib-wrap{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:14px}.ib-list{display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:auto}.ib-it{text-align:start;border:1px solid var(--bd,#ddd);border-radius:10px;padding:8px 10px;background:transparent;color:inherit;cursor:pointer;min-height:44px}.ib-it.on{border-color:#F65A00}.ib-th{border:1px solid var(--bd,#ddd);border-radius:12px;padding:10px;min-height:200px}.ib-ms{max-height:44vh;overflow:auto;display:flex;flex-direction:column;gap:8px;margin:10px 0}.ib-m{max-width:80%;padding:6px 10px;border-radius:10px;background:rgba(127,127,127,.12)}.ib-m.out{align-self:flex-end;background:rgba(246,90,0,.16)}.ib-rp{display:flex;gap:8px}.ib-rp textarea{flex:1}@media(max-width:700px){.ib-wrap{grid-template-columns:1fr}}";document.head.appendChild(s);
 })();
 })();
