@@ -22,7 +22,7 @@ var ROLES={owner:"المالك / Owner",admin:"مدير / Admin",store_manager:"
 var PERM={cashier:["pos"],owner:["audit","dashv","pos","users","log","content","store","orders","requests","core","chat"],admin:["audit","dashv","pos","log","content","store","orders","requests","core","chat"],store_manager:["dashv","store","orders"],content_editor:["dashv","content"],support:["dashv","orders","requests","chat"]};
 var ROLE=null,USER=null,MOD="",PH=window.matchMedia("(max-width:900px)");
 function can(p){return !p||(PERM[ROLE]||[]).indexOf(p)>-1}
-function api(method,path,body,prefer){return CLOUD.token().then(function(t){var h={apikey:C.key,Authorization:"Bearer "+t,"Content-Type":"application/json"};if(prefer)h.Prefer=prefer;return fetch(C.url+"/rest/v1/"+path,{method:method,headers:h,body:body?JSON.stringify(body):undefined}).then(function(r){return r.text().then(function(x){var d=null;try{d=x?JSON.parse(x):null}catch(e){d=x}if(!r.ok)throw new Error((d&&(d.message||d.msg))||r.status);return d})})})}
+function api(method,path,body,prefer){return CLOUD.token().then(function(t){var h={apikey:C.key,Authorization:"Bearer "+t,"Content-Type":"application/json"};if(prefer)h.Prefer=prefer;return fetch(C.url+"/rest/v1/"+path,{method:method,headers:h,body:body?JSON.stringify(body):undefined}).then(function(r){return r.text().then(function(x){var d=null;try{d=x?JSON.parse(x):null}catch(e){d=x}if(!r.ok){var em=String((d&&(d.message||d.msg))||r.status),er0=new Error(em),cm=/^([A-Z][A-Z_]{2,}):/.exec(em);er0.code=cm?cm[1]:"";throw er0}return d})})})}
 function fn(body){return CLOUD.token().then(function(t){return fetch(C.url+"/functions/v1/chat",{method:"POST",headers:{apikey:C.key,Authorization:"Bearer "+C.key,"Content-Type":"application/json","x-admin-token":t},body:JSON.stringify(body)}).then(function(r){return r.json()})})}
 function dt(x){try{return new Date(x).toLocaleString()}catch(e){return x||""}}
 function money(n){return (Math.round(Number(n||0)*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})+" "+(window.UNO_LANG==="en"?"EGP":"ج.م")}
@@ -991,6 +991,21 @@ RENDER.ins=function(mn){
  function rpc(n,p){return api("POST","rpc/"+n,{p:p})}
  function bigNum(id,color){return '<div id="'+id+'" dir="ltr" style="font-size:34px;font-weight:800;line-height:1.1;color:'+color+'"></div>'}
  /* ---------- split payment dialog ---------- */
+ var PT={n:0,until:0};
+ /* manager PIN: inline masked box inside the open dialog, 3 tries then a 30 s lock; the server also limits to 5 tries per 5 minutes */
+ function askPin(reason){return new Promise(function(res,rej){
+  var now=Date.now();if(PT.until>now){rej(new Error("مقفل مؤقتًا، حاول بعد "+Math.ceil((PT.until-now)/1000)+" ث / Locked, try again in "+Math.ceil((PT.until-now)/1000)+" s"));return}
+  var old=$("#pin-bx");if(old)old.remove();
+  var bx=document.createElement("div");bx.id="pin-bx";bx.style.cssText="margin-top:12px;padding:12px;border:2px solid var(--o);border-radius:14px";
+  bx.innerHTML='<b>'+bi("إذن المدير","Manager approval")+'</b><p class="hint">'+reason+'</p><input type="password" id="pin-i" inputmode="numeric" autocomplete="off" maxlength="8" dir="ltr" style="text-align:center;letter-spacing:8px;font-size:22px;width:100%"><p id="pin-e" class="dirty"></p><div class="tb"><button type="button" id="pin-ok">'+bi("تأكيد","Approve")+'</button><button type="button" id="pin-x" class="alt">'+bi("إلغاء","Cancel")+'</button></div>';
+  $("#dbx").appendChild(bx);var inp=$("#pin-i");try{inp.focus()}catch(e){}
+  function done(){var b=$("#pin-bx");if(b)b.remove()}
+  $("#pin-x").onclick=function(){done();rej({cancel:true})};
+  function go(){var pe=$("#pin-e"),v=inp.value.trim(),n2=Date.now();if(PT.until>n2){pe.textContent="مقفل مؤقتًا، حاول بعد "+Math.ceil((PT.until-n2)/1000)+" ث / Locked, try again in "+Math.ceil((PT.until-n2)/1000)+" s";return}
+   if(!v){pe.textContent="أدخل الرمز / Enter the PIN";return}
+   $("#pin-ok").disabled=true;
+   api("POST","rpc/verify_manager_pin",{p_pin:v}).then(function(r){if(!r||!r.token)throw new Error("رمز المدير غير صحيح / Wrong manager PIN");PT.n=0;done();res(r.token)}).catch(function(e){var b=$("#pin-ok");if(b)b.disabled=false;inp.value="";if(/محاولات كثيرة/.test(e.message||"")){PT.until=Date.now()+30000;pe.textContent=e.message;return}PT.n++;if(PT.n>=3){PT.n=0;PT.until=Date.now()+30000;pe.textContent="3 محاولات خاطئة. مقفل 30 ثانية / 3 wrong tries. Locked for 30 s"}else pe.textContent=(e.message||"رمز المدير غير صحيح")+" ("+PT.n+"/3)"})}
+  $("#pin-ok").onclick=go;inp.onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();go()}}})}
  var IK=null;
  function ikey(sig){if(!IK||IK.sig!==sig)IK={sig:sig,key:uid()};return IK.key}
  function pay(o){
@@ -1017,17 +1032,20 @@ RENDER.ins=function(mn){
   $("#pm-ok").onclick=function(){if(busy)return;var er=$("#pm-er");er.textContent="";var pl=lines.filter(function(l){return Number(l.a)>0}).map(function(l){return{method:l.m,amount:Number(l.a)}});
    var due=Math.round((o.total-paid())*100)/100;
    if(!pl.length&&!(due>0.009&&cust)){er.textContent="أدخل مبلغ الدفع / Enter a payment amount";return}
-   if(due>0.009&&cust){var av=Math.max(0,Number(cust.credit_limit||0)-Number(cust.balance||0));if(due>av+0.009){er.textContent="المبلغ الآجل أكبر من الرصيد المتاح للعميل ("+f(av)+") / On-account amount exceeds available credit ("+f(av)+")";return}}
+   if(!o.cart.__n)o.cart.__n=uid();
+   var sig=JSON.stringify([o.cart.__n,o.cart.map(function(l){return[l.id,l.q,l.p]}),o.disc||0,o.wh||null,cust?cust.id:null]);
+   var pre=(due>0.009&&cust)?api("GET","core_partners?id=eq."+encodeURIComponent(cust.id)+"&select=credit_limit,balance").then(function(r){return r&&r[0]?r[0]:cust}).catch(function(){return cust}):Promise.resolve(null);
    busy=true;this.disabled=true;var btn=this;
-   var sig=JSON.stringify([o.cart.map(function(l){return[l.id,l.q,l.p]}),o.disc||0,o.wh||null,cust?cust.id:null,pl]);key=ikey(sig);
    function send(tok){var body={idem:key,customer_id:cust?cust.id:null,customer_name:cust?cust.name:(o.name||null),customer_phone:cust?cust.phone:null,discount:o.disc||0,device_id:(navigator.userAgent||"").slice(0,60),
     items:o.cart.map(function(l){return{product_id:l.id,warehouse_id:o.wh||null,description:l.n,qty:l.q,unit_price:l.p}}),payments:pl};if(tok)body.manager_token=tok;return rpc("pos_sale",body)}
-   send(null).catch(function(e){
-    if(/DISC_CAP/.test(e.message||"")){var pin=window.prompt("الخصم أكبر من الحد المسموح. أدخل رقم المدير السري / Discount above the limit. Enter the manager PIN");if(!pin)throw e;return api("POST","rpc/verify_manager_pin",{p_pin:String(pin).trim()}).then(function(r){if(!r||!r.token)throw new Error("رقم المدير غير صحيح / Wrong manager PIN");return send(r.token)})}
+   pre.then(function(fc){if(fc){var lim=Number(fc.credit_limit);if(!(lim>0))throw new Error("هذا العميل ليس له حد ائتمان، لا يمكن البيع الآجل له / This customer has no credit limit, so on-account sales are not allowed");var av=Math.max(0,lim-Number(fc.balance||0));if(due>av+0.009)throw new Error("المبلغ الآجل أكبر من الرصيد المتاح للعميل ("+f(av)+") / On-account amount exceeds available credit ("+f(av)+")")}key=ikey(sig);return key})
+   .then(function(){return send(null)}).catch(function(e){
+    if(e&&(e.code==="DISC_CAP"||/DISC_CAP/.test(e.message||""))){return askPin("الخصم أكبر من الحد المسموح، يلزم إذن المدير / Discount is above the limit, manager approval needed").then(function(t){return send(t)},function(x){throw x&&x.cancel?e:x})}
     throw e})
-   .then(function(r){IK=null;closeDlg();o.done(r,{lines:pl,change:r.change})}).catch(function(e){busy=false;btn.disabled=false;er.textContent=String(e.message||e).replace(/^DISC_CAP:\s*/,"")})};
+   .then(function(r){IK=null;try{delete o.cart.__n}catch(e){}closeDlg();o.done(r,{lines:pl,change:r.change})}).catch(function(e){busy=false;btn.disabled=false;er.textContent=String(e.message||e).replace(/^[A-Z][A-Z_]{2,}:\s*/,"")})};
  }
  /* ---------- returns ---------- */
+ function retRpc(body){return rpc("pos_return",body).catch(function(e){if(e&&(e.code==="FULL_RETURN"||e.code==="WINDOW"||/FULL_RETURN|WINDOW/.test(e.message||""))){return askPin("هذا المرتجع يحتاج إذن المدير / This return needs manager approval").then(function(t){body.manager_token=t;return rpc("pos_return",body)},function(x){throw x&&x.cancel?e:x})}throw e})}
  var REASONS={defect:"عيب صنف / Defect",wrong_item:"خطأ صنف / Wrong item",change_mind:"تغيير رأي / Changed mind",expired:"انتهاء صلاحية / Expired",wrong_price:"خطأ سعر / Wrong price"};
  function returns(mn,reload){
   openDlg('<h2>'+bi("مرتجع","Return")+'</h2><label class="f"><span>'+bi("رقم الفاتورة","Invoice number")+'</span><input type="text" id="rt-n" placeholder="INV-00001" dir="ltr"></label><div class="tb"><button type="button" id="rt-f">'+bi("بحث","Find")+'</button><button type="button" id="rt-x" class="alt">'+bi("إغلاق","Close")+'</button></div><p id="rt-er" class="dirty"></p><div id="rt-b"></div>');
@@ -1044,7 +1062,7 @@ RENDER.ins=function(mn){
     var armed=false,key=uid();$("#rt-go").onclick=function(){var er=$("#rt-er");er.textContent="";var lines=[];[].forEach.call($("#rt-b").querySelectorAll("[data-l]"),function(e){var q=parseFloat(e.value)||0;if(q>0)lines.push({line_id:e.dataset.l,qty:q,restock:$("#rt-b").querySelector('[data-s="'+e.dataset.l+'"]').value})});
      if(!lines.length){er.textContent="اختر كمية / Choose a quantity";return}
      if(!armed){armed=true;this.textContent="تأكيد؟ / Confirm?";setTimeout(function(){armed=false;var b=$("#rt-go");if(b)b.innerHTML=bi("تنفيذ المرتجع (اضغط مرتين)","Process return (tap twice)")},4000);return}
-     var b=this;b.disabled=true;rpc("pos_return",{idem:key,doc_id:d.id,reason:$("#rt-r").value,refund_method:$("#rt-m").value,lines:lines}).then(function(r){openDlg('<h2>'+bi("تم المرتجع","Return done")+'</h2><table><tbody><tr><td>'+bi("رقم","Number")+'</td><td dir="ltr">'+esc(r.number)+'</td></tr><tr><td>'+bi("القيمة","Total")+'</td><td dir="ltr">'+f(r.total)+'</td></tr><tr><td>'+bi("نقدي من الدرج","Cash from drawer")+'</td><td dir="ltr">'+f(r.refund_cash)+'</td></tr><tr><td>'+bi("رصيد للعميل","Customer credit")+'</td><td dir="ltr">'+f(r.credit_note)+'</td></tr></tbody></table><div class="tb"><button type="button" id="rt-d">OK</button></div>');$("#rt-d").onclick=function(){closeDlg();reload()}}).catch(function(e){b.disabled=false;er.textContent=e.message})}})
+     var b=this;b.disabled=true;retRpc({idem:key,doc_id:d.id,reason:$("#rt-r").value,refund_method:$("#rt-m").value,lines:lines}).then(function(r){openDlg('<h2>'+bi("تم المرتجع","Return done")+'</h2><table><tbody><tr><td>'+bi("رقم","Number")+'</td><td dir="ltr">'+esc(r.number)+'</td></tr><tr><td>'+bi("القيمة","Total")+'</td><td dir="ltr">'+f(r.total)+'</td></tr><tr><td>'+bi("نقدي من الدرج","Cash from drawer")+'</td><td dir="ltr">'+f(r.refund_cash)+'</td></tr><tr><td>'+bi("رصيد للعميل","Customer credit")+'</td><td dir="ltr">'+f(r.credit_note)+'</td></tr></tbody></table><div class="tb"><button type="button" id="rt-d">OK</button></div>');$("#rt-d").onclick=function(){closeDlg();reload()}}).catch(function(e){b.disabled=false;er.textContent=e.message})}})
    .catch(function(e){$("#rt-er").textContent=e.message})}};
  /* ---------- drawer moves ---------- */
  var MV={pay_in:"إيداع / Pay in",pay_out:"سحب / Pay out",expense:"مصروف / Expense",safe_drop:"توريد للخزنة / Safe drop"};
