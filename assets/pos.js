@@ -1180,7 +1180,7 @@ function seedDemo() {
     shift_id: 'sh-1041', device_id: CFG.deviceId, cashier_id: 'u-cashier',
     customer_id: 'c1', customer_name: 'أحمد محمود',
     lines, subtotal, invoice_discount: invDisc, total,
-    tax: round(total - total / 1.14),
+    tax: round(total - total / (1 + CFG.taxRate)),
     payments: [{ method: 'cash', amount: total }],
     tendered_total: 20000, paid_total: total, change_due: 20000 - total, credit_amount: 0,
     note: null, status: 'paid', idempotency_key: 'seed-1039', returned_total: 0
@@ -1494,7 +1494,7 @@ function printReceipt() {
     try { window.print(); } catch (e) { toast(T('الطباعة مش متاحة دلوقتي. الفاتورة اتحفظت.', 'Printing is unavailable. The invoice is saved.'), 'bad'); }
   } else {
     const w = window.open('', '_blank', 'width=380,height=700');
-    if (!w) return;
+    if (!w) { toast(T('المتصفح منع نافذة الطباعة. اسمح بالنوافذ المنبثقة أو اضغط إعادة الطباعة. الفاتورة اتحفظت.', 'The browser blocked the print window. Allow pop-ups or reprint. The invoice is saved.'), 'bad'); return; }
     w.document.write(`<html><head><title>${inv.number}</title><style>
       body{margin:0;font-family:sans-serif}
       .receipt-wrap{width:80mm;padding:4mm;font-size:11px;color:#000;background:#fff}

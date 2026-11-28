@@ -59,7 +59,7 @@
         return { product_id: l.product_id || ('line-' + l.id), line_id: l.id, name_ar: l.description, name_en: l.description, mono: (l.description || '?').charAt(0),
           qty: m ? Math.round(q * 1000) : q, qty_kind: m ? 'weight' : 'unit', unit_price: up, unit_ar: m ? pp.unitAr : 'قطعة', unit_en: m ? pp.unitEn : 'pc', discount: 0, amount: Math.round(up * q) };
       }),
-      subtotal: sub, invoice_discount: P(d.discount), total: tot, tax: Math.round(tot - tot / 1.14),
+      subtotal: sub, invoice_discount: P(d.discount), total: tot, tax: (function(){var C=(typeof CFG!=='undefined'&&CFG)?CFG:null,r=C&&typeof C.taxRate==='number'?C.taxRate:0.14;return C&&C.taxInclusive===false?Math.round(tot*r):Math.round(tot-tot/(1+r))})(),
       payments: pays.filter(function (p) { return p.doc_id === d.id; }).map(function (p) { return { method: p.method, amount: P(p.amount) }; }),
       tendered_total: tot, paid_total: P(d.paid_total), change_due: P(d.change_due), credit_amount: credit,
       note: null, status: status, idempotency_key: d.idem_key, returned_total: ret
