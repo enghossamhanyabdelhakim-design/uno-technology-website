@@ -991,8 +991,10 @@ RENDER.ins=function(mn){
  function rpc(n,p){return api("POST","rpc/"+n,{p:p})}
  function bigNum(id,color){return '<div id="'+id+'" dir="ltr" style="font-size:34px;font-weight:800;line-height:1.1;color:'+color+'"></div>'}
  /* ---------- split payment dialog ---------- */
+ var IK=null;
+ function ikey(sig){if(!IK||IK.sig!==sig)IK={sig:sig,key:uid()};return IK.key}
  function pay(o){
-  var key=uid(),lines=[{m:"cash",a:o.total}],cust=null,busy=false;
+  var key=null,lines=[{m:"cash",a:o.total}],cust=null,busy=false;
   function paid(){var s=0;lines.forEach(function(l){s+=Number(l.a)||0});return s}
   function html(){return '<h2>'+bi("الدفع","Payment")+'</h2><div style="display:flex;justify-content:space-between;align-items:baseline"><span class="hint">'+bi("الإجمالي","Total")+'</span><b dir="ltr" style="font-size:22px">'+f(o.total)+'</b></div>'
    +'<div id="pm-l"></div><div class="tb" style="margin:6px 0"><button type="button" id="pm-add" class="alt" style="width:auto">+ '+bi("تقسيم","Split")+'</button></div>'
@@ -1015,10 +1017,15 @@ RENDER.ins=function(mn){
   $("#pm-ok").onclick=function(){if(busy)return;var er=$("#pm-er");er.textContent="";var pl=lines.filter(function(l){return Number(l.a)>0}).map(function(l){return{method:l.m,amount:Number(l.a)}});
    var due=Math.round((o.total-paid())*100)/100;
    if(!pl.length&&!(due>0.009&&cust)){er.textContent="أدخل مبلغ الدفع / Enter a payment amount";return}
+   if(due>0.009&&cust){var av=Math.max(0,Number(cust.credit_limit||0)-Number(cust.balance||0));if(due>av+0.009){er.textContent="المبلغ الآجل أكبر من الرصيد المتاح للعميل ("+f(av)+") / On-account amount exceeds available credit ("+f(av)+")";return}}
    busy=true;this.disabled=true;var btn=this;
-   rpc("pos_sale",{idem:key,customer_id:cust?cust.id:null,customer_name:cust?cust.name:(o.name||null),customer_phone:cust?cust.phone:null,discount:o.disc||0,device_id:(navigator.userAgent||"").slice(0,60),
-    items:o.cart.map(function(l){return{product_id:l.id,warehouse_id:o.wh||null,description:l.n,qty:l.q,unit_price:l.p}}),payments:pl})
-   .then(function(r){closeDlg();o.done(r,{lines:pl,change:r.change})}).catch(function(e){busy=false;btn.disabled=false;er.textContent=e.message})};
+   var sig=JSON.stringify([o.cart.map(function(l){return[l.id,l.q,l.p]}),o.disc||0,o.wh||null,cust?cust.id:null,pl]);key=ikey(sig);
+   function send(tok){var body={idem:key,customer_id:cust?cust.id:null,customer_name:cust?cust.name:(o.name||null),customer_phone:cust?cust.phone:null,discount:o.disc||0,device_id:(navigator.userAgent||"").slice(0,60),
+    items:o.cart.map(function(l){return{product_id:l.id,warehouse_id:o.wh||null,description:l.n,qty:l.q,unit_price:l.p}}),payments:pl};if(tok)body.manager_token=tok;return rpc("pos_sale",body)}
+   send(null).catch(function(e){
+    if(/DISC_CAP/.test(e.message||"")){var pin=window.prompt("الخصم أكبر من الحد المسموح. أدخل رقم المدير السري / Discount above the limit. Enter the manager PIN");if(!pin)throw e;return api("POST","rpc/verify_manager_pin",{p_pin:String(pin).trim()}).then(function(r){if(!r||!r.token)throw new Error("رقم المدير غير صحيح / Wrong manager PIN");return send(r.token)})}
+    throw e})
+   .then(function(r){IK=null;closeDlg();o.done(r,{lines:pl,change:r.change})}).catch(function(e){busy=false;btn.disabled=false;er.textContent=String(e.message||e).replace(/^DISC_CAP:\s*/,"")})};
  }
  /* ---------- returns ---------- */
  var REASONS={defect:"عيب صنف / Defect",wrong_item:"خطأ صنف / Wrong item",change_mind:"تغيير رأي / Changed mind",expired:"انتهاء صلاحية / Expired",wrong_price:"خطأ سعر / Wrong price"};
