@@ -92,3 +92,27 @@
 .ud-fg{min-width:0;box-sizing:border-box;width:100%}.ud-pr2 input{width:50%;box-sizing:border-box}.ud-fh b{cursor:pointer}
 
 .us-qa .ud-ib{width:36px;height:36px}.us-qa .ud-ib:not(.on){background:var(--ud-s1,#1f1914)}.us-pslot .ud-ib{width:44px;height:44px;border:1px solid var(--ud-bd);box-shadow:none}.us-pslot{align-items:center}
+/* fallback page wrap when A's .us-wrap is absent (same values) */
+.ud-wrap{max-width:1280px;margin:0 auto;padding:16px}
+@media (max-width:640px){.ud-wrap{padding:12px}}
+/* gap-pack: home panel, scope rows, low stock, bought together */
+.ud-low{display:inline-block;background:rgba(246,90,0,.16);color:var(--ud-or2);border-radius:8px;padding:0 6px;font-size:11px;font-weight:700;margin-inline-start:6px}
+.ud-chpad{padding:2px 10px 10px}.ud-chpad small{color:var(--ud-mu)}
+.ud-scope{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ud-sc .ud-i{color:var(--ud-or2);flex:none}
+.ud-relc b{color:var(--ud-or2);font-size:12.5px;margin-inline-start:auto}
+.ud-mic{background:none;border:0;color:var(--ud-mu);cursor:pointer;padding:6px;border-radius:8px}
+.ud-mic.on{color:var(--ud-or);animation:udpulse 1.2s infinite}
+@keyframes udpulse{50%{opacity:.4}}
+.ud-table th[scope=row]{z-index:2}
+.ud-table th.ud-corner{position:sticky;inset-inline-start:0;z-index:3}
+.ud-off{display:inline-block;color:var(--ud-ok);font-size:12px;font-weight:700;background:rgba(47,191,113,.13);border-radius:8px;padding:0 6px;margin-inline-start:6px}
+.ud-thumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.ud-th{border:2px solid transparent;border-radius:10px;padding:0;background:none;cursor:pointer}
+.ud-th.on{border-color:var(--ud-or)}
+.ud-th img{width:52px;height:52px;border-radius:8px;display:block}
+.ud-qv-a .ud-qty{flex:0 0 auto}
+.ud-qty{display:flex;align-items:center;border:1px solid var(--ud-bd);border-radius:12px;overflow:hidden}
+.ud-qbtn{background:none;border:0;color:var(--ud-tx);font-size:16px;padding:0 12px;cursor:pointer;min-height:44px}
+.ud-qbtn:active{background:var(--ud-s2)}
+.ud-qn{min-width:26px;text-align:center;font-weight:700}
